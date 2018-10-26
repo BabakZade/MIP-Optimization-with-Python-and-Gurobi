@@ -13,6 +13,6 @@ namespace DataLayer
 		public int Hospitals;
 		public int TimePriods;
 		public int Interns;
-		public int Programs;
+		public int TrainingPr;
 	}
 }
