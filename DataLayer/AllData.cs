@@ -14,5 +14,10 @@ namespace DataLayer
 		public TrainingProgramInfo[] TrainingPr;
 		public AlgorithmSettings AlgSettings;
 		public InstanceSetting InsSetting;
+
+		public int[] PrDisc_i;
+		public int[] PrHosp_i;
+		public int[] PrChan_i;
+		public int[] PrWait_i;
 	}
 }

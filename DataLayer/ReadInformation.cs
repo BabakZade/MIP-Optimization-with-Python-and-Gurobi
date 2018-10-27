@@ -327,5 +327,30 @@ namespace DataLayer
 			data.AlgSettings.RCepsi = Convert.ToDouble(line.Substring(0, indexN));
 			tw.Close();
 		}
+
+		public void NormalizeData()
+		{
+			data.PrChan_i = new int[data.General.Interns];
+			data.PrHosp_i = new int[data.General.Interns];
+			data.PrWait_i = new int[data.General.Interns];
+			data.PrDisc_i = new int[data.General.Interns];
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				data.PrChan_i[i] = data.TrainingPr[data.Intern[i].ProgramID].ArbitraryD + data.TrainingPr[data.Intern[i].ProgramID].MandatoryD;
+				data.PrHosp_i[i] = 0;
+				data.PrWait_i[i] = 0;
+				data.PrDisc_i[i] = data.General.TimePriods;
+				for (int h = 0; h < data.General.Hospitals; h++)
+				{
+					data.PrHosp_i[i] += data.Intern[i].Prf_h[h];
+				}
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					data.PrDisc_i[i] += data.Intern[i].Prf_d[d];
+				}
+			}
+
+
+		}
 	}
 }
