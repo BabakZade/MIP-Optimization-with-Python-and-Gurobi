@@ -31,6 +31,15 @@ namespace GeneralMIPAlgorithm
 		public int Timepriods;
 		public int TrainingPr;
 
+		public MedicalTraineeSchedulingMIP(AllData InputData, string Path, string InsName)
+		{
+			data = InputData;
+			Initial();
+			InitialMIPVar();
+			CreateModel();
+			solve_MIPmodel(Path, InsName);
+		}
+
 		public void Initial() {
 
 			Interns = data.General.Interns;
@@ -44,17 +53,17 @@ namespace GeneralMIPAlgorithm
 		public void InitialMIPVar() {
 
 			MIPModel = new Cplex();
-			Y_idDh = new string[data.General.Interns][][][];
-			for (int i = 0; i < data.General.Interns; i++)
+			Y_idDh = new string[Interns][][][];
+			for (int i = 0; i < Interns; i++)
 			{
-				Y_idDh[i] = new string[data.General.Disciplines][][];
-				for (int d = 0; d < data.General.Disciplines ; d++)
+				Y_idDh[i] = new string[Disciplins][][];
+				for (int d = 0; d < Disciplins ; d++)
 				{
-					Y_idDh[i][d] = new string[data.General.Disciplines][];
-					for (int dd = 0; dd < data.General.Disciplines ; dd++)
+					Y_idDh[i][d] = new string[Disciplins][];
+					for (int dd = 0; dd < Disciplins ; dd++)
 					{
-						Y_idDh[i][d][dd] = new string[data.General.Hospitals];
-						for (int h = 0; h < data.General.Hospitals; h++)
+						Y_idDh[i][d][dd] = new string[Hospitals];
+						for (int h = 0; h < Hospitals; h++)
 						{
 							Y_idDh[i][d][dd][h] = "Y_idDh[" + i + "][" + d + "][" + dd + "][" + h + "]";
 						}
@@ -63,18 +72,18 @@ namespace GeneralMIPAlgorithm
 			}
 
 
-			y_idDh = new IIntVar[data.General.Interns][][][];
-			for (int i = 0; i < data.General.Interns; i++)
+			y_idDh = new IIntVar[Interns][][][];
+			for (int i = 0; i < Interns; i++)
 			{
 				// discipline + 1 for dummy d = 0 is dummy
-				y_idDh[i] = new IIntVar[data.General.Disciplines][][];
-				for (int d = 0; d < data.General.Disciplines; d++)
+				y_idDh[i] = new IIntVar[Disciplins][][];
+				for (int d = 0; d < Disciplins; d++)
 				{
-					y_idDh[i][d] = new IIntVar[data.General.Disciplines][];
-					for (int dd = 0; dd < data.General.Disciplines; dd++)
+					y_idDh[i][d] = new IIntVar[Disciplins][];
+					for (int dd = 0; dd < Disciplins; dd++)
 					{
-						y_idDh[i][d][dd] = new IIntVar[data.General.Hospitals];
-						for (int h = 0; h < data.General.Hospitals; h++)
+						y_idDh[i][d][dd] = new IIntVar[Hospitals];
+						for (int h = 0; h < Hospitals; h++)
 						{
 							y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 1, Y_idDh[i][d][dd][h]);
 							if (dd == 0 || dd == d)
@@ -180,12 +189,12 @@ namespace GeneralMIPAlgorithm
 			double Max = 0;
 			for (int i = 0; i < Interns; i++)
 			{
-				des_i[i] = MIPModel.NumVar( - data.Intern[i].wieght_ch
-					 - data.Intern[i].wieght_w,
-					+data.Intern[i].wieght_d
-					+data.Intern[i].wieght_h , Des_i[i]);
-				double xx = data.Intern[i].wieght_ch
-					+ data.Intern[i].wieght_w
+				des_i[i] = MIPModel.NumVar(data.Intern[i].wieght_ch
+					+ data.Intern[i].wieght_w,
+					+ data.Intern[i].wieght_d
+					+ data.Intern[i].wieght_h, Des_i[i]);
+				double xx = - data.Intern[i].wieght_ch
+					- data.Intern[i].wieght_w
 					+ data.Intern[i].wieght_d
 					+ data.Intern[i].wieght_h;
 				if (Max < xx)
@@ -199,9 +208,10 @@ namespace GeneralMIPAlgorithm
 		public void CreateModel()
 		{
 			// objective function
+
 			MIPModel.AddMaximize(desmax);
 
-			//Mandatory discipline 
+			// Mandatory discipline 
 			for (int i = 0; i < Interns; i++)
 			{
 				for (int d = 1; d < Disciplins; d++)
@@ -216,7 +226,7 @@ namespace GeneralMIPAlgorithm
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									mandatory.AddTerm(y_idDh[i][d][dd][h],1);
+									mandatory.AddTerm(y_idDh[i][dd][d][h],1);
 								}
 							}
 							MIPModel.AddEq(mandatory, (data.Intern[i].Abi_d[d - 1] ? 1 : 0), "Mandatory_" + i + "_" + d);
@@ -225,7 +235,7 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
-			//Arbitrary discipline 
+			// Arbitrary discipline 
 			for (int i = 0; i < Interns; i++)
 			{
 				for (int d = 1; d < Disciplins; d++)
@@ -240,10 +250,10 @@ namespace GeneralMIPAlgorithm
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									arbitrary.AddTerm(y_idDh[i][d][dd][h], 1);
+									arbitrary.AddTerm(y_idDh[i][dd][d][h], 1);
 								}
 							}
-							MIPModel.AddLe(arbitrary, (data.Intern[i].Abi_d[d - 1] ? 1 : 0), "Arbitray" +
+							MIPModel.AddLe(arbitrary, (data.Intern[i].Abi_d[d - 1] ? 1 : 0), "Arbitrary" +
 								"_" + i + "_" + d);
 						}
 					}
@@ -264,7 +274,7 @@ namespace GeneralMIPAlgorithm
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									allDisc.AddTerm(y_idDh[i][d][dd][h],1);
+									allDisc.AddTerm(y_idDh[i][dd][d][h],1);
 								}
 							}
 						}
@@ -274,7 +284,7 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
-			//dummy discipline 
+			// dummy discipline 
 			for (int i = 0; i < Interns; i++)
 			{
 				ILinearNumExpr dummy = MIPModel.LinearNumExpr();
@@ -307,7 +317,7 @@ namespace GeneralMIPAlgorithm
 									{
 										for (int h = 0; h < Hospitals; h++)
 										{
-											starttime.AddTerm(y_idDh[i][d][dd][h],-Timepriods);
+											starttime.AddTerm(y_idDh[i][dd][d][h],-Timepriods);
 											starttime.AddTerm(s_idth[i][d][t][h],t);
 											starttime.AddTerm(s_idth[i][dd][t][h],-t);
 										}
@@ -339,14 +349,14 @@ namespace GeneralMIPAlgorithm
 
 						for (int p = 0; p < TrainingPr; p++)
 						{
-							if (data.Intern[i].ProgramID == p && data.TrainingPr[p].Program_d[d])
+							if (data.Intern[i].ProgramID == p && data.TrainingPr[p].Program_d[d-1])
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									avail.AddTerm(s_idth[i][d][t][h],data.Discipline[d].Duration_p[p]);
+									avail.AddTerm(s_idth[i][d][t][h],data.Discipline[d-1].Duration_p[p]);
 								}
 								int rhs = 0;
-								for (int tt = t; tt < t+ data.Discipline[d].Duration_p[p] && tt < Timepriods; tt++)
+								for (int tt = t; tt < t+ data.Discipline[d-1].Duration_p[p] && tt < Timepriods; tt++)
 								{
 									rhs += data.Intern[i].Ave_t[tt] ? 1 : 0;
 								}
@@ -373,10 +383,11 @@ namespace GeneralMIPAlgorithm
 								{
 									minDem.AddTerm(s_idth[i][d][tt][h], 1);
 								}
-								for (int tt = 0; tt < t - data.Discipline[d].Duration_p[p] ; tt++)
+								for (int tt = 0; tt < t - data.Discipline[d-1].Duration_p[p] ; tt++)
 								{
 									minDem.AddTerm(s_idth[i][d][tt][h], -1);
 								}
+								minDem.AddTerm(s_idth[i][d][t][h], 1);
 							}
 							
 						}
@@ -401,10 +412,11 @@ namespace GeneralMIPAlgorithm
 								{
 									maxDem.AddTerm(s_idth[i][d][tt][h], 1);
 								}
-								for (int tt = 0; tt < t - data.Discipline[d].Duration_p[p]; tt++)
+								for (int tt = 0; tt < t - data.Discipline[d-1].Duration_p[p]; tt++)
 								{
 									maxDem.AddTerm(s_idth[i][d][tt][h], -1);
 								}
+								maxDem.AddTerm(s_idth[i][d][t][h], 1);
 							}
 
 						}
@@ -430,7 +442,7 @@ namespace GeneralMIPAlgorithm
 									skill.AddTerm(s_idth[i][d][t][h],t);
 									for (int dd = 1; dd < Disciplins; dd++)
 									{
-										if (data.Discipline[d].Skill4D_dp[dd-1][p] && data.TrainingPr[p].Program_d[dd - 1])
+										if (data.Discipline[d-1].Skill4D_dp[dd-1][p] && data.TrainingPr[p].Program_d[dd - 1])
 										{
 											skill.AddTerm(s_idth[i][dd][t][h],-t);
 										}
@@ -444,7 +456,7 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
-			//change 
+			// change 
 			for (int i = 0; i < Interns; i++)
 			{
 				for (int d = 1; d < Disciplins; d++)
@@ -459,7 +471,7 @@ namespace GeneralMIPAlgorithm
 								if (data.Intern[i].ProgramID == p && data.TrainingPr[p].Program_d[d - 1])
 								{
 									change.AddTerm(ch_id[i][d],1);
-									change.AddTerm(y_idDh[i][d][dd][h], 1);
+									change.AddTerm(y_idDh[i][dd][d][h], -1);
 									for (int ddd = 0; ddd < Disciplins; ddd++)
 									{
 										change.AddTerm(y_idDh[i][d][ddd][h],1);
@@ -505,7 +517,7 @@ namespace GeneralMIPAlgorithm
 				MIPModel.AddLe(internDes, 0, "Des_" + i);
 			}
 
-			//des Max
+			// desire  Max
 			for (int i = 0; i < Interns; i++)
 			{
 				ILinearNumExpr demax = MIPModel.LinearNumExpr();
@@ -513,7 +525,50 @@ namespace GeneralMIPAlgorithm
 				demax.AddTerm(des_i[i],-1);
 				MIPModel.AddLe(demax, 0, "DesMax");
 			}
-			
+
+
+
+
+		}
+
+		public void solve_MIPmodel(string Path, string InsName)
+		{
+			//*************set program
+			MIPModel.ExportModel(Path+InsName+"MIPModel.lp");
+			MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
+			MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
+			MIPModel.SetParam(Cplex.IntParam.Threads, 3);
+			MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.MIPTime);
+			MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
+			try
+			{
+				OptimalSolution mipOpt = new OptimalSolution(data);
+				if (MIPModel.Solve())
+				{
+					for (int i = 0; i < Interns; i++)
+					{
+						for (int t = 0; t < Timepriods; t++)
+						{
+							for (int d = 1; d < Disciplins; d++)
+							{
+								for (int h = 0; h < Hospitals; h++)
+								{
+									if (MIPModel.GetValue(s_idth[i][d][t][h]) > 1 - 0.5)
+									{
+										mipOpt.Intern_itdh[i][t][d-1][h] = true;
+									}
+								}
+							}
+						}
+					}
+				}
+				mipOpt.WriteSolution( Path, InsName,data);
+				MIPModel.End();
+			}
+			catch (ILOG.Concert.Exception e)
+			{
+				System.Console.WriteLine("Concert exception '" + e + "' caught");
+			}
 		}
 	}
 }

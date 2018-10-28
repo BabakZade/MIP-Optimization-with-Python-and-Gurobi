@@ -12,6 +12,7 @@ namespace DataLayer
 		public ReadInformation(string path)
 		{
 			ReadInstances(path);
+			NormalizeData();
 		}
 		/// <summary>
 		/// this function creates the instances and writes it in the given location

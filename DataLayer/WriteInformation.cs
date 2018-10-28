@@ -22,10 +22,10 @@ namespace DataLayer
 
 			// general Info
 			GeneralInfo tmpGeneral = new GeneralInfo();
-			tmpGeneral.Disciplines = random_.Next(5, 11);
-			tmpGeneral.Hospitals = random_.Next(3, 6);
-			tmpGeneral.Interns = random_.Next(10, 20);
-			tmpGeneral.TrainingPr = random_.Next(1, 3);
+			tmpGeneral.Disciplines = random_.Next(3, 5);
+			tmpGeneral.Hospitals = random_.Next(1, 3);
+			tmpGeneral.Interns = random_.Next(3, 4);
+			tmpGeneral.TrainingPr = random_.Next(1, 2);
 			//time period 
 			// 12 => 4week
 			// 24 => 2week
@@ -49,8 +49,8 @@ namespace DataLayer
 			for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 			{
 				tmpTrainingPr[p] = new TrainingProgramInfo(tmpGeneral.Disciplines);
-				tmpTrainingPr[p].MandatoryD = random_.Next(2, 5);
-				tmpTrainingPr[p].ArbitraryD = random_.Next(2, 5);
+				tmpTrainingPr[p].MandatoryD = random_.Next(1, tmpGeneral.Disciplines);
+				tmpTrainingPr[p].ArbitraryD = random_.Next(0, tmpGeneral.Disciplines - tmpTrainingPr[p].MandatoryD + 1);
 
 				// assign the disciplines
 				int maxdisp = Math.Min(tmpTrainingPr[p].MandatoryD + 2 * tmpTrainingPr[p].ArbitraryD, tmpGeneral.Disciplines);
@@ -139,22 +139,33 @@ namespace DataLayer
 				{
 					tmphospitalInfos[h].Hospital_d[d] = random_.Next(0, 3) > 0;
 				}
-				for (int t = 0; t < tmpGeneral.TimePriods; t++)
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
 				{
-					for (int d = 0; d < tmpGeneral.Disciplines; d++)
+					if (tmphospitalInfos[h].Hospital_d[d])
 					{
-						if (tmphospitalInfos[h].Hospital_d[d])
-						{
-							tmphospitalInfos[h].HospitalMinDem_td[t][d] = random_.Next(0, 3) > 1 ? 1 : 0;
-							tmphospitalInfos[h].HospitalMaxDem_td[t][d] = random_.Next(tmphospitalInfos[h].HospitalMinDem_td[t][d], 3);
-						}
-						else
+						int rate = tmpGeneral.Interns / tmpGeneral.Hospitals;
+						int min = random_.Next(0, 4) > 2 ? 1 : 0;
+						int max = random_.Next(1, rate+1);
+
+						for (int t = 0; t < tmpGeneral.TimePriods; t++)
 						{
 							tmphospitalInfos[h].HospitalMinDem_td[t][d] = 0;
-							tmphospitalInfos[h].HospitalMaxDem_td[t][d] = 0;
-						}						
+							tmphospitalInfos[h].HospitalMaxDem_td[t][d] = 3;
+						}
+						
 					}
-				}			
+					else
+					{
+						int min = 0;
+						int max = 0;
+						for (int t = 0; t < tmpGeneral.TimePriods; t++)
+						{
+							tmphospitalInfos[h].HospitalMinDem_td[t][d] = min;
+							tmphospitalInfos[h].HospitalMaxDem_td[t][d] = max;
+						}
+					}
+
+				}
 			}
 
 			strline = "// Involved discipline Hospital [h][d]";
@@ -247,16 +258,15 @@ namespace DataLayer
 			}
 			for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 			{
-				int totalLeft = tmpGeneral.TimePriods - tmpTrainingPr[p].MandatoryD + tmpTrainingPr[p].ArbitraryD;
+				double totalLeft = (double)tmpGeneral.TimePriods /( tmpTrainingPr[p].MandatoryD + tmpTrainingPr[p].ArbitraryD);
+
 				for (int ii = 0; ii < totalLeft; ii++)
 				{
-					int Dindex = random_.Next(0, tmpGeneral.Disciplines - 1);
-					if (tmpdisciplineInfos[Dindex].Duration_p[p] > 0)
+					for (int d = 0; d < tmpGeneral.Disciplines; d++)
 					{
-						tmpdisciplineInfos[Dindex].Duration_p[p]++;
-					}
+						tmpdisciplineInfos[d].Duration_p[p] += random_.Next(0,2);
+					}					
 				}
-
 			}
 			strline = "// Discipline duration different in Program [d][p]";
 			tw.WriteLine(strline);
@@ -304,7 +314,7 @@ namespace DataLayer
 				int totalTime = 0;
 				for (int d = 0; d < tmpGeneral.Disciplines; d++)
 				{
-					tmpinternInfos[i].Abi_d[d] = random_.Next(1, 3) > 1;
+					tmpinternInfos[i].Abi_d[d] = true;
 					tmpinternInfos[i].Prf_d[d] = random_.Next(1, 3);
 					totalTime += tmpdisciplineInfos[d].Duration_p[tmpinternInfos[i].ProgramID];
 				}
@@ -318,10 +328,10 @@ namespace DataLayer
 				{
 					tmpinternInfos[i].Prf_h[h] = random_.Next(1,3);
 				}
-				tmpinternInfos[i].wieght_ch = random_.Next(1,4);
+				tmpinternInfos[i].wieght_ch = -random_.Next(1,4);
 				tmpinternInfos[i].wieght_d = random_.Next(1, 4);
 				tmpinternInfos[i].wieght_h = random_.Next(1, 4);
-				tmpinternInfos[i].wieght_w = random_.Next(1, 4);
+				tmpinternInfos[i].wieght_w = -random_.Next(1, 4);
 				}
 			strline = "// InternName Program W_disc W_hosp W_change W_wait  [i][w]";
 			tw.WriteLine(strline);

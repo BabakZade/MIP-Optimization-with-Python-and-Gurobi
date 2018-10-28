@@ -49,6 +49,7 @@
     <Compile Include="HospitalInfo.cs" />
     <Compile Include="InstanceSetting.cs" />
     <Compile Include="InternInfo.cs" />
+    <Compile Include="OptimalSolution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadInformation.cs" />
     <Compile Include="TrainingProgramInfo.cs" />

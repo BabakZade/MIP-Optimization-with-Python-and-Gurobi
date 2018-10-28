@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BranchAndPriceAlgorithm\BranchAndPriceAlgorithm.csproj" />
     <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
+    <ProjectReference Include="..\GeneralMIPAlgorithm\GeneralMIPAlgorithm.csproj" />
+    <ProjectReference Include="..\NestedHungarianAlgorithm\NestedHungarianAlgorithm.csproj" />
   </ItemGroup>
 
 </Project>

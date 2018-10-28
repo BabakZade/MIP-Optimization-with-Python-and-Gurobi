@@ -9,7 +9,8 @@ namespace MedicalTraineeScheduling
 		{
 			Console.WriteLine("Hello World!");
 			//new DataLayer.WriteInformation("","inst.txt");
-			new DataLayer.ReadInformation("inst.txt");
+			
+			new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(new DataLayer.ReadInformation("inst.txt").data , "" , "inst");
 		}
 	}
 }

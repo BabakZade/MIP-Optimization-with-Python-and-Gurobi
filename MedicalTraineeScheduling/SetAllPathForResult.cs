@@ -9,7 +9,8 @@ namespace MedicalTraineeScheduling
 		string OutPutLocation;
 		string ExprimentLocation;
 		string CurrentDir;
-		public SetAllPathForResult(string ExprimentName)
+		string PathMIPResult;
+		public SetAllPathForResult(string ExprimentName,string InsName)
 		{
 			
 			CurrentDir = System.IO.Directory.GetCurrentDirectory();
@@ -23,6 +24,14 @@ namespace MedicalTraineeScheduling
 			{
 				Directory.CreateDirectory(ExprimentLocation);
 			}
+
+			PathMIPResult = CurrentDir + "\\MIPModel\\";
+			if (!Directory.Exists(PathMIPResult))
+			{
+				Directory.CreateDirectory(PathMIPResult);
+			}
+
 		}
+
 	}
 }
