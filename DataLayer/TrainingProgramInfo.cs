@@ -14,7 +14,8 @@ namespace DataLayer
 		public int MandatoryD;
 		public int ArbitraryD;
 		public bool[] PrManDis_d;
-
+		public bool[][] Alias_d_d;
+		public bool[][] Advance_d_d;
 		public TrainingProgramInfo(int Disciplins)
 		{
 			Name = "Program";
@@ -24,6 +25,8 @@ namespace DataLayer
 			MandatoryD = 0;
 			ArbitraryD = 0;
 			new ArrayInitializer().CreateArray(ref PrManDis_d, Disciplins, false);
+			new ArrayInitializer().CreateArray(ref Alias_d_d, Disciplins, Disciplins, false);
+			new ArrayInitializer().CreateArray(ref Advance_d_d, Disciplins, Disciplins, false);
 		}
 	}
 }

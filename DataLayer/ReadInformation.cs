@@ -105,9 +105,46 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
+			
 
-			tw.ReadLine();
+			for (int p = 0; p < data.General.TrainingPr; p++)
+			{
+				line = tw.ReadLine();
+				line = tw.ReadLine();
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int dd = 0; dd < data.General.Disciplines; dd++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.TrainingPr[p].Alias_d_d[d][dd] = int.Parse(line.Substring(0, indexN)) == 1;
+						line = line.Substring(indexN + 1);
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						
+					}
+					line = tw.ReadLine();
+				}
+			
+			}
 
+
+			for (int p = 0; p < data.General.TrainingPr; p++)
+			{
+				line = tw.ReadLine();
+				line = tw.ReadLine();
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int dd = 0; dd < data.General.Disciplines; dd++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.TrainingPr[p].Advance_d_d[d][dd] = int.Parse(line.Substring(0, indexN)) == 1;
+						line = line.Substring(indexN + 1);
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+					}
+					line = tw.ReadLine();
+				}
+
+			}
 			// Create and write Hospital Info 
 			data.Hospital = new HospitalInfo[data.General.Hospitals];
 			for (int h = 0; h < data.General.Hospitals; h++)
@@ -116,6 +153,7 @@ namespace DataLayer
 			}
 
 			
+			line = tw.ReadLine();
 			line = tw.ReadLine();
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
@@ -252,8 +290,20 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 
+			line = tw.ReadLine();
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+					data.Intern[i].Fulfilled_d[d] = int.Parse(line.Substring(0, indexN))==1;
+					line = line.Substring(indexN + 1);
+				}
+				line = tw.ReadLine();
+			}
+			line = tw.ReadLine();
 
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
@@ -337,17 +387,37 @@ namespace DataLayer
 			data.PrDisc_i = new int[data.General.Interns];
 			for (int i = 0; i < data.General.Interns; i++)
 			{
+				data.PrChan_i[i] = 1;
+				data.PrHosp_i[i] = 1;
+				data.PrWait_i[i] = 1;
+				data.PrDisc_i[i] = 1;
+
+				// if we need to normalize it 
 				data.PrChan_i[i] = data.TrainingPr[data.Intern[i].ProgramID].ArbitraryD + data.TrainingPr[data.Intern[i].ProgramID].MandatoryD;
 				data.PrHosp_i[i] = 0;
-				data.PrWait_i[i] = 0;
-				data.PrDisc_i[i] = data.General.TimePriods;
+				data.PrWait_i[i] = data.General.TimePriods;
+				data.PrDisc_i[i] = 0;
 				for (int h = 0; h < data.General.Hospitals; h++)
 				{
-					data.PrHosp_i[i] += data.Intern[i].Prf_h[h];
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						if (data.Hospital[h].Hospital_d[d])
+						{
+							data.PrHosp_i[i] += data.Intern[i].Prf_h[h];
+						}
+					}
+					
 				}
 				for (int d = 0; d < data.General.Disciplines; d++)
 				{
-					data.PrDisc_i[i] += data.Intern[i].Prf_d[d];
+					for (int h = 0; h < data.General.Hospitals; h++)
+					{
+						if (data.Hospital[h].Hospital_d[d])
+						{
+							data.PrDisc_i[i] += data.Intern[i].Prf_d[d];
+						}
+					}
+					
 				}
 			}
 

@@ -14,7 +14,11 @@ namespace DataLayer
 		public double[] PrWait_i;
 		public double[] PrChang_i;
 		public double[] Des_i;
-		public double MaxDes;
+		public double AveDes;
+		public double[] dp_i;
+		public double[] dn_i;
+		public double minimizedDev;
+		public double MinDis;
 
 		public OptimalSolution(AllData data)
 		{
@@ -28,7 +32,11 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
-			MaxDes = 0;
+			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
+			MinDis = 0;
+			AveDes = 0;
+			minimizedDev = 0;
 
 		}
 
@@ -64,11 +72,11 @@ namespace DataLayer
 								{
 									if (data.Intern[i].Abi_d[d])
 									{
-										tw.WriteLine("Intern " + i.ToString("00") + " can not fulfill mandatory discipline " + d.ToString("00"));
+										tw.WriteLine("Intern " + i.ToString("00") + " did not fulfill mandatory discipline " + d.ToString("00"));
 									}
 									else
 									{
-										tw.WriteLine("Intern " + i.ToString("00") + " did not fulfill mandatory discipline " + d.ToString("00"));
+										tw.WriteLine("Intern " + i.ToString("00") + " can not fulfill mandatory discipline " + d.ToString("00"));
 									}
 
 								}
@@ -126,25 +134,35 @@ namespace DataLayer
 			}
 			for (int i = 0; i < data.General.Interns; i++)
 			{
-				for (int t = 0; t < data.General.TimePriods; t++)
-					{
-					bool waited = true;
-					for (int d = 0; d < data.General.Disciplines; d++)
+				for (int p = 0; p < data.General.TrainingPr; p++)
 				{
-					
-						for (int h = 0; h < data.General.Hospitals; h++)
-						{
-							if (Intern_itdh[i][t][d][h])
-							{
-								waited = false;
-							}
-						}
-					}
-					if (waited)
+					if (data.Intern[i].ProgramID == p)
 					{
-						PrWait_i[i]++;
+						int indext = 0;
+						int sum = 0;
+						int lastJob = 0;
+						for (int t = 0; t < data.General.TimePriods; t++)
+						{
+							for (int d = 0; d < data.General.Disciplines; d++)
+							{
+								for (int h = 0; h < data.General.Hospitals; h++)
+								{
+									if (Intern_itdh[i][t][d][h])
+									{
+										indext = t;
+										sum += data.Discipline[d].Duration_p[p];
+										lastJob = data.Discipline[d].Duration_p[p];
+									}
+								}
+							}
+							
+
+						}
+
+						PrWait_i[i] = indext + lastJob - sum;
 					}
 				}
+				
 			}
 
 			for (int i = 0; i < data.General.Interns; i++)
@@ -185,21 +203,45 @@ namespace DataLayer
 					     + data.Intern[i].wieght_w * PrWait_i[i] / data.PrWait_i[i]
 						 + data.Intern[i].wieght_d * PrDisp_i[i] / data.PrDisc_i[i]
 						 + data.Intern[i].wieght_h * PrHosp_i[i] / data.PrHosp_i[i];
-				MaxDes += Des_i[i];
+				AveDes += Des_i[i];
+				if (i == 0)
+				{
+					MinDis = Des_i[i];
+				}
+				else
+				{
+					MinDis = Des_i[i] < MinDis ? Des_i[i] : MinDis;
+				}
+				
 
 			}
-
-			tw.WriteLine("III PrD PrH PrW PrC W_d W_h W_w W_c DesI");
+			AveDes = AveDes / data.General.Interns;
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				if (AveDes > Des_i[i])
+				{
+					dn_i[i] = AveDes - Des_i[i];
+				}
+				else
+				{
+					dp_i[i] =  Des_i[i] - AveDes;
+				}
+				minimizedDev += (dn_i[i] - dp_i[i]);
+			}
+			tw.WriteLine("III PrD PrH PrW PrC W_d W_h W_w W_c DesI DNi DPi");
 			for (int i = 0; i < data.General.Interns; i++)
 			{
 				tw.WriteLine(i.ToString("000") + " " + PrDisp_i[i].ToString("000") 
 					+ " " + PrHosp_i[i].ToString("000") + " " + PrWait_i[i].ToString("000")
 					+ " " + PrChang_i[i].ToString("000") + " " + data.Intern[i].wieght_d.ToString("000")
-					+ " " + data.Intern[i].wieght_h.ToString("000") + " " + data.Intern[i].wieght_w.ToString("000")
-					+ " " + data.Intern[i].wieght_ch.ToString("000") + " " + Des_i[i].ToString("0.000"));
+					+ " " + data.Intern[i].wieght_h.ToString("000") + " " + data.Intern[i].wieght_w.ToString("00")
+					+ " " + data.Intern[i].wieght_ch.ToString("00") + " " + Des_i[i].ToString("0.000") 
+					+" " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
 			}
-
-			tw.WriteLine("MinDes: " + MaxDes);
+			
+			tw.WriteLine("MinDes: " + MinDis.ToString("0.000"));
+			tw.WriteLine("MinDev: " + minimizedDev.ToString("0.000"));
+			tw.WriteLine("DsAvrg: " + AveDes.ToString("0.000"));
 			tw.Close();
 		}
 	}

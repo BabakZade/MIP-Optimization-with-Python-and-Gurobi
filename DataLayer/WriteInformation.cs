@@ -22,9 +22,9 @@ namespace DataLayer
 
 			// general Info
 			GeneralInfo tmpGeneral = new GeneralInfo();
-			tmpGeneral.Disciplines = random_.Next(3, 5);
-			tmpGeneral.Hospitals = random_.Next(1, 3);
-			tmpGeneral.Interns = random_.Next(3, 4);
+			tmpGeneral.Disciplines = random_.Next(5, 10) ;
+			tmpGeneral.Hospitals = random_.Next(5, 5);
+			tmpGeneral.Interns = random_.Next(10, 10);
 			tmpGeneral.TrainingPr = random_.Next(1, 2);
 			//time period 
 			// 12 => 4week
@@ -49,8 +49,8 @@ namespace DataLayer
 			for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 			{
 				tmpTrainingPr[p] = new TrainingProgramInfo(tmpGeneral.Disciplines);
-				tmpTrainingPr[p].MandatoryD = random_.Next(1, tmpGeneral.Disciplines);
-				tmpTrainingPr[p].ArbitraryD = random_.Next(0, tmpGeneral.Disciplines - tmpTrainingPr[p].MandatoryD + 1);
+				tmpTrainingPr[p].MandatoryD = random_.Next(1, (int)(0.2 * tmpGeneral.Disciplines) + 1); // 20% of all disciplines are mandatory
+				tmpTrainingPr[p].ArbitraryD = random_.Next(0, (int)(0.4 * tmpGeneral.Disciplines) + 1); // 40% of all disciplines are arbitrary
 
 				// assign the disciplines
 				int maxdisp = Math.Min(tmpTrainingPr[p].MandatoryD + 2 * tmpTrainingPr[p].ArbitraryD, tmpGeneral.Disciplines);
@@ -76,6 +76,37 @@ namespace DataLayer
 					tmpTrainingPr[p].PrManDis_d[disp] = true;
 
 				}
+				// find Alias mandatory disciplines
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
+				{
+					if (tmpTrainingPr[p].PrManDis_d[d])
+					{
+						for (int dd = d+1; dd < tmpGeneral.Disciplines; dd++)
+						{
+							if (tmpTrainingPr[p].PrManDis_d[dd] && random_.Next(0,4)>2)
+							{
+								tmpTrainingPr[p].Alias_d_d[d][dd] = true;
+								tmpTrainingPr[p].Alias_d_d[dd][d] = true;
+							}
+						}
+					}
+				}
+				// find Advanced mandatory disciplines
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
+				{
+					if (tmpTrainingPr[p].PrManDis_d[d])
+					{
+						for (int dd = d + 1; dd < tmpGeneral.Disciplines; dd++)
+						{
+							if (tmpTrainingPr[p].Program_d[dd] && random_.Next(0, 4) > 2)
+							{
+								tmpTrainingPr[p].Advance_d_d[d][dd] = true;
+								tmpTrainingPr[p].Advance_d_d[dd][d] = true;
+							}
+						}
+					}
+				}
+
 
 				tmpTrainingPr[p].Name = p.ToString();			
 
@@ -127,7 +158,55 @@ namespace DataLayer
 				tw.WriteLine();
 			}
 			
+			
+
+			// alias
+			for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+			{
+				tw.WriteLine();
+				strline = "// Alias Mandatory Discipline Matrix [d][dd] for training program " + p.ToString("00");
+				tw.WriteLine(strline);
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
+				{
+					for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+					{
+						if (tmpTrainingPr[p].Alias_d_d[d][dd])
+						{
+							tw.Write(1 + " ");
+						}
+						else
+						{
+							tw.Write(0 + " ");
+						}
+					}
+					tw.WriteLine();
+				}				
+			}
+
+			// Advanced discipline 
+			for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+			{
+				tw.WriteLine();
+				strline = "// Advanced Mandatory Discipline Matrix [d][dd] for training program " + p.ToString("00");
+				tw.WriteLine(strline);
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
+				{
+					for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+					{
+						if (tmpTrainingPr[p].Advance_d_d[d][dd])
+						{
+							tw.Write(1 + " ");
+						}
+						else
+						{
+							tw.Write(0 + " ");
+						}
+					}
+					tw.WriteLine();
+				}
+			}
 			tw.WriteLine();
+
 
 			// Create and write Hospital Info 
 			HospitalInfo[] tmphospitalInfos = new HospitalInfo[tmpGeneral.Hospitals];
@@ -137,8 +216,8 @@ namespace DataLayer
 				tmphospitalInfos[h].Name = h.ToString();
 				for (int d = 0; d < tmpGeneral.Disciplines; d++)
 				{
-					tmphospitalInfos[h].Hospital_d[d] = random_.Next(0, 3) > 0;
-				}
+					tmphospitalInfos[h].Hospital_d[d] = random_.Next(0, 4) > 0;
+				} 
 				for (int d = 0; d < tmpGeneral.Disciplines; d++)
 				{
 					if (tmphospitalInfos[h].Hospital_d[d])
@@ -236,22 +315,33 @@ namespace DataLayer
 			DisciplineInfo[] tmpdisciplineInfos = new DisciplineInfo[tmpGeneral.Disciplines];
 			for (int d = 0; d < tmpGeneral.Disciplines; d++)
 			{
-				tmpdisciplineInfos[d] = new DisciplineInfo(tmpGeneral.Disciplines,tmpGeneral.TrainingPr);
+				tmpdisciplineInfos[d] = new DisciplineInfo(tmpGeneral.Disciplines, tmpGeneral.TrainingPr);
 				tmpdisciplineInfos[d].Name = d.ToString();
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
 					if (tmpTrainingPr[p].Program_d[d])
 					{
 						tmpdisciplineInfos[d].Duration_p[p] = 1;
-					}					
+					}
 				}
-				for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+
+				
+			}
+			for (int d = 0; d < tmpGeneral.Disciplines; d++)
+			{
+				for (int pp = 0; pp < tmpGeneral.TrainingPr; pp++)
 				{
-					for (int pp = 0; pp < tmpGeneral.TrainingPr; pp++)
+					for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
 					{
 						if (tmpTrainingPr[pp].Program_d[dd] && tmpTrainingPr[pp].Program_d[d])
 						{
-							tmpdisciplineInfos[d].Skill4D_dp[dd][pp] = random_.Next(1, 4) > 3; 
+							if (random_.Next(0, 5) == 4 && !tmpdisciplineInfos[dd].Skill4D_dp[d][pp] && dd != d)
+							{
+								tmpdisciplineInfos[d].Skill4D_dp[dd][pp] = true;
+								// if you only want the discipline d connects to only one other discipline 
+								// otherwise clean the break
+								break;
+							}
 						}
 					}
 				}
@@ -310,19 +400,44 @@ namespace DataLayer
 			for (int i = 0; i < tmpGeneral.Interns; i++)
 			{
 				tmpinternInfos[i] = new InternInfo(tmpGeneral.Hospitals,tmpGeneral.Disciplines,tmpGeneral.TimePriods);
-				tmpinternInfos[i].ProgramID = random_.Next(0,tmpGeneral.TrainingPr-1);
+				tmpinternInfos[i].ProgramID = random_.Next(0,tmpGeneral.TrainingPr);
 				int totalTime = 0;
 				for (int d = 0; d < tmpGeneral.Disciplines; d++)
 				{
-					tmpinternInfos[i].Abi_d[d] = true;
-					tmpinternInfos[i].Prf_d[d] = random_.Next(1, 3);
-					totalTime += tmpdisciplineInfos[d].Duration_p[tmpinternInfos[i].ProgramID];
+					if (tmpTrainingPr[tmpinternInfos[i].ProgramID].Program_d[d])
+					{
+						tmpinternInfos[i].Abi_d[d] = true;
+						tmpinternInfos[i].Prf_d[d] = random_.Next(1, 3);
+						totalTime += tmpdisciplineInfos[d].Duration_p[tmpinternInfos[i].ProgramID];
+						
+					}					
 				}
-				totalTime = tmpGeneral.TimePriods - totalTime;
-				for (int t = 0; t < totalTime; t++)
+				// fulfilled disciplines happens for 10-20 percent of students
+				if (random_.NextDouble() < 0.10)
 				{
-					int tIndx = random_.Next(0,tmpGeneral.TimePriods-1);
-					tmpinternInfos[i].Ave_t[tIndx] = random_.Next(0, 2) > 1;
+					int totalFulfilled = random_.Next(0, tmpTrainingPr[tmpinternInfos[i].ProgramID].MandatoryD + tmpTrainingPr[tmpinternInfos[i].ProgramID].ArbitraryD + 1);
+					for (int ff = 0; ff < totalFulfilled; ff++)
+					{
+						int dIndex = random_.Next(0, tmpGeneral.Disciplines);
+						while (!tmpTrainingPr[tmpinternInfos[i].ProgramID].Program_d[dIndex])
+						{
+							dIndex = random_.Next(0, tmpGeneral.Disciplines);
+						}
+						tmpinternInfos[i].Fulfilled_d[dIndex] = true;
+
+					}
+				}
+				
+				totalTime = tmpGeneral.TimePriods - totalTime;
+				if (totalTime < 0)
+				{
+					totalTime = 0;
+				}
+				totalTime = random_.Next(0,totalTime);
+				int startInd = random_.Next(0, tmpGeneral.TimePriods);
+				for (int t = startInd; t < totalTime && t < tmpGeneral.TimePriods ; t++)
+				{
+					tmpinternInfos[i].Ave_t[t] = false;
 				}
 				for (int h = 0; h < tmpGeneral.Hospitals; h++)
 				{
@@ -356,6 +471,25 @@ namespace DataLayer
 					else
 					{
 						tw.Write(0+" ");
+					}
+				}
+				tw.WriteLine();
+			}
+			tw.WriteLine();
+
+			strline = "// Fulfilled disciplines [i][d]";
+			tw.WriteLine(strline);
+			for (int i = 0; i < tmpGeneral.Interns; i++)
+			{
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
+				{
+					if (tmpinternInfos[i].Fulfilled_d[d])
+					{
+						tw.Write(1 + " ");
+					}
+					else
+					{
+						tw.Write(0 + " ");
 					}
 				}
 				tw.WriteLine();
