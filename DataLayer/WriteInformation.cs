@@ -555,6 +555,15 @@ namespace DataLayer
 			strline = "// Algorithm Settings MIPtime BPtime Nodetime Mastertime Subtime RCepsi RCepsi";
 			tw.WriteLine(strline);
 			tw.WriteLine(tmpalgorithmSettings.MIPTime +" "+ tmpalgorithmSettings.BPTime + " " + tmpalgorithmSettings.NodeTime + " " + tmpalgorithmSettings.MasterTime + " " + tmpalgorithmSettings.SubTime + " " + tmpalgorithmSettings.RHSepsi + " " + tmpalgorithmSettings.RCepsi);
+			tw.WriteLine();
+			// Instance Setting 
+			InstanceSetting tmpInstance = new InstanceSetting();
+			tmpInstance.Alpha = 1;
+			tmpInstance.Beta = 1;
+			tmpInstance.Gamma = 1000;
+			strline = "// Instance settings weight for absoluteDesire minDesire constraintViolation";
+			tw.WriteLine(strline);
+			tw.WriteLine(tmpInstance.Alpha + " " + tmpInstance.Beta + " " + tmpInstance.Gamma);
 
 			tw.Close();
 		}

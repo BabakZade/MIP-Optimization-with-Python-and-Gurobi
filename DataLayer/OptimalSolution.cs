@@ -238,7 +238,17 @@ namespace DataLayer
 					+ " " + data.Intern[i].wieght_ch.ToString("00") + " " + Des_i[i].ToString("0.000") 
 					+" " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
 			}
-			
+			tw.WriteLine("III PrD PrH PrW PrC MxD MxH MxW MxC WdWh MxWdWh");
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				tw.WriteLine(i.ToString("000") + " " + PrDisp_i[i].ToString("000")
+					+ " " + PrHosp_i[i].ToString("000") + " " + PrWait_i[i].ToString("000")
+					+ " " + PrChang_i[i].ToString("000") + " " + data.Intern[i].MaxDesireDis.ToString("000")
+					+ " " + data.Intern[i].MaxDesireHos.ToString("000") + " " + data.PrWait_i[i].ToString("000")
+					+ " " + data.PrChan_i[i].ToString("000")
+					+ " " + (PrDisp_i[i] * data.Intern[i].wieght_d + PrHosp_i[i] * data.Intern[i].wieght_h).ToString("0000")
+					+ " " + (data.Intern[i].MaxDesireDis * data.Intern[i].wieght_d + data.Intern[i].MaxDesireHos * data.Intern[i].wieght_h).ToString("0000"));
+			}
 			tw.WriteLine("MinDes: " + MinDis.ToString("0.000"));
 			tw.WriteLine("MinDev: " + minimizedDev.ToString("0.000"));
 			tw.WriteLine("DsAvrg: " + AveDes.ToString("0.000"));

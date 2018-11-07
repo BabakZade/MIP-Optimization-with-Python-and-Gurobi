@@ -7,14 +7,13 @@ namespace DataLayer
 {
 	public class InstanceSetting
 	{
-		public double alpha;
-		public double beta;
-		public double gamma;
-		public double sigma;
+		// Weight objective function sigma desire 
+		public double Alpha;
 
-		public double alphaPart;
-		public double betaPart;
-		public double gamaPart;
-		public double sigmaPart;
+		// Weight objective function minimum desire
+		public double Beta;
+
+		// Weight objective function constraint violation 
+		public double Gamma;
 	}
 }

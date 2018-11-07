@@ -376,6 +376,23 @@ namespace DataLayer
 			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 			data.AlgSettings.RCepsi = Convert.ToDouble(line.Substring(0, indexN));
+			tw.ReadLine();
+
+			//Instance Settings
+			data.InsSetting = new InstanceSetting();
+			tw.ReadLine();
+			line = tw.ReadLine();
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+			data.InsSetting.Alpha = int.Parse(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+			data.InsSetting.Beta = int.Parse(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+			data.InsSetting.Gamma = int.Parse(line.Substring(0, indexN));		
+
 			tw.Close();
 		}
 
@@ -419,9 +436,12 @@ namespace DataLayer
 					}
 					
 				}
+
+				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines,data);
+				data.PrDisc_i[i] = data.Intern[i].MaxDesireDis;
+				data.PrHosp_i[i] = data.Intern[i].MaxDesireHos;
 			}
-
-
+			
 		}
 	}
 }

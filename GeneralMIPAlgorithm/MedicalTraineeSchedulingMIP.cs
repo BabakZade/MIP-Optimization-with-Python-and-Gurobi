@@ -22,6 +22,8 @@ namespace GeneralMIPAlgorithm
 		public INumVar desmax;
 		public INumVar MinPD;
 		public INumVar MaxND;
+		public INumVar[][][] slN_dth;
+		public INumVar[][][] slP_dth;
 
 		public string[][][][] Y_idDh;
 		public string[][][][] S_idth;
@@ -30,6 +32,8 @@ namespace GeneralMIPAlgorithm
 		public string[] Des_i;
 		public string[] dP_i;
 		public string[] dN_i;
+		public string[][][] SLN_dth;
+		public string[][][] SLP_dth;
 
 		public int Interns;
 		public int Disciplins;
@@ -169,6 +173,82 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
+			SLP_dth = new string[Disciplins][][];
+			for (int d = 0; d < Disciplins; d++)
+			{
+				SLP_dth[d] = new string[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					SLP_dth[d][t] = new string[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						SLP_dth[d][t][h] = "SLP_dth[" + d + "][" + t + "][" + h + "]";
+					}
+				}
+			}
+
+			slP_dth = new IIntVar[Disciplins][][];
+			for (int d = 0; d < Disciplins; d++)
+			{
+				slP_dth[d] = new IIntVar[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					slP_dth[d][t] = new IIntVar[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (d != 0)
+						{
+							slP_dth[d][t][h] = MIPModel.IntVar(0, data.Hospital[h].HospitalMinDem_td[t][d-1], SLP_dth[d][t][h]);
+						}
+						else
+						{
+							slP_dth[d][t][h] = MIPModel.IntVar(0, 0, SLP_dth[d][t][h]);
+						}
+						
+						
+						MIPModel.Add(slP_dth[d][t][h]);
+					}
+				}
+			}
+
+			SLN_dth = new string[Disciplins][][];
+			for (int d = 0; d < Disciplins; d++)
+			{
+				SLN_dth[d] = new string[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					SLN_dth[d][t] = new string[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						SLN_dth[d][t][h] = "SLN_dth[" + d + "][" + t + "][" + h + "]";
+					}
+				}
+			}
+
+			slN_dth = new IIntVar[Disciplins][][];
+			for (int d = 0; d < Disciplins; d++)
+			{
+				slN_dth[d] = new IIntVar[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					slN_dth[d][t] = new IIntVar[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (d == 0)
+						{
+							slN_dth[d][t][h] = MIPModel.IntVar(0, 0, SLN_dth[d][t][h]);
+						}
+						else
+						{
+							slN_dth[d][t][h] = MIPModel.IntVar(0, data.Hospital[h].HospitalMaxDem_td[t][d-1], SLN_dth[d][t][h]);
+						}
+						
+						
+						MIPModel.Add(slN_dth[d][t][h]);
+					}
+				}
+			}
+
 			W_id = new string[Interns][];
 			for (int i = 0; i < Interns; i++)
 			{
@@ -277,13 +357,22 @@ namespace GeneralMIPAlgorithm
 			ILinearNumExpr Obj = MIPModel.LinearNumExpr();
 			for (int i = 0; i < Interns; i++)
 			{
-				//Obj.AddTerm(dp_i[i],-1);
-				//Obj.AddTerm(dn_i[i], 1);
-				Obj.AddTerm(des_i[i],-1);
+				Obj.AddTerm(des_i[i],data.InsSetting.Alpha);
 			}
-			//Obj.AddTerm(MinPD,-1);
+			Obj.AddTerm(desmax, data.InsSetting.Beta);
+			for (int t = 0; t < Timepriods; t++)
+			{
+				for (int d = 0; d < Disciplins; d++)
+				{
+					for (int h = 0; h < Hospitals; h++)
+					{
+						Obj.AddTerm(slN_dth[d][t][h], -data.InsSetting.Gamma);
+						Obj.AddTerm(slP_dth[d][t][h], -data.InsSetting.Gamma);
+					}
+				}
+			}
 			//Obj.AddTerm(MaxND, 1);
-			MIPModel.AddMinimize(Obj);
+			MIPModel.AddMaximize(Obj);
 
 			// Mandatory discipline 
 			for (int i = 0; i < Interns; i++)
@@ -568,8 +657,6 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
-			
-
 			// availability for interns 
 			for (int i = 0; i < Interns; i++)
 			{
@@ -607,6 +694,7 @@ namespace GeneralMIPAlgorithm
 					for (int h = 0; h < Hospitals; h++)
 					{
 						ILinearNumExpr minDem = MIPModel.LinearNumExpr();
+						minDem.AddTerm(slP_dth[d][t][h],1);
 						for (int i = 0; i < Interns; i++)
 						{
 							int trp = data.Intern[i].ProgramID;
@@ -636,6 +724,7 @@ namespace GeneralMIPAlgorithm
 					for (int h = 0; h < Hospitals; h++)
 					{
 						ILinearNumExpr maxDem = MIPModel.LinearNumExpr();
+						maxDem.AddTerm(slN_dth[d][t][h], -1);
 						for (int i = 0; i < Interns; i++)
 						{
 							int trp = data.Intern[i].ProgramID;
@@ -762,31 +851,17 @@ namespace GeneralMIPAlgorithm
 				MIPModel.AddEq(internDes, 0, "Des_" + i);
 			}
 
-			// desire  deviation 
+			// min desire
 			for (int i = 0; i < Interns; i++)
 			{
 				ILinearNumExpr dev = MIPModel.LinearNumExpr();
 
-				dev.AddTerm(des_i[i],1);
-				dev.AddTerm(dp_i[i], 1);
-				dev.AddTerm(dn_i[i], -1);
-				for (int ii = 0; ii < Interns; ii++)
-				{
-					dev.AddTerm(des_i[ii], -(double)1 / Interns);
-				}
+				dev.AddTerm(des_i[i],-1);
+				dev.AddTerm(desmax, 1);
 				
-				MIPModel.AddEq(dev, 0, "Deviation_"+i);
+				
+				MIPModel.AddLe(dev, 0, "MinDes_"+i);
 			}
-
-			// max negative deviation
-			for (int i = 0; i < Interns; i++)
-			{
-				ILinearNumExpr dev = MIPModel.LinearNumExpr();
-				dev.AddTerm(MaxND,1);
-				dev.AddTerm(dn_i[i],-1);
-				MIPModel.AddGe(dev,0,"MaxNegDev_"+i);
-			}
-
 		}
 
 		public void solve_MIPmodel(string Path, string InsName)
