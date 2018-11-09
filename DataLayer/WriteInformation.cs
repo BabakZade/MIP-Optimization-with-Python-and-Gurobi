@@ -552,9 +552,10 @@ namespace DataLayer
 			tmpalgorithmSettings.RHSepsi = 0.000001;
 			tmpalgorithmSettings.SubTime = 600;
 			tmpalgorithmSettings.NodeTime = 3600;
-			strline = "// Algorithm Settings MIPtime BPtime Nodetime Mastertime Subtime RCepsi RCepsi";
+			tmpalgorithmSettings.BigM = 4000;
+			strline = "// Algorithm Settings MIPtime BPtime Nodetime Mastertime Subtime RCepsi RCepsi BigM";
 			tw.WriteLine(strline);
-			tw.WriteLine(tmpalgorithmSettings.MIPTime +" "+ tmpalgorithmSettings.BPTime + " " + tmpalgorithmSettings.NodeTime + " " + tmpalgorithmSettings.MasterTime + " " + tmpalgorithmSettings.SubTime + " " + tmpalgorithmSettings.RHSepsi + " " + tmpalgorithmSettings.RCepsi);
+			tw.WriteLine(tmpalgorithmSettings.MIPTime +" "+ tmpalgorithmSettings.BPTime + " " + tmpalgorithmSettings.NodeTime + " " + tmpalgorithmSettings.MasterTime + " " + tmpalgorithmSettings.SubTime + " " + tmpalgorithmSettings.RHSepsi + " " + tmpalgorithmSettings.RCepsi+ " " + tmpalgorithmSettings.BigM);
 			tw.WriteLine();
 			// Instance Setting 
 			InstanceSetting tmpInstance = new InstanceSetting();

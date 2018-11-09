@@ -13,6 +13,7 @@ namespace DataLayer
 		public int SubTime;
 		public int NodeTime;
 		public int BPTime;
+		public int BigM;
 
 		// Epsilon
 		public double RHSepsi;

@@ -376,6 +376,10 @@ namespace DataLayer
 			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 			data.AlgSettings.RCepsi = Convert.ToDouble(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.AlgSettings.BigM = Convert.ToInt32(line.Substring(0, indexN));
 			tw.ReadLine();
 
 			//Instance Settings
