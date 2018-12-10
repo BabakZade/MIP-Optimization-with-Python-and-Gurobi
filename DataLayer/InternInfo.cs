@@ -24,9 +24,9 @@ namespace DataLayer
 		public bool[] FHRequirment_d;
 		public int[] SortedPrfD_pos;
 		public int[] SortedPrfH_pos;
-		public int MaxDesireHos;
-		public int MaxDesireDis;
-		public double MaxDesir;
+		//public int MaxDesireHos;
+		//public int MaxDesireDis;
+		//public double MaxDesir;
 		public bool[][] DisciplineList_dg;
 		public int[] ShouldattendInGr_g;
 
@@ -56,88 +56,103 @@ namespace DataLayer
 			MaxDesireHos = 0;
 		}
 
-		//public void sortPrf(int Hospitals, int Disciplines, AllData allData)
-		//{
-		//	for (int h = 0; h < Hospitals; h++)
-		//	{
-		//		SortedPrfH_pos[h] = h;
-		//	}
+		public void sortPrf(int Hospitals, int Disciplines, int DisciplineGr , int HospitalWard, AllData allData)
+		{
+			for (int h = 0; h < Hospitals; h++)
+			{
+				SortedPrfH_pos[h] = h;
+			}
 
-		//	for (int d = 0; d < Disciplines; d++)
-		//	{
-		//		SortedPrfD_pos[d] = d;
-		//	}
+			for (int d = 0; d < Disciplines; d++)
+			{
+				SortedPrfD_pos[d] = d;
+			}
 
-		//	for (int h = 0; h < Hospitals; h++)
-		//	{
-		//		for (int hh = h+1; hh < Hospitals; hh++)
-		//		{
-		//			if (Prf_h[SortedPrfH_pos[hh]] > Prf_h[SortedPrfH_pos[h]])
-		//			{
-		//				int x = SortedPrfH_pos[hh];
-		//				SortedPrfH_pos[hh] = SortedPrfH_pos[h];
-		//				SortedPrfH_pos[h] = x;
-		//			}
-		//		}
-		//	}
+			for (int h = 0; h < Hospitals; h++)
+			{
+				for (int hh = h + 1; hh < Hospitals; hh++)
+				{
+					if (Prf_h[SortedPrfH_pos[hh]] > Prf_h[SortedPrfH_pos[h]])
+					{
+						int x = SortedPrfH_pos[hh];
+						SortedPrfH_pos[hh] = SortedPrfH_pos[h];
+						SortedPrfH_pos[h] = x;
+					}
+				}
+			}
 
-		//	for (int d = 0; d < Disciplines; d++)
-		//	{
-		//		for (int dd = 0; dd < Disciplines; dd++)
-		//		{
-		//			if (Prf_d[SortedPrfD_pos[dd]] < Prf_d[SortedPrfD_pos[d]])
-		//			{
-		//				int x = SortedPrfD_pos[dd];
-		//				SortedPrfD_pos[dd] = SortedPrfD_pos[d];
-		//				SortedPrfD_pos[d] = x;
-		//			}
-		//		}
-		//	}
-		//	int totalAssigned = 0;
-		//	MaxDesireHos = 0;
-		//	MaxDesireDis = 0;
-		//	MaxDesir = 0;
-		//	for (int d = 0; d < Disciplines; d++)
-		//	{
-		//		if (allData.TrainingPr[ProgramID].PrManDis_d[d] && Abi_d[d])
-		//		{
-		//			totalAssigned++;
-		//			for (int h = 0; h < Hospitals; h++)
-		//			{
-		//				if (allData.Hospital[SortedPrfH_pos[h]].Hospital_d[d])
-		//				{
-		//					MaxDesireHos += Prf_h[SortedPrfH_pos[h]];
-		//					MaxDesireDis += Prf_d[d];
-		//					break;
-		//				}
-		//			}
-		//		}
-		//	}
+			for (int d = 0; d < Disciplines; d++)
+			{
+				for (int dd = 0; dd < Disciplines; dd++)
+				{
+					if (Prf_d[SortedPrfD_pos[dd]] < Prf_d[SortedPrfD_pos[d]])
+					{
+						int x = SortedPrfD_pos[dd];
+						SortedPrfD_pos[dd] = SortedPrfD_pos[d];
+						SortedPrfD_pos[d] = x;
+					}
+				}
+			}
+			int totalAssigned = 0;
+			//MaxDesireHos = 0;
+			//MaxDesireDis = 0;
+			//MaxDesir = 0;
+			//for (int g = 0; g < DisciplineGr; g++)
+			//{
+			//	totalAssigned = ShouldattendInGr_g[g];
+			//	for (int d = 0; d < Disciplines && totalAssigned > 0; d++)
+			//	{
+			//		if (DisciplineList_dg[d][g])
+			//		{
+			//			bool findH = true;
+			//			for (int h = 0; h < Hospitals && findH; h++)
+			//			{
+			//				if (Abi_dh[d][h])
+			//				{								
+			//					for (int w = 0; w < HospitalWard; w++)
+			//					{
+			//						if (allData.Hospital[SortedPrfH_pos[h]].Hospital_dw[d][w])
+			//						{
+			//							totalAssigned--;
+			//							MaxDesireHos += Prf_h[SortedPrfH_pos[h]];
+			//							MaxDesireDis += Prf_d[d];
+			//							findH = false;
+			//							break;
+			//						}
+			//					}
+								
+			//				}
+							
+			//			}
+			//		}
+			//	}
+			//}
+			
 
-		//	for (int d = 0; d < Disciplines; d++)
-		//	{
-		//		if (!allData.TrainingPr[ProgramID].PrManDis_d[SortedPrfD_pos[d]] 
-		//			&& Abi_d[SortedPrfD_pos[d]] && allData.TrainingPr[ProgramID].Program_d[SortedPrfD_pos[d]])
-		//		{
-		//			totalAssigned++;
-		//			for (int h = 0; h < Hospitals; h++)
-		//			{
-		//				if (allData.Hospital[SortedPrfH_pos[h]].Hospital_d[SortedPrfD_pos[d]])
-		//				{
-		//					MaxDesireHos += Prf_h[SortedPrfH_pos[h]];
-		//					MaxDesireDis += Prf_d[SortedPrfD_pos[d]];
-		//					break;
-		//				}
-		//			}
-		//			if (totalAssigned == allData.TrainingPr[ProgramID].MandatoryD + allData.TrainingPr[ProgramID].ArbitraryD)
-		//			{
-		//				break;
-		//			}
-		//		}
-		//	}
+			//for (int d = 0; d < Disciplines; d++)
+			//{
+			//	if (!allData.TrainingPr[ProgramID].PrManDis_d[SortedPrfD_pos[d]]
+			//		&& Abi_d[SortedPrfD_pos[d]] && allData.TrainingPr[ProgramID].Program_d[SortedPrfD_pos[d]])
+			//	{
+			//		totalAssigned++;
+			//		for (int h = 0; h < Hospitals; h++)
+			//		{
+			//			if (allData.Hospital[SortedPrfH_pos[h]].Hospital_d[SortedPrfD_pos[d]])
+			//			{
+			//				MaxDesireHos += Prf_h[SortedPrfH_pos[h]];
+			//				MaxDesireDis += Prf_d[SortedPrfD_pos[d]];
+			//				break;
+			//			}
+			//		}
+			//		if (totalAssigned == allData.TrainingPr[ProgramID].MandatoryD + allData.TrainingPr[ProgramID].ArbitraryD)
+			//		{
+			//			break;
+			//		}
+			//	}
+			//}
 
-		//	MaxDesir = MaxDesireHos + MaxDesireDis;
-		//}
-		
+			//MaxDesir = MaxDesireHos + MaxDesireDis;
+		}
+
 	}
 }

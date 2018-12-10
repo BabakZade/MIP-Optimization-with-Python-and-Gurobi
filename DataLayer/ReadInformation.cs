@@ -60,10 +60,8 @@ namespace DataLayer
 			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 			data.General.Region = int.Parse(line.Substring(0, indexN));
-			line = line.Substring(indexN + 1);
 
-			data.General.TrainingPr = int.Parse(line);
-			tw.ReadLine();
+			line = tw.ReadLine();
 
 			//Create and write training program info
 			data.TrainingPr = new TrainingProgramInfo[data.General.TrainingPr];
@@ -73,7 +71,7 @@ namespace DataLayer
 			}
 
 			
-			tw.ReadLine();
+			line = tw.ReadLine();
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				line = tw.ReadLine();
@@ -112,9 +110,9 @@ namespace DataLayer
 
 				data.TrainingPr[p].DiscChangeInOneHosp = int.Parse(line.Substring(0, indexN));
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 
-			tw.ReadLine();
+			line = tw.ReadLine();
 			line = tw.ReadLine();
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
@@ -129,7 +127,7 @@ namespace DataLayer
 			}
 			line = tw.ReadLine();
 
-			
+			line = tw.ReadLine();
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				line = tw.ReadLine();
@@ -157,7 +155,7 @@ namespace DataLayer
 
 			
 			line = tw.ReadLine();
-			line = tw.ReadLine();
+			
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
 				line = tw.ReadLine();
@@ -165,7 +163,6 @@ namespace DataLayer
 				{
 					for (int d = 0; d < data.General.Disciplines; d++)
 					{
-
 						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 						data.Hospital[h].Hospital_dw[d][w] = int.Parse(line.Substring(0, indexN)) == 1;
 						line = line.Substring(indexN + 1);
@@ -175,7 +172,7 @@ namespace DataLayer
 				}				
 			}
 
-			tw.ReadLine();
+			line = tw.ReadLine();
 			
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
@@ -274,7 +271,7 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 
 			for (int d = 0; d < data.General.Disciplines; d++)
 			{
@@ -290,7 +287,7 @@ namespace DataLayer
 					line = tw.ReadLine();
 				}
 
-				tw.ReadLine();
+				line = tw.ReadLine();
 			}
 			line = tw.ReadLine();
 
@@ -363,7 +360,7 @@ namespace DataLayer
 				line = tw.ReadLine();
 			}
 			line = tw.ReadLine();
-
+			line = tw.ReadLine();
 			while (line != "---")
 			{
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
@@ -407,6 +404,7 @@ namespace DataLayer
 					line = tw.ReadLine();
 				}
 			}
+			line = tw.ReadLine();
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
 			{
@@ -458,8 +456,8 @@ namespace DataLayer
 				data.Intern[IndexI].Fulfilled_dhp[indexD][indexH][indexP] = true;
 				line = tw.ReadLine();
 			}
-			
 
+			line = tw.ReadLine();
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
 			{
@@ -471,7 +469,7 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 			
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
@@ -484,7 +482,7 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 
 			
 			line = tw.ReadLine();
@@ -499,7 +497,7 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 
 			// create and write Region info
 			data.Region = new RegionInfo[data.General.Region];
@@ -515,6 +513,8 @@ namespace DataLayer
 				data.Region[r].SQLID = int.Parse(line.Substring(0, indexN));
 			}
 			line = tw.ReadLine();
+			line = tw.ReadLine();
+			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Region; i++)
 			{
 				for (int d = 0; d < data.General.TimePriods; d++)
@@ -526,7 +526,7 @@ namespace DataLayer
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
+			line = tw.ReadLine();
 
 
 			//Algorithm Settings
@@ -563,7 +563,7 @@ namespace DataLayer
 			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 			data.AlgSettings.BigM = Convert.ToInt32(line.Substring(0, indexN));
-			tw.ReadLine();
+			line = tw.ReadLine();
 
 		
 			tw.Close();
@@ -571,50 +571,11 @@ namespace DataLayer
 
 		public void NormalizeData()
 		{
-		//	data.PrChan_i = new int[data.General.Interns];
-		//	data.PrHosp_i = new int[data.General.Interns];
-		//	data.PrWait_i = new int[data.General.Interns];
-		//	data.PrDisc_i = new int[data.General.Interns];
-		//	for (int i = 0; i < data.General.Interns; i++)
-		//	{
-		//		data.PrChan_i[i] = 1;
-		//		data.PrHosp_i[i] = 1;
-		//		data.PrWait_i[i] = 1;
-		//		data.PrDisc_i[i] = 1;
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines, data.General.DisciplineGr, data.General.HospitalWard, data);
+			}
 
-		//		// if we need to normalize it 
-		//		data.PrChan_i[i] = data.TrainingPr[data.Intern[i].ProgramID].ArbitraryD + data.TrainingPr[data.Intern[i].ProgramID].MandatoryD;
-		//		data.PrHosp_i[i] = 0;
-		//		data.PrWait_i[i] = data.General.TimePriods;
-		//		data.PrDisc_i[i] = 0;
-		//		for (int h = 0; h < data.General.Hospitals; h++)
-		//		{
-		//			for (int d = 0; d < data.General.Disciplines; d++)
-		//			{
-		//				if (data.Hospital[h].Hospital_d[d])
-		//				{
-		//					data.PrHosp_i[i] += data.Intern[i].Prf_h[h];
-		//				}
-		//			}
-					
-		//		}
-		//		for (int d = 0; d < data.General.Disciplines; d++)
-		//		{
-		//			for (int h = 0; h < data.General.Hospitals; h++)
-		//			{
-		//				if (data.Hospital[h].Hospital_d[d])
-		//				{
-		//					data.PrDisc_i[i] += data.Intern[i].Prf_d[d];
-		//				}
-		//			}
-					
-		//		}
-
-		//		data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines,data);
-		//		data.PrDisc_i[i] = data.Intern[i].MaxDesireDis;
-		//		data.PrHosp_i[i] = data.Intern[i].MaxDesireHos;
-		//	}
-			
 		}
 	}
 }

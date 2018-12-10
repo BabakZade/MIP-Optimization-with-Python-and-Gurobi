@@ -14,11 +14,6 @@ namespace DataLayer
 		public HospitalInfo[] Hospital;
 		public TrainingProgramInfo[] TrainingPr;
 		public AlgorithmSettings AlgSettings;
-	
 
-		public int[] PrDisc_i;
-		public int[] PrHosp_i;
-		public int[] PrChan_i;
-		public int[] PrWait_i;
 	}
 }
