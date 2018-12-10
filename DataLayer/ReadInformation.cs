@@ -45,7 +45,22 @@ namespace DataLayer
 
 			data.General.TimePriods = int.Parse(line.Substring(0, indexN));
 			line = line.Substring(indexN + 1);
-			
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.General.TrainingPr = int.Parse(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.General.HospitalWard = int.Parse(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.General.DisciplineGr = int.Parse(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.General.Region = int.Parse(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
 
 			data.General.TrainingPr = int.Parse(line);
 			tw.ReadLine();
@@ -54,8 +69,7 @@ namespace DataLayer
 			data.TrainingPr = new TrainingProgramInfo[data.General.TrainingPr];
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
-				data.TrainingPr[p] = new TrainingProgramInfo(data.General.Disciplines);
-
+				data.TrainingPr[p] = new TrainingProgramInfo(data.General.Disciplines, data.General.DisciplineGr);
 			}
 
 			
@@ -68,12 +82,35 @@ namespace DataLayer
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].MandatoryD = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].AcademicYear = int.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].ArbitraryD = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].weight_p = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
+				data.TrainingPr[p].CoeffObj_SumDesi = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.TrainingPr[p].CoeffObj_MinDesi = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.TrainingPr[p].CoeffObj_ResCap = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.TrainingPr[p].CoeffObj_EmrCap = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.TrainingPr[p].CoeffObj_NotUsedAcc = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.TrainingPr[p].DiscChangeInOneHosp = int.Parse(line.Substring(0, indexN));
 			}
 			tw.ReadLine();
 
@@ -84,72 +121,38 @@ namespace DataLayer
 				for (int d = 0; d < data.General.Disciplines; d++)
 				{
 					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-					data.TrainingPr[p].Program_d[d] = int.Parse(line.Substring(0, indexN)) == 1;
+					data.TrainingPr[p].Prf_d[d] = int.Parse(line.Substring(0, indexN));
 					line = line.Substring(indexN + 1);
 					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 				}
 				line = tw.ReadLine();
 			}
-			tw.ReadLine();
-
 			line = tw.ReadLine();
-			
-			for (int p = 0; p < data.General.TrainingPr; p++)
-			{
-				for (int d = 0; d < data.General.Disciplines; d++)
-				{
-					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-					data.TrainingPr[p].PrManDis_d[d] = int.Parse(line.Substring(0, indexN)) == 1;
-					line = line.Substring(indexN + 1);
-					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-				}
-				line = tw.ReadLine();
-			}
-			
 
+			
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				line = tw.ReadLine();
-				line = tw.ReadLine();
-				for (int d = 0; d < data.General.Disciplines; d++)
+				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{
-					for (int dd = 0; dd < data.General.Disciplines; dd++)
+					for (int d = 0; d < data.General.Disciplines; d++)
 					{
 						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-						data.TrainingPr[p].Alias_d_d[d][dd] = int.Parse(line.Substring(0, indexN)) == 1;
+						data.TrainingPr[p].InvolvedDiscipline_gd[g][d] = int.Parse(line.Substring(0, indexN)) == 1;
 						line = line.Substring(indexN + 1);
 						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-						
 					}
 					line = tw.ReadLine();
 				}
-			
+				
 			}
+			line = tw.ReadLine();
 
-
-			for (int p = 0; p < data.General.TrainingPr; p++)
-			{
-				line = tw.ReadLine();
-				line = tw.ReadLine();
-				for (int d = 0; d < data.General.Disciplines; d++)
-				{
-					for (int dd = 0; dd < data.General.Disciplines; dd++)
-					{
-						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-						data.TrainingPr[p].Advance_d_d[d][dd] = int.Parse(line.Substring(0, indexN)) == 1;
-						line = line.Substring(indexN + 1);
-						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-
-					}
-					line = tw.ReadLine();
-				}
-
-			}
 			// Create and write Hospital Info 
 			data.Hospital = new HospitalInfo[data.General.Hospitals];
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
-				data.Hospital[h] = new HospitalInfo(data.General.Disciplines, data.General.TimePriods);
+				data.Hospital[h] = new HospitalInfo(data.General.Disciplines, data.General.TimePriods, data.General.HospitalWard, data.General.Region);
 			}
 
 			
@@ -157,14 +160,19 @@ namespace DataLayer
 			line = tw.ReadLine();
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
-				for (int d = 0; d < data.General.Disciplines; d++)
-				{
-					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-					data.Hospital[h].Hospital_d[d] = int.Parse(line.Substring(0, indexN)) == 1;
-					line = line.Substring(indexN + 1);
-					
-				}
 				line = tw.ReadLine();
+				for (int w = 0; w < data.General.HospitalWard; w++)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Hospital[h].Hospital_dw[d][w] = int.Parse(line.Substring(0, indexN)) == 1;
+						line = line.Substring(indexN + 1);
+
+					}
+					line = tw.ReadLine();
+				}				
 			}
 
 			tw.ReadLine();
@@ -174,10 +182,10 @@ namespace DataLayer
 				line = tw.ReadLine();
 				for (int t = 0; t < data.General.TimePriods; t++)
 				{
-					for (int d = 0; d < data.General.Disciplines; d++)
+					for (int d = 0; d < data.General.HospitalWard; d++)
 					{
 						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-						data.Hospital[h].HospitalMaxDem_td[t][d] = int.Parse(line.Substring(0, indexN)) ;
+						data.Hospital[h].HospitalMaxDem_tw[t][d] = int.Parse(line.Substring(0, indexN)) ;
 						line = line.Substring(indexN + 1);						
 					}
 					line = tw.ReadLine();
@@ -189,14 +197,59 @@ namespace DataLayer
 				line = tw.ReadLine();
 				for (int t = 0; t < data.General.TimePriods; t++)
 				{
-					for (int d = 0; d < data.General.Disciplines; d++)
+					for (int d = 0; d < data.General.HospitalWard; d++)
 					{
 						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-						data.Hospital[h].HospitalMinDem_td[t][d] = int.Parse(line.Substring(0, indexN));
+						data.Hospital[h].HospitalMinDem_tw[t][d] = int.Parse(line.Substring(0, indexN));
 						line = line.Substring(indexN + 1);						
 					}
 					line = tw.ReadLine();
 				}
+			}
+
+			line = tw.ReadLine();
+			for (int h = 0; h < data.General.Hospitals; h++)
+			{
+				line = tw.ReadLine();
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					for (int d = 0; d < data.General.HospitalWard; d++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Hospital[h].ReservedCap_tw[t][d] = int.Parse(line.Substring(0, indexN));
+						line = line.Substring(indexN + 1);
+					}
+					line = tw.ReadLine();
+				}
+			}
+
+			line = tw.ReadLine();
+			for (int h = 0; h < data.General.Hospitals; h++)
+			{
+				line = tw.ReadLine();
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					for (int d = 0; d < data.General.HospitalWard; d++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Hospital[h].EmergencyCap_tw[t][d] = int.Parse(line.Substring(0, indexN));
+						line = line.Substring(indexN + 1);
+					}
+					line = tw.ReadLine();
+				}
+			}
+
+			line = tw.ReadLine();
+			line = tw.ReadLine();
+			for (int h = 0; h < data.General.Hospitals; h++)
+			{
+					for (int d = 0; d < data.General.Region; d++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Hospital[h].InToRegion_r[d] = int.Parse(line.Substring(0, indexN)) == 1;
+						line = line.Substring(indexN + 1);
+					}
+					line = tw.ReadLine();				
 			}
 
 			line = tw.ReadLine();
@@ -245,7 +298,7 @@ namespace DataLayer
 			data.Intern = new InternInfo[data.General.Interns];
 			for (int i = 0; i < data.General.Interns; i++)
 			{
-				data.Intern[i] = new InternInfo(data.General.Hospitals, data.General.Disciplines, data.General.TimePriods);
+				data.Intern[i] = new InternInfo(data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, data.General.DisciplineGr, data.General.TrainingPr, data.General.Region);
 			}
 
 			line = tw.ReadLine();
@@ -277,33 +330,135 @@ namespace DataLayer
 			}
 
 			line = tw.ReadLine();
+							
+		
 
-			
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
 			{
-				for (int d = 0; d < data.General.Disciplines; d++)
-				{
-					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-					data.Intern[i].Abi_d[d] = int.Parse(line.Substring(0, indexN)) == 1;
-					line = line.Substring(indexN + 1);					
-				}
 				line = tw.ReadLine();
+				for (int g = 0; g < data.General.DisciplineGr; g++)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Intern[i].DisciplineList_dg[d][g] = int.Parse(line.Substring(0, indexN)) == 1;
+						line = line.Substring(indexN + 1);
+					}
+					line = tw.ReadLine();
+				}
+				
 			}
 			line = tw.ReadLine();
 
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
 			{
-				for (int d = 0; d < data.General.Disciplines; d++)
+				for (int d = 0; d < data.General.DisciplineGr; d++)
 				{
 					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-					data.Intern[i].Fulfilled_d[d] = int.Parse(line.Substring(0, indexN))==1;
+					data.Intern[i].ShouldattendInGr_g[d] = int.Parse(line.Substring(0, indexN));
 					line = line.Substring(indexN + 1);
 				}
 				line = tw.ReadLine();
 			}
 			line = tw.ReadLine();
+
+			while (line != "---")
+			{
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+				int IndexI = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				int indexD = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				int indext = int.Parse(line.Substring(0, indexN));
+				data.Intern[IndexI].OverSea_dt[indexD][indext] = true;
+				line = tw.ReadLine();
+			}
+
+			line = tw.ReadLine();
+			line = tw.ReadLine();
+			for (int i = 0; i < data.General.Interns; i++)
+			{				
+				bool OVERSEA = false;
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int t = 0; t < data.General.TimePriods; t++)
+					{
+						if (data.Intern[i].OverSea_dt[d][t])
+						{
+							OVERSEA = true;
+						}
+
+					}
+				}
+				for (int d = 0; d < data.General.Disciplines && OVERSEA; d++)
+				{
+					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+					data.Intern[i].FHRequirment_d[d] = int.Parse(line.Substring(0, indexN)) == 1;
+					line = line.Substring(indexN + 1);
+				}
+				if (OVERSEA)
+				{
+					line = tw.ReadLine();
+				}
+			}
+			line = tw.ReadLine();
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int d = 0; d < data.General.Region; d++)
+				{
+					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+					data.Intern[i].TransferredTo_r[d] = int.Parse(line.Substring(0, indexN)) == 1;
+					line = line.Substring(indexN + 1);
+				}
+				line = tw.ReadLine();
+			}
+			line = tw.ReadLine();
+
+			line = tw.ReadLine();
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				line = tw.ReadLine();
+				for (int h = 0; h < data.General.Hospitals; h++)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Intern[i].Abi_dh[d][h] = int.Parse(line.Substring(0, indexN)) == 1;
+						line = line.Substring(indexN + 1);
+					}
+					line = tw.ReadLine();
+				}
+				
+			}
+			line = tw.ReadLine();
+
+			line = tw.ReadLine();
+			while (line != "---")
+			{
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+				int IndexI = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				int indexD = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				int indexH = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				int indexP = int.Parse(line.Substring(0, indexN));
+				data.Intern[IndexI].Fulfilled_dhp[indexD][indexH][indexP] = true;
+				line = tw.ReadLine();
+			}
+			
 
 			line = tw.ReadLine();
 			for (int i = 0; i < data.General.Interns; i++)
@@ -346,6 +501,34 @@ namespace DataLayer
 			}
 			tw.ReadLine();
 
+			// create and write Region info
+			data.Region = new RegionInfo[data.General.Region];
+			line = tw.ReadLine();
+			for (int r = 0; r < data.General.Region; r++)
+			{
+				data.Region[r] = new RegionInfo(data.General.TimePriods);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+				data.Region[r].Name = line.Substring(0, indexN);
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.Region[r].SQLID = int.Parse(line.Substring(0, indexN));
+			}
+			line = tw.ReadLine();
+			for (int i = 0; i < data.General.Region; i++)
+			{
+				for (int d = 0; d < data.General.TimePriods; d++)
+				{
+					indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+					data.Region[i].AvaAcc_t[d] = int.Parse(line.Substring(0, indexN));
+					line = line.Substring(indexN + 1);
+
+				}
+				line = tw.ReadLine();
+			}
+			tw.ReadLine();
+
+
 			//Algorithm Settings
 			data.AlgSettings = new AlgorithmSettings();
 			
@@ -382,69 +565,55 @@ namespace DataLayer
 			data.AlgSettings.BigM = Convert.ToInt32(line.Substring(0, indexN));
 			tw.ReadLine();
 
-			//Instance Settings
-			data.InsSetting = new InstanceSetting();
-			tw.ReadLine();
-			line = tw.ReadLine();
-			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-			data.InsSetting.Alpha = int.Parse(line.Substring(0, indexN));
-			line = line.Substring(indexN + 1);
-
-			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-			data.InsSetting.Beta = int.Parse(line.Substring(0, indexN));
-			line = line.Substring(indexN + 1);
-
-			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
-			data.InsSetting.Gamma = int.Parse(line.Substring(0, indexN));		
-
+		
 			tw.Close();
 		}
 
 		public void NormalizeData()
 		{
-			data.PrChan_i = new int[data.General.Interns];
-			data.PrHosp_i = new int[data.General.Interns];
-			data.PrWait_i = new int[data.General.Interns];
-			data.PrDisc_i = new int[data.General.Interns];
-			for (int i = 0; i < data.General.Interns; i++)
-			{
-				data.PrChan_i[i] = 1;
-				data.PrHosp_i[i] = 1;
-				data.PrWait_i[i] = 1;
-				data.PrDisc_i[i] = 1;
+		//	data.PrChan_i = new int[data.General.Interns];
+		//	data.PrHosp_i = new int[data.General.Interns];
+		//	data.PrWait_i = new int[data.General.Interns];
+		//	data.PrDisc_i = new int[data.General.Interns];
+		//	for (int i = 0; i < data.General.Interns; i++)
+		//	{
+		//		data.PrChan_i[i] = 1;
+		//		data.PrHosp_i[i] = 1;
+		//		data.PrWait_i[i] = 1;
+		//		data.PrDisc_i[i] = 1;
 
-				// if we need to normalize it 
-				data.PrChan_i[i] = data.TrainingPr[data.Intern[i].ProgramID].ArbitraryD + data.TrainingPr[data.Intern[i].ProgramID].MandatoryD;
-				data.PrHosp_i[i] = 0;
-				data.PrWait_i[i] = data.General.TimePriods;
-				data.PrDisc_i[i] = 0;
-				for (int h = 0; h < data.General.Hospitals; h++)
-				{
-					for (int d = 0; d < data.General.Disciplines; d++)
-					{
-						if (data.Hospital[h].Hospital_d[d])
-						{
-							data.PrHosp_i[i] += data.Intern[i].Prf_h[h];
-						}
-					}
+		//		// if we need to normalize it 
+		//		data.PrChan_i[i] = data.TrainingPr[data.Intern[i].ProgramID].ArbitraryD + data.TrainingPr[data.Intern[i].ProgramID].MandatoryD;
+		//		data.PrHosp_i[i] = 0;
+		//		data.PrWait_i[i] = data.General.TimePriods;
+		//		data.PrDisc_i[i] = 0;
+		//		for (int h = 0; h < data.General.Hospitals; h++)
+		//		{
+		//			for (int d = 0; d < data.General.Disciplines; d++)
+		//			{
+		//				if (data.Hospital[h].Hospital_d[d])
+		//				{
+		//					data.PrHosp_i[i] += data.Intern[i].Prf_h[h];
+		//				}
+		//			}
 					
-				}
-				for (int d = 0; d < data.General.Disciplines; d++)
-				{
-					for (int h = 0; h < data.General.Hospitals; h++)
-					{
-						if (data.Hospital[h].Hospital_d[d])
-						{
-							data.PrDisc_i[i] += data.Intern[i].Prf_d[d];
-						}
-					}
+		//		}
+		//		for (int d = 0; d < data.General.Disciplines; d++)
+		//		{
+		//			for (int h = 0; h < data.General.Hospitals; h++)
+		//			{
+		//				if (data.Hospital[h].Hospital_d[d])
+		//				{
+		//					data.PrDisc_i[i] += data.Intern[i].Prf_d[d];
+		//				}
+		//			}
 					
-				}
+		//		}
 
-				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines,data);
-				data.PrDisc_i[i] = data.Intern[i].MaxDesireDis;
-				data.PrHosp_i[i] = data.Intern[i].MaxDesireHos;
-			}
+		//		data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines,data);
+		//		data.PrDisc_i[i] = data.Intern[i].MaxDesireDis;
+		//		data.PrHosp_i[i] = data.Intern[i].MaxDesireHos;
+		//	}
 			
 		}
 	}

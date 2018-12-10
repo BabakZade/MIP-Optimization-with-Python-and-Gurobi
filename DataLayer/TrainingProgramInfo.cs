@@ -10,23 +10,29 @@ namespace DataLayer
 		public string Name;
 		public int SQLID;
 		public int AcademicYear;
-		public bool[] Program_d;
-		public int MandatoryD;
-		public int ArbitraryD;
-		public bool[] PrManDis_d;
-		public bool[][] Alias_d_d;
-		public bool[][] Advance_d_d;
-		public TrainingProgramInfo(int Disciplins)
+		public int[] Prf_d;
+		public bool[][] InvolvedDiscipline_gd;
+		public int weight_p;
+		public double CoeffObj_SumDesi;
+		public double CoeffObj_MinDesi;
+		public double CoeffObj_ResCap;
+		public double CoeffObj_EmrCap;
+		public double CoeffObj_NotUsedAcc;
+		public int DiscChangeInOneHosp;
+		public TrainingProgramInfo(int Disciplins, int DisciplineGr)
 		{
 			Name = "Program";
 			SQLID = 0;
 			AcademicYear = 0;
-			new ArrayInitializer().CreateArray(ref Program_d,Disciplins,false);
-			MandatoryD = 0;
-			ArbitraryD = 0;
-			new ArrayInitializer().CreateArray(ref PrManDis_d, Disciplins, false);
-			new ArrayInitializer().CreateArray(ref Alias_d_d, Disciplins, Disciplins, false);
-			new ArrayInitializer().CreateArray(ref Advance_d_d, Disciplins, Disciplins, false);
+			new ArrayInitializer().CreateArray(ref Prf_d, Disciplins, 0);
+			new ArrayInitializer().CreateArray(ref InvolvedDiscipline_gd, DisciplineGr, Disciplins, false);
+			weight_p = 0;
+			CoeffObj_SumDesi = 0;
+			CoeffObj_MinDesi = 0;
+			CoeffObj_ResCap = 0;
+			CoeffObj_EmrCap = 0;
+			CoeffObj_NotUsedAcc = 0;
+			DiscChangeInOneHosp = Disciplins;
 		}
 	}
 }

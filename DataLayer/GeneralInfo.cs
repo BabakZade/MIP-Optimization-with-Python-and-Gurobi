@@ -14,5 +14,8 @@ namespace DataLayer
 		public int TimePriods;
 		public int Interns;
 		public int TrainingPr;
+		public int DisciplineGr;
+		public int HospitalWard;
+		public int Region;
 	}
 }

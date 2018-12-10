@@ -9,16 +9,22 @@ namespace DataLayer
 	{
 		public string Name;
 		public int SQLID;
-		public bool[] Hospital_d;
-		public int[][] HospitalMaxDem_td;
-		public int[][] HospitalMinDem_td;
-		public HospitalInfo(int Disciplins, int TimePeriods)
+		public bool[][] Hospital_dw;
+		public int[][] HospitalMaxDem_tw;
+		public int[][] HospitalMinDem_tw;
+		public int[][] ReservedCap_tw;
+		public int[][] EmergencyCap_tw;
+		public bool[] InToRegion_r;
+		public HospitalInfo(int Disciplins, int TimePeriods, int HospitalWard, int Region)
 		{
 			Name = "Program";
 			SQLID = 0;			
-			new ArrayInitializer().CreateArray(ref Hospital_d, Disciplins, false);
-			new ArrayInitializer().CreateArray(ref HospitalMaxDem_td,TimePeriods, Disciplins, 0);
-			new ArrayInitializer().CreateArray(ref HospitalMinDem_td, TimePeriods, Disciplins, 0);
+			new ArrayInitializer().CreateArray(ref Hospital_dw, Disciplins, HospitalWard, false);
+			new ArrayInitializer().CreateArray(ref HospitalMaxDem_tw,TimePeriods, HospitalWard, 0);
+			new ArrayInitializer().CreateArray(ref HospitalMinDem_tw, TimePeriods, HospitalWard, 0);
+			new ArrayInitializer().CreateArray(ref ReservedCap_tw, TimePeriods, HospitalWard, 0);
+			new ArrayInitializer().CreateArray(ref EmergencyCap_tw, TimePeriods, HospitalWard, 0);
+			new ArrayInitializer().CreateArray(ref InToRegion_r, Region, false);
 		}
 	}
 }

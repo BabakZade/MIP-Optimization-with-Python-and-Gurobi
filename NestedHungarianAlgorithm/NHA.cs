@@ -9,7 +9,7 @@ namespace NestedHungarianAlgorithm
 	{
 		public NHA(AllData data)
 		{
-			HungarianNode Prnt = new HungarianNode(0,data);
+			//HungarianNode Prnt = new HungarianNode(0,data);
 		
 		}
 	}
