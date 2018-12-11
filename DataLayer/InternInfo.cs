@@ -51,9 +51,9 @@ namespace DataLayer
 			wieght_w = 0;
 			wieght_ch = 0;
 			ProgramID = -1;
-			MaxDesir = 0;
-			MaxDesireDis = 0;
-			MaxDesireHos = 0;
+			//MaxDesir = 0;
+			//MaxDesireDis = 0;
+			//MaxDesireHos = 0;
 		}
 
 		public void sortPrf(int Hospitals, int Disciplines, int DisciplineGr , int HospitalWard, AllData allData)

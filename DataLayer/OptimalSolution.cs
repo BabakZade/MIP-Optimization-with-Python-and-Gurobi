@@ -1,258 +1,308 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
 
-//namespace DataLayer
-//{
-//	public class OptimalSolution
-//	{
-//		public bool[][][][] Intern_itdh;
-//		public double[] PrDisp_i;
-//		public double[] PrHosp_i;
-//		public double[] PrWait_i;
-//		public double[] PrChang_i;
-//		public double[] Des_i;
-//		public double AveDes;
-//		public double[] dp_i;
-//		public double[] dn_i;
-//		public double minimizedDev;
-//		public double MinDis;
+namespace DataLayer
+{
+	public class OptimalSolution
+	{
+		public bool[][][][] Intern_itdh;
+		public double[] PrDisp_i;
+		public double[] PrHosp_i;
+		public double[] PrWait_i;
+		public double[] PrChang_i;
+		public double[] TrPrPrf;
+		public double[] Des_i;
+		public double AveDes;
+		public double[] dp_i;
+		public double[] dn_i;
+		public int[][][] Assigned_twh;
+		public double minimizedDev;
+		public double[] MinDis;
+		public double ResDemand;
+		public double EmrDemand;
+		public double NotUsesAcc;
+		public double[] TotalDis;
+		public OptimalSolution(AllData data)
+		{
+			Initial(data);
+		}
+		public void Initial(AllData data)
+		{
+			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, false);
+			new ArrayInitializer().CreateArray(ref PrDisp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref MinDis, data.General.TrainingPr, data.AlgSettings.BigM);
+			new ArrayInitializer().CreateArray(ref TotalDis, data.General.TrainingPr, 0);
+			new ArrayInitializer().CreateArray(ref Assigned_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+			AveDes = 0;
+			minimizedDev = 0;
+			ResDemand = 0;
+			EmrDemand = 0;
+			NotUsesAcc = 0;
+			
 
-//		public OptimalSolution(AllData data)
-//		{
-//			Initial(data);
-//		}
-//		public void Initial(AllData data)
-//		{
-//			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, false);
-//			new ArrayInitializer().CreateArray(ref PrDisp_i, data.General.Interns, 0);
-//			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
-//			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
-//			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
-//			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
-//			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
-//			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
-//			MinDis = 0;
-//			AveDes = 0;
-//			minimizedDev = 0;
+		}
 
-//		}
+		public void WriteSolution(string Path, string Name, AllData data)
+		{
+			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 
-//		public void WriteSolution(string Path, string Name, AllData data)
-//		{
-//			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 
-//			for (int p = 0; p < data.General.TrainingPr; p++)
-//			{
-//				tw.WriteLine("Program " + p);
-//				for (int d = 0; d < data.General.Disciplines; d++)
-//				{
-//					if (data.TrainingPr[p].PrManDis_d[d])
-//					{
-//						for (int i = 0; i < data.General.Interns; i++)
-//						{
-//							if (data.Intern[i].ProgramID == p)
-//							{
-//								bool Performed = false;
-//								for (int t = 0; t < data.General.TimePriods; t++)
-//								{
-//									for (int h = 0; h < data.General.Hospitals; h++)
-//									{
-//										if (Intern_itdh[i][t][d][h])
-//										{
-//											Performed = true;
-//											tw.WriteLine("Intern " + i.ToString("00") + " fulfilled mandatory discipline " + d.ToString("00") + " in hospital " + h.ToString("00") + " at time " + t.ToString("00"));
-//										}
-//									}
-//								}
+			tw.WriteLine("PP II GG DD TT HH K_G FH  (Schedule)");
+			for (int p = 0; p < data.General.TrainingPr; p++)
+			{
+				for (int i = 0; i < data.General.Interns; i++)
+				{
+					for (int g = 0; g < data.General.DisciplineGr; g++)
+					{
+						if (data.Intern[i].ProgramID == p)
+						{
+							for (int d = 0; d < data.General.Disciplines; d++)
+							{
+								if (data.Intern[i].DisciplineList_dg[d][g])
+								{
+									for (int t = 0; t < data.General.TimePriods; t++)
+									{
+										for (int h = 0; h < data.General.Hospitals; h++)
+										{
+											if (Intern_itdh[i][t][d][h])
+											{
+												if (data.Intern[i].OverSea_dt[d][t])
+												{
+													tw.WriteLine(p.ToString("00") + i.ToString("00") + g.ToString("00") + d.ToString("00") + t.ToString("00") + h.ToString("00") + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + "**");
+												}
+												else
+												{
+													tw.WriteLine(p.ToString("00") + i.ToString("00") + g.ToString("00") + d.ToString("00") + t.ToString("00") + h.ToString("00") + data.Intern[i].ShouldattendInGr_g[g].ToString("000"));
+												}
 
-//								if (!Performed)
-//								{
-//									if (data.Intern[i].Abi_d[d])
-//									{
-//										tw.WriteLine("Intern " + i.ToString("00") + " did not fulfill mandatory discipline " + d.ToString("00"));
-//									}
-//									else
-//									{
-//										tw.WriteLine("Intern " + i.ToString("00") + " can not fulfill mandatory discipline " + d.ToString("00"));
-//									}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
+				}
+			}
 
-//			for (int p = 0; p < data.General.TrainingPr; p++)
-//			{
-//				tw.WriteLine("Program " + p + " total Arbitrary discipline " + data.TrainingPr[p].ArbitraryD);
-//				for (int i = 0; i < data.General.Interns; i++)
-//				{
-//					if (data.Intern[i].ProgramID == p)
-//					{
-//						for (int d = 0; d < data.General.Disciplines; d++)
-//						{
-//							if (!data.TrainingPr[p].PrManDis_d[d] && data.TrainingPr[p].Program_d[d])
-//							{
-//								bool Performed = false;
-//								for (int t = 0; t < data.General.TimePriods; t++)
-//								{
-//									for (int h = 0; h < data.General.Hospitals; h++)
-//									{
-//										if (Intern_itdh[i][t][d][h])
-//										{
-//											Performed = true;
-//											tw.WriteLine("Intern " + i.ToString("00") + " fulfilled arbitrary discipline " + d.ToString("00") + " in hospital " + h.ToString("00") + " at time " + t.ToString("00"));
-//										}
-//									}
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
+			tw.WriteLine("PP II GG DD HH  (Fulfilled already and exist in the list)");
+			for (int p = 0; p < data.General.TrainingPr; p++)
+			{
+				for (int i = 0; i < data.General.Interns; i++)
+				{
+					for (int g = 0; g < data.General.DisciplineGr; g++)
+					{
+						if (data.Intern[i].ProgramID == p)
+						{
+							for (int d = 0; d < data.General.Disciplines; d++)
+							{
+								if (data.Intern[i].DisciplineList_dg[d][g])
+								{
+										for (int h = 0; h < data.General.Hospitals; h++)
+										{
+											if (data.Intern[i].Fulfilled_dhp[d][h][p])
+											{
+												tw.WriteLine(p.ToString("00") + i.ToString("00") + g.ToString("00") + d.ToString("00") + h.ToString("00"));
+											}
+										}
+									
+								}
+							}
+						}
+					}
 
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				for (int d = 0; d < data.General.Disciplines; d++)
-//				{
-//					for (int t = 0; t < data.General.TimePriods; t++)
-//					{
-//						for (int h = 0; h < data.General.Hospitals; h++)
-//						{
-//							if (Intern_itdh[i][t][d][h])
-//							{
-//								PrDisp_i[i] += data.Intern[i].Prf_d[d];
-//								PrHosp_i[i] += data.Intern[i].Prf_h[h];
-//							}
-//						}
-//					}
-//				}
-//			}
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				for (int p = 0; p < data.General.TrainingPr; p++)
-//				{
-//					if (data.Intern[i].ProgramID == p)
-//					{
-//						int indext = 0;
-//						int sum = 0;
-//						int lastJob = 0;
-//						for (int t = 0; t < data.General.TimePriods; t++)
-//						{
-//							for (int d = 0; d < data.General.Disciplines; d++)
-//							{
-//								for (int h = 0; h < data.General.Hospitals; h++)
-//								{
-//									if (Intern_itdh[i][t][d][h])
-//									{
-//										indext = t;
-//										sum += data.Discipline[d].Duration_p[p];
-//										lastJob = data.Discipline[d].Duration_p[p];
-//									}
-//								}
-//							}
+				}
+			}
+
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int t = 0; t < data.General.TimePriods; t++)
+					{
+						for (int h = 0; h < data.General.Hospitals; h++)
+						{
+							if (Intern_itdh[i][t][d][h])
+							{
+								PrDisp_i[i] += data.Intern[i].Prf_d[d];
+								PrHosp_i[i] += data.Intern[i].Prf_h[h];
+								TrPrPrf[i] += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+							}
+						}
+					}
+				}
+			}
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				TotalDis[data.Intern[i].ProgramID] = PrDisp_i[i] + PrHosp_i[i];
+			}
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int p = 0; p < data.General.TrainingPr; p++)
+				{
+					if (data.Intern[i].ProgramID == p)
+					{
+						int indext = 0;
+						int sum = 0;
+						int lastJob = 0;
+						for (int t = 0; t < data.General.TimePriods; t++)
+						{
+							for (int d = 0; d < data.General.Disciplines; d++)
+							{
+								for (int h = 0; h < data.General.Hospitals; h++)
+								{
+									if (Intern_itdh[i][t][d][h])
+									{
+										indext = t;
+										sum += data.Discipline[d].Duration_p[p];
+										lastJob = data.Discipline[d].Duration_p[p];
+									}
+								}
+							}
+
+
+						}
+
+						PrWait_i[i] = indext + lastJob - sum;
+					}
+				}
+
+			}
+
+			for (int t = 0; t < data.General.TimePriods; t++)
+			{
+				for (int h = 0; h < data.General.Hospitals; h++)
+				{
+					for (int w = 0; w < data.General.HospitalWard ; w++)
+					{
+						for (int d = 0; d < data.General.Disciplines; d++)
+						{
 							
-
-//						}
-
-//						PrWait_i[i] = indext + lastJob - sum;
-//					}
-//				}
+							if (data.Hospital[h].Hospital_dw[d][w] )
+							{
+								for (int i = 0; i < data.General.Interns; i++)
+								{
+									if (Intern_itdh[i][t][d][h])
+									{
+										Assigned_twh[t][w][h]++;
+									}
+								}
+							}
+						}
+					}
+				}
 				
-//			}
+			}
+			for (int t = 0; t < data.General.TimePriods; t++)
+			{
+				for (int w = 0; w < data.General.HospitalWard; w++)
+				{
+					for (int h = 0; h < data.General.Hospitals ; h++)
+					{
+						if (Assigned_twh[t][w][h] > data.Hospital[h].HospitalMaxDem_tw[t][w])
+						{
+							int diff = Assigned_twh[t][w][h] - data.Hospital[h].HospitalMaxDem_tw[t][w];
+							if (diff <= data.Hospital[h].ReservedCap_tw[t][w])
+							{
+								ResDemand += diff;
+							}
+							else
+							{
+								ResDemand += data.Hospital[h].ReservedCap_tw[t][w];
+								diff -= data.Hospital[h].ReservedCap_tw[t][w];
+								EmrDemand += diff;
+							}
+						}
+					}
+				}
+			}
 
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				int IndH1 = -1;
-//				int IndH2 = -1;
-//				for (int t = 0; t < data.General.TimePriods; t++)
-//				{
-//					for (int d = 0; d < data.General.Disciplines; d++)
-//					{
-//						for (int h = 0; h < data.General.Hospitals; h++)
-//						{
-//							if (Intern_itdh[i][t][d][h])
-//							{
-//								if (IndH1 < 0)
-//								{
-//									IndH1 = h;
-//								}
-//								else 
-//								{
-//									IndH2 = h;
-//									if (IndH1 != IndH2)
-//									{
-//										PrChang_i[i]++;
-//									}
-//									IndH1 = IndH2;
-//									IndH2 = -1;
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				int IndH1 = -1;
+				int IndH2 = -1;
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						for (int h = 0; h < data.General.Hospitals; h++)
+						{
+							if (Intern_itdh[i][t][d][h])
+							{
+								if (IndH1 < 0)
+								{
+									IndH1 = h;
+								}
+								else
+								{
+									IndH2 = h;
+									if (IndH1 != IndH2)
+									{
+										PrChang_i[i]++;
+									}
+									IndH1 = IndH2;
+									IndH2 = -1;
+								}
+							}
+						}
+					}
+				}
+			}
 
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				Des_i[i] = data.Intern[i].wieght_ch * PrChang_i[i] / data.PrChan_i[i]
-//					     + data.Intern[i].wieght_w * PrWait_i[i] / data.PrWait_i[i]
-//						 + data.Intern[i].wieght_d * PrDisp_i[i] / data.PrDisc_i[i]
-//						 + data.Intern[i].wieght_h * PrHosp_i[i] / data.PrHosp_i[i];
-//				AveDes += Des_i[i];
-//				if (i == 0)
-//				{
-//					MinDis = Des_i[i];
-//				}
-//				else
-//				{
-//					MinDis = Des_i[i] < MinDis ? Des_i[i] : MinDis;
-//				}
-				
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				Des_i[i] = data.Intern[i].wieght_ch * PrChang_i[i]
+						 + data.Intern[i].wieght_w * PrWait_i[i]
+						 + data.Intern[i].wieght_d * PrDisp_i[i]
+						 + data.Intern[i].wieght_h * PrHosp_i[i]
+						 + data.TrainingPr[data.Intern[i].ProgramID].weight_p * TrPrPrf[i];
+				AveDes += Des_i[i];
+				if (MinDis[data.Intern[i].ProgramID] == data.AlgSettings.BigM)
+				{
+					MinDis[data.Intern[i].ProgramID] = Des_i[i];
+				}
+				else
+				{
+					MinDis[data.Intern[i].ProgramID] = Des_i[i] < MinDis[data.Intern[i].ProgramID] ? Des_i[i] : MinDis[data.Intern[i].ProgramID];
+				}
+			}
+			
+			AveDes = AveDes / data.General.Interns;
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				if (AveDes > Des_i[i])
+				{
+					dn_i[i] = AveDes - Des_i[i];
+				}
+				else
+				{
+					dp_i[i] = Des_i[i] - AveDes;
+				}
+				minimizedDev += (dn_i[i] - dp_i[i]);
+			}
+			tw.WriteLine("III PrD PrH PrW PrC PrP W_d W_h W_w W_c W_p DesI DNi DPi");
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				tw.WriteLine(i.ToString("000") + " " + PrDisp_i[i].ToString("000")
+					+ " " + PrHosp_i[i].ToString("000") + " " + PrWait_i[i].ToString("000")
+					+ " " + PrChang_i[i].ToString("000") + " " + TrPrPrf[i].ToString("000") + " " + data.Intern[i].wieght_d.ToString("000")
+					+ " " + data.Intern[i].wieght_h.ToString("000") + " " + data.Intern[i].wieght_w.ToString("00")
+					+ " " + data.Intern[i].wieght_ch.ToString("00") + " " + data.TrainingPr[data.Intern[i].ProgramID].weight_p.ToString("000")
+					+ " " + Des_i[i].ToString("0.000") + " " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
+			}
 
-//			}
-//			AveDes = AveDes / data.General.Interns;
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				if (AveDes > Des_i[i])
-//				{
-//					dn_i[i] = AveDes - Des_i[i];
-//				}
-//				else
-//				{
-//					dp_i[i] =  Des_i[i] - AveDes;
-//				}
-//				minimizedDev += (dn_i[i] - dp_i[i]);
-//			}
-//			tw.WriteLine("III PrD PrH PrW PrC W_d W_h W_w W_c DesI DNi DPi");
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				tw.WriteLine(i.ToString("000") + " " + PrDisp_i[i].ToString("000") 
-//					+ " " + PrHosp_i[i].ToString("000") + " " + PrWait_i[i].ToString("000")
-//					+ " " + PrChang_i[i].ToString("000") + " " + data.Intern[i].wieght_d.ToString("000")
-//					+ " " + data.Intern[i].wieght_h.ToString("000") + " " + data.Intern[i].wieght_w.ToString("00")
-//					+ " " + data.Intern[i].wieght_ch.ToString("00") + " " + Des_i[i].ToString("0.000") 
-//					+" " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
-//			}
-//			tw.WriteLine("III PrD PrH PrW PrC MxD MxH MxW MxC WdWh MxWdWh");
-//			for (int i = 0; i < data.General.Interns; i++)
-//			{
-//				tw.WriteLine(i.ToString("000") + " " + PrDisp_i[i].ToString("000")
-//					+ " " + PrHosp_i[i].ToString("000") + " " + PrWait_i[i].ToString("000")
-//					+ " " + PrChang_i[i].ToString("000") + " " + data.Intern[i].MaxDesireDis.ToString("000")
-//					+ " " + data.Intern[i].MaxDesireHos.ToString("000") + " " + data.PrWait_i[i].ToString("000")
-//					+ " " + data.PrChan_i[i].ToString("000")
-//					+ " " + (PrDisp_i[i] * data.Intern[i].wieght_d + PrHosp_i[i] * data.Intern[i].wieght_h).ToString("0000")
-//					+ " " + (data.Intern[i].MaxDesireDis * data.Intern[i].wieght_d + data.Intern[i].MaxDesireHos * data.Intern[i].wieght_h).ToString("0000"));
-//			}
-//			tw.WriteLine("MinDes: " + MinDis.ToString("0.000"));
-//			tw.WriteLine("MinDev: " + minimizedDev.ToString("0.000"));
-//			tw.WriteLine("DsAvrg: " + AveDes.ToString("0.000"));
-//			tw.Close();
-//		}
-//	}
-//}
+			tw.Close();
+		}
+	}
+}

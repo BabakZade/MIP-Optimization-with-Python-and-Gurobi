@@ -19,7 +19,7 @@ namespace GeneralMIPAlgorithm
 		public INumVar[] des_i;
 		public INumVar[] dp_i;
 		public INumVar[] dn_i;
-		public INumVar desmax;
+		public INumVar[] desMin_p;
 		public INumVar MinPD;
 		public INumVar MaxND;
 		public INumVar[][][] Res_twh;
@@ -36,6 +36,7 @@ namespace GeneralMIPAlgorithm
 		public string[][][] RES_twh;
 		public string[][][] EMR_twh;
 		public string[][] ACCSL_tr;
+		public string[] DESMin_p;
 
 		public int Interns;
 		public int Disciplins;
@@ -437,8 +438,17 @@ namespace GeneralMIPAlgorithm
 					AccSl_tr[t][r] = MIPModel.NumVar(0, data.Region[r].AvaAcc_t[t]);
 				}
 			}
+			DESMin_p = new string[TrainingPr];
+			for (int p = 0; p < TrainingPr; p++)
+			{
+				DESMin_p[p] = "DESMin_p[" + p + "]";
+			}
+			desMin_p = new INumVar[TrainingPr];
+			for (int p = 0; p < TrainingPr; p++)
+			{
+				 desMin_p[p]= MIPModel.NumVar(-int.MaxValue, int.MaxValue, DESMin_p[p]);
+			}
 
-			desmax = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "DesMax");
 			MinPD = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MinP");
 			MaxND = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MaxN");
 		}
@@ -744,7 +754,7 @@ namespace GeneralMIPAlgorithm
 						ILinearNumExpr avail = MIPModel.LinearNumExpr();
 						for (int h = 0; h < Hospitals; h++)
 						{
-							avail.AddTerm(s_idth[i][d][t][h], data.Discipline[d - 1].Duration_p[p]);
+							avail.AddTerm(s_idth[i][d][t][h], data.Discipline[d - 1].Duration_p[data.Intern[i].ProgramID]);
 						}
 						int rhs = 0;
 						for (int tt = t; tt < t + data.Discipline[d - 1].Duration_p[data.Intern[i].ProgramID] && tt < Timepriods; tt++)
@@ -897,6 +907,7 @@ namespace GeneralMIPAlgorithm
 						{
 							internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.Intern[i].Prf_d[d - 1] * data.Intern[i].wieght_d);
 							internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.Intern[i].Prf_h[h] * data.Intern[i].wieght_h);
+							internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d-1]);
 						}
 					}
 				}
@@ -906,13 +917,18 @@ namespace GeneralMIPAlgorithm
 			// min desire
 			for (int i = 0; i < Interns; i++)
 			{
-				ILinearNumExpr dev = MIPModel.LinearNumExpr();
+				for (int p = 0; p < TrainingPr; p++)
+				{
+					if (data.Intern[i].ProgramID == p)
+					{
+						ILinearNumExpr dev = MIPModel.LinearNumExpr();
 
-				dev.AddTerm(des_i[i], -1);
-				dev.AddTerm(desmax, 1);
-
-
-				MIPModel.AddLe(dev, 0, "MinDes_" + i);
+						dev.AddTerm(des_i[i], -1);
+						dev.AddTerm(desMin_p[p], 1);
+						MIPModel.AddLe(dev, 0, "MinDes_" + i);
+					}
+				}
+				
 			}
 		}
 
@@ -922,20 +938,40 @@ namespace GeneralMIPAlgorithm
 			ILinearNumExpr Obj = MIPModel.LinearNumExpr();
 			for (int i = 0; i < Interns; i++)
 			{
-				Obj.AddTerm(des_i[i], data.InsSetting.Alpha);
+				Obj.AddTerm(des_i[i], data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi);
 			}
-			Obj.AddTerm(desmax, data.InsSetting.Beta);
+			for (int p = 0; p < TrainingPr; p++)
+			{
+				Obj.AddTerm(desMin_p[p], data.TrainingPr[p].CoeffObj_MinDesi);
+			}
+
 			for (int t = 0; t < Timepriods; t++)
 			{
-				for (int d = 0; d < Disciplins; d++)
+				for (int w = 0; w < Wards; w++)
 				{
 					for (int h = 0; h < Hospitals; h++)
 					{
-						Obj.AddTerm(slN_dth[d][t][h], -data.InsSetting.Gamma);
-						Obj.AddTerm(slP_dth[d][t][h], -data.InsSetting.Gamma);
+						for (int p = 0; p < TrainingPr; p++)
+						{
+							Obj.AddTerm(Res_twh[t][w][h], -data.TrainingPr[p].CoeffObj_ResCap);
+							Obj.AddTerm(Emr_twh[t][w][h], -data.TrainingPr[p].CoeffObj_EmrCap);
+						}
+						
 					}
 				}
 			}
+
+			for (int t = 0; t < Timepriods; t++)
+			{
+				for (int r = 0; r < Regions; r++)
+				{
+					for (int p = 0; p < TrainingPr; p++)
+					{
+						Obj.AddTerm(AccSl_tr[t][r], -data.TrainingPr[p].CoeffObj_NotUsedAcc);
+					}
+				}
+			}
+
 			//Obj.AddTerm(MaxND, 1);
 			MIPModel.AddMaximize(Obj);
 		}
@@ -965,7 +1001,7 @@ namespace GeneralMIPAlgorithm
 
 							}
 						}
-						MIPModel.AddGe(minDem, data.Hospital[h].HospitalMinDem_tw[t][w], "MinDem_" + t + "_" + d + "_" + h);
+						MIPModel.AddGe(minDem, data.Hospital[h].HospitalMinDem_tw[t][w], "MinDem_" + t + "_" + w + "_" + h);
 					}
 				}
 			}
