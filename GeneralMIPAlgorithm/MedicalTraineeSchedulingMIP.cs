@@ -42,7 +42,9 @@ namespace GeneralMIPAlgorithm
 		public int Hospitals;
 		public int Timepriods;
 		public int TrainingPr;
-
+		public int Wards;
+		public int Regions;
+		public int DisciplineGr;
 		public MedicalTraineeSchedulingMIP(AllData InputData, string Path, string InsName)
 		{
 			data = InputData;
@@ -79,7 +81,11 @@ namespace GeneralMIPAlgorithm
 
 			// discipline + 1 for dummy d = 0 is dummy
 			Disciplins = data.General.Disciplines + 1;
-			Hospitals = data.General.Hospitals;
+			Wards = data.General.HospitalWard;
+			Regions = data.General.Region;
+			DisciplineGr = data.General.DisciplineGr;
+			// one hospital oversea H
+			Hospitals = data.General.Hospitals + 1;
 			Timepriods = data.General.TimePriods;
 			TrainingPr = data.General.TrainingPr;
 		}
@@ -120,22 +126,42 @@ namespace GeneralMIPAlgorithm
 						for (int h = 0; h < Hospitals; h++)
 						{
 							y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 1, Y_idDh[i][d][dd][h]);
-							if (dd == 0 || dd == d)
+							for (int w = 0; w < Wards; w++)
 							{
-								y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-							}
-							else if (!data.Hospital[h].Hospital_d[dd - 1])
-							{
-								y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-							}
-							else if (!data.TrainingPr[data.Intern[i].ProgramID].Program_d[dd - 1])
-							{
-								y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-							}
-							else if (d != 0 && !data.TrainingPr[data.Intern[i].ProgramID].Program_d[d - 1])
-							{
-								y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-							}
+								// not oversea
+								if (h < Hospitals - 1)
+								{
+									if (dd == 0 || dd == d)
+									{
+										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+									}
+									else if (!data.Hospital[h].Hospital_dw[dd - 1][w])
+									{
+										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+									}
+									else
+									{
+										bool dexist = false;
+										bool ddexist = false;
+										for (int g = 0; g < DisciplineGr; g++)
+										{
+											if (data.Intern[i].DisciplineList_dg[dd - 1][g])
+											{
+												ddexist = true;												
+											}
+											else if (d != 0 && data.Intern[i].DisciplineList_dg[d - 1][g])
+											{
+												dexist = true;												
+											}
+										}
+										if (!dexist || !ddexist)
+										{
+											y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+										}
+									}
+									
+								}
+							}													
 							MIPModel.Add(y_idDh[i][d][dd][h]);
 						}
 					}
@@ -183,82 +209,6 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
-			SLP_dth = new string[Disciplins][][];
-			for (int d = 0; d < Disciplins; d++)
-			{
-				SLP_dth[d] = new string[Timepriods][];
-				for (int t = 0; t < Timepriods; t++)
-				{
-					SLP_dth[d][t] = new string[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
-					{
-						SLP_dth[d][t][h] = "SLP_dth[" + d + "][" + t + "][" + h + "]";
-					}
-				}
-			}
-
-			slP_dth = new IIntVar[Disciplins][][];
-			for (int d = 0; d < Disciplins; d++)
-			{
-				slP_dth[d] = new IIntVar[Timepriods][];
-				for (int t = 0; t < Timepriods; t++)
-				{
-					slP_dth[d][t] = new IIntVar[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
-					{
-						if (d != 0)
-						{
-							slP_dth[d][t][h] = MIPModel.IntVar(0, data.Hospital[h].HospitalMinDem_td[t][d - 1], SLP_dth[d][t][h]);
-						}
-						else
-						{
-							slP_dth[d][t][h] = MIPModel.IntVar(0, 0, SLP_dth[d][t][h]);
-						}
-
-
-						MIPModel.Add(slP_dth[d][t][h]);
-					}
-				}
-			}
-
-			SLN_dth = new string[Disciplins][][];
-			for (int d = 0; d < Disciplins; d++)
-			{
-				SLN_dth[d] = new string[Timepriods][];
-				for (int t = 0; t < Timepriods; t++)
-				{
-					SLN_dth[d][t] = new string[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
-					{
-						SLN_dth[d][t][h] = "SLN_dth[" + d + "][" + t + "][" + h + "]";
-					}
-				}
-			}
-
-			slN_dth = new IIntVar[Disciplins][][];
-			for (int d = 0; d < Disciplins; d++)
-			{
-				slN_dth[d] = new IIntVar[Timepriods][];
-				for (int t = 0; t < Timepriods; t++)
-				{
-					slN_dth[d][t] = new IIntVar[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
-					{
-						if (d == 0)
-						{
-							slN_dth[d][t][h] = MIPModel.IntVar(0, 0, SLN_dth[d][t][h]);
-						}
-						else
-						{
-							slN_dth[d][t][h] = MIPModel.IntVar(0, data.Hospital[h].HospitalMaxDem_td[t][d - 1], SLN_dth[d][t][h]);
-						}
-
-
-						MIPModel.Add(slN_dth[d][t][h]);
-					}
-				}
-			}
-
 			W_id = new string[Interns][];
 			for (int i = 0; i < Interns; i++)
 			{
@@ -280,9 +230,21 @@ namespace GeneralMIPAlgorithm
 					{
 						w_id[i][d] = MIPModel.NumVar(0, 0, W_id[i][d]);
 					}
-					else if (!data.TrainingPr[data.Intern[i].ProgramID].Program_d[d - 1])
+					else
 					{
-						w_id[i][d] = MIPModel.NumVar(0, 0, W_id[i][d]);
+						bool dexist = false;
+						for (int g = 0; g < DisciplineGr; g++)
+						{
+							if (data.Intern[i].DisciplineList_dg[d - 1][g])
+							{
+								dexist = true;
+							}
+						}
+						if (!dexist)
+						{
+							w_id[i][d] = MIPModel.NumVar(0, 0, W_id[i][d]);
+						}
+
 					}
 					MIPModel.Add(w_id[i][d]);
 				}
@@ -309,9 +271,22 @@ namespace GeneralMIPAlgorithm
 					{
 						ch_id[i][d] = MIPModel.NumVar(0, 0, Ch_id[i][d]);
 					}
-					else if (!data.TrainingPr[data.Intern[i].ProgramID].Program_d[d - 1])
+					else
 					{
-						ch_id[i][d] = MIPModel.NumVar(0, 0, Ch_id[i][d]);
+						bool dexist = false;
+						for (int g = 0; g < DisciplineGr; g++)
+						{
+							if (data.Intern[i].DisciplineList_dg[d-1][g])
+							{
+								dexist = true;
+								
+							}
+						}
+						if (!dexist)
+						{
+							ch_id[i][d] = MIPModel.NumVar(0, 0, Ch_id[i][d]);
+						}
+						
 					}
 					MIPModel.Add(ch_id[i][d]);
 				}
@@ -354,6 +329,82 @@ namespace GeneralMIPAlgorithm
 			{
 				dn_i[i] = MIPModel.NumVar(0,
 					int.MaxValue, dN_i[i]);
+			}
+
+			RES_twh = new string[Timepriods][][];
+			for (int t = 0; t <  Timepriods; t++)
+			{
+				RES_twh[t] = new string[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					RES_twh[t][w] = new string[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						RES_twh[t][w][h] = "RES_twh[" + t + "][" + w + "][" + h + "]";
+					}
+				}
+			}
+
+			Res_twh = new INumVar[Timepriods][][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				Res_twh[t] = new INumVar[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					Res_twh[t][w] = new INumVar[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						Res_twh[t][w][h] = MIPModel.NumVar(0,data.Hospital[h].ReservedCap_tw[t][w], RES_twh[t][w][h]);
+					}
+				}
+			}
+
+			EMR_twh = new string[Timepriods][][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				EMR_twh[t] = new string[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					EMR_twh[t][w] = new string[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						EMR_twh[t][w][h] = "EMR_twh[" + t + "][" + w + "][" + h + "]";
+					}
+				}
+			}
+
+			Emr_twh = new INumVar[Timepriods][][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				Emr_twh[t] = new INumVar[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					Emr_twh[t][w] = new INumVar[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						Emr_twh[t][w][h] = MIPModel.NumVar(0, data.Hospital[h].EmergencyCap_tw[t][w], EMR_twh[t][w][h]);
+					}
+				}
+			}
+
+			ACCSL_tr = new string[Timepriods][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				ACCSL_tr[t] = new string[Regions];
+				for (int r = 0; r < Regions; r++)
+				{
+					ACCSL_tr[t][r] = "ACCSL_tr[" + t + "][" + r + "]";
+				}
+			}
+
+			AccSl_tr = new INumVar[Timepriods][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				AccSl_tr[t] = new INumVar[Regions];
+				for (int r = 0; r < Regions; r++)
+				{
+					AccSl_tr[t][r] = MIPModel.NumVar(0, data.Region[r].AvaAcc_t[t]);
+				}
 			}
 
 			desmax = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "DesMax");
