@@ -310,6 +310,10 @@ namespace DataLayer
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
+				data.Intern[i].isProspective = bool.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
 				data.Intern[i].wieght_d = int.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;

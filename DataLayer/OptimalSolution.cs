@@ -23,8 +23,10 @@ namespace DataLayer
 		public double[] MinDis;
 		public double ResDemand;
 		public double EmrDemand;
-		public double NotUsesAcc;
+		public double[][] NotUsesAcc;
 		public double[] TotalDis;
+		public double NotUsedAccTotal;
+		public double Obj;
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -43,12 +45,13 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref MinDis, data.General.TrainingPr, data.AlgSettings.BigM);
 			new ArrayInitializer().CreateArray(ref TotalDis, data.General.TrainingPr, 0);
 			new ArrayInitializer().CreateArray(ref Assigned_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref NotUsesAcc, data.General.Region, data.General.TimePriods, 0);
 			AveDes = 0;
 			minimizedDev = 0;
 			ResDemand = 0;
 			EmrDemand = 0;
-			NotUsesAcc = 0;
-			
+			NotUsedAccTotal = 0;
+			Obj = 0;
 
 		}
 
@@ -57,7 +60,7 @@ namespace DataLayer
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 
 
-			tw.WriteLine("PP II GG DD TT HH K_G FH  (Schedule)");
+			tw.WriteLine("PP | II | GG | DD | TT | HH | K_G | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				for (int i = 0; i < data.General.Interns; i++)
@@ -74,17 +77,21 @@ namespace DataLayer
 									{
 										for (int h = 0; h < data.General.Hospitals; h++)
 										{
-											if (Intern_itdh[i][t][d][h])
+											if (data.Intern[i].OverSea_dt[d][t])
 											{
-												if (data.Intern[i].OverSea_dt[d][t])
-												{
-													tw.WriteLine(p.ToString("00") + i.ToString("00") + g.ToString("00") + d.ToString("00") + t.ToString("00") + h.ToString("00") + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + "**");
-												}
-												else
-												{
-													tw.WriteLine(p.ToString("00") + i.ToString("00") + g.ToString("00") + d.ToString("00") + t.ToString("00") + h.ToString("00") + data.Intern[i].ShouldattendInGr_g[g].ToString("000"));
-												}
+												tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
+											}
+											else if (Intern_itdh[i][t][d][h])
+											{
+												tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
 
+												for (int r = 0; r < data.General.Region; r++)
+												{
+													if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
+													{
+														NotUsesAcc[r][t]++;
+													}
+												}
 											}
 										}
 									}
@@ -95,7 +102,24 @@ namespace DataLayer
 
 				}
 			}
+			for (int r = 0; r < data.General.Region; r++)
+			{
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					NotUsesAcc[r][t] -= data.Region[r].AvaAcc_t[t];
+				}
+			}
+			for (int r = 0; r < data.General.Region; r++)
+			{
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					if (NotUsesAcc[r][t] < 0)
+					{
+						NotUsedAccTotal += -NotUsesAcc[r][t];
+					}
 
+				}
+			}
 			tw.WriteLine("PP II GG DD HH  (Fulfilled already and exist in the list)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
@@ -109,14 +133,14 @@ namespace DataLayer
 							{
 								if (data.Intern[i].DisciplineList_dg[d][g])
 								{
-										for (int h = 0; h < data.General.Hospitals; h++)
+									for (int h = 0; h < data.General.Hospitals; h++)
+									{
+										if (data.Intern[i].Fulfilled_dhp[d][h][p])
 										{
-											if (data.Intern[i].Fulfilled_dhp[d][h][p])
-											{
-												tw.WriteLine(p.ToString("00") + i.ToString("00") + g.ToString("00") + d.ToString("00") + h.ToString("00"));
-											}
+											tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + h.ToString("00"));
 										}
-									
+									}
+
 								}
 							}
 						}
@@ -184,12 +208,12 @@ namespace DataLayer
 			{
 				for (int h = 0; h < data.General.Hospitals; h++)
 				{
-					for (int w = 0; w < data.General.HospitalWard ; w++)
+					for (int w = 0; w < data.General.HospitalWard; w++)
 					{
 						for (int d = 0; d < data.General.Disciplines; d++)
 						{
-							
-							if (data.Hospital[h].Hospital_dw[d][w] )
+
+							if (data.Hospital[h].Hospital_dw[d][w])
 							{
 								for (int i = 0; i < data.General.Interns; i++)
 								{
@@ -202,13 +226,13 @@ namespace DataLayer
 						}
 					}
 				}
-				
+
 			}
 			for (int t = 0; t < data.General.TimePriods; t++)
 			{
 				for (int w = 0; w < data.General.HospitalWard; w++)
 				{
-					for (int h = 0; h < data.General.Hospitals ; h++)
+					for (int h = 0; h < data.General.Hospitals; h++)
 					{
 						if (Assigned_twh[t][w][h] > data.Hospital[h].HospitalMaxDem_tw[t][w])
 						{
@@ -277,7 +301,7 @@ namespace DataLayer
 					MinDis[data.Intern[i].ProgramID] = Des_i[i] < MinDis[data.Intern[i].ProgramID] ? Des_i[i] : MinDis[data.Intern[i].ProgramID];
 				}
 			}
-			
+
 			AveDes = AveDes / data.General.Interns;
 			for (int i = 0; i < data.General.Interns; i++)
 			{
@@ -302,6 +326,25 @@ namespace DataLayer
 					+ " " + Des_i[i].ToString("0.000") + " " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
 			}
 
+			tw.WriteLine("III DesI DesP");
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				Obj += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+				
+				tw.WriteLine(i.ToString("000") + " " + Des_i[i].ToString("000")
+				 + " " + MinDis[data.Intern[i].ProgramID].ToString("000"));
+			}
+			for (int p = 0; p < data.General.TrainingPr; p++)
+			{
+				Obj += MinDis[p] * data.TrainingPr[p].CoeffObj_MinDesi;
+				Obj -= ResDemand * data.TrainingPr[p].CoeffObj_ResCap;
+				Obj -= EmrDemand * data.TrainingPr[p].CoeffObj_EmrCap;
+				Obj -= NotUsedAccTotal * data.TrainingPr[p].CoeffObj_NotUsedAcc;
+			}
+			tw.WriteLine("Res: " + ResDemand.ToString("000.0"));
+			tw.WriteLine("Emr: " + EmrDemand.ToString("000.0"));
+			tw.WriteLine("Acc: " + NotUsedAccTotal.ToString("000.0"));
+			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.Close();
 		}
 	}

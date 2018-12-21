@@ -31,7 +31,8 @@ namespace DataLayer
 			tmpGeneral.HospitalWard = random_.Next(5, tmpGeneral.Disciplines + 1);
 			tmpGeneral.Region = 1;
 			tmpGeneral.TrainingPr = 2;
-			tmpGeneral.DisciplineGr = 4;
+			tmpGeneral.DisciplineGr = 2;
+			tmpGeneral.Disciplines = 10;
 			//[groupName pr1 pr2 0 0]
 			double[,] prValue = new double[5, 5] {{ 0, 0 , 0 , 0 , 0},
 												  { 1, 1 , 0 , 0 , 0},
@@ -48,7 +49,7 @@ namespace DataLayer
 			// 24 => 2week
 			int[] tp_ = { 12, 24 };
 			tmpGeneral.TimePriods = tp_[(int)random_.Next(0, tp_.Length)];
-
+			tmpGeneral.TimePriods = 12;
 			string strline;
 			int rnd, temp;
 
@@ -103,7 +104,7 @@ namespace DataLayer
 				tmpTrainingPr[p].CoeffObj_ResCap = random_.Next(1, 5);
 				tmpTrainingPr[p].CoeffObj_EmrCap = random_.Next(1, 5);
 				tmpTrainingPr[p].CoeffObj_NotUsedAcc = random_.Next(1, 5);
-
+				tmpTrainingPr[p].CoeffObj_MINDem = random_.Next(1, 5);
 				tmpTrainingPr[p].DiscChangeInOneHosp = random_.Next(1, tmpGeneral.Disciplines);
 
 			}
@@ -116,7 +117,7 @@ namespace DataLayer
 				tw.WriteLine(tmpTrainingPr[p].Name + " " + tmpTrainingPr[p].AcademicYear 
 					         + " " + tmpTrainingPr[p].weight_p + " " + tmpTrainingPr[p].CoeffObj_SumDesi
 							 + " " + tmpTrainingPr[p].CoeffObj_MinDesi + " " + tmpTrainingPr[p].CoeffObj_ResCap
-							 + " " + tmpTrainingPr[p].CoeffObj_EmrCap + " " + tmpTrainingPr[p].CoeffObj_NotUsedAcc + " " + tmpTrainingPr[p].DiscChangeInOneHosp);
+							 + " " + tmpTrainingPr[p].CoeffObj_EmrCap + " " + tmpTrainingPr[p].CoeffObj_NotUsedAcc + " " + tmpTrainingPr[p].DiscChangeInOneHosp + " " + tmpTrainingPr[p].CoeffObj_MINDem);
 			}
 			
 			tw.WriteLine();
@@ -185,6 +186,7 @@ namespace DataLayer
 					{
 						int rate = tmpGeneral.Interns / tmpGeneral.Hospitals;
 						int min = random_.Next(0, 5) > 3 ? 1 : 0;
+						 min =  0;
 						int max = random_.Next(min + 1, rate + 1);
 						for (int t = 0; t < tmpGeneral.TimePriods; t++)
 						{
@@ -431,6 +433,7 @@ namespace DataLayer
 				tmpinternInfos[i].ProgramID = random_.Next(0, tmpGeneral.TrainingPr);
 				int totalTime = 0;
 				int totalDisc = 0;
+				tmpinternInfos[i].isProspective = random_.NextDouble() < 90;
 				// hand out group and discipline
 				for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
 				{
@@ -594,11 +597,11 @@ namespace DataLayer
 			
 
 					
-		    strline = "// InternName Program W_disc W_hosp W_change W_wait  [i][w]";
+		    strline = "// InternName Program isProspective W_disc W_hosp W_change W_wait  [i][w]";
 			tw.WriteLine(strline);
 			for (int i = 0; i < tmpGeneral.Interns; i++)
 			{
-				tw.WriteLine(i + " " + tmpinternInfos[i].ProgramID + " " + tmpinternInfos[i].wieght_d + " " + tmpinternInfos[i].wieght_h + " " + tmpinternInfos[i].wieght_ch + " " + tmpinternInfos[i].wieght_w);
+				tw.WriteLine(i + " " + tmpinternInfos[i].ProgramID + " " + tmpinternInfos[i].isProspective + " " + tmpinternInfos[i].wieght_d + " " + tmpinternInfos[i].wieght_h + " " + tmpinternInfos[i].wieght_ch + " " + tmpinternInfos[i].wieght_w);
 
 			}
 			

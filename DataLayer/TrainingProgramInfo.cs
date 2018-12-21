@@ -18,6 +18,7 @@ namespace DataLayer
 		public double CoeffObj_ResCap;
 		public double CoeffObj_EmrCap;
 		public double CoeffObj_NotUsedAcc;
+		public double CoeffObj_MINDem;
 		public int DiscChangeInOneHosp;
 		public TrainingProgramInfo(int Disciplins, int DisciplineGr)
 		{
@@ -32,6 +33,7 @@ namespace DataLayer
 			CoeffObj_ResCap = 0;
 			CoeffObj_EmrCap = 0;
 			CoeffObj_NotUsedAcc = 0;
+			CoeffObj_MINDem = 0;
 			DiscChangeInOneHosp = Disciplins;
 		}
 	}

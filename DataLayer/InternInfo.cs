@@ -29,7 +29,7 @@ namespace DataLayer
 		//public double MaxDesir;
 		public bool[][] DisciplineList_dg;
 		public int[] ShouldattendInGr_g;
-
+		public bool isProspective;
 		public InternInfo(int Hospitals, int Disciplines, int TimePeriods, int DisciplineGr, int TrainingPr, int Region)
 		{
 			Name = "";
@@ -51,6 +51,7 @@ namespace DataLayer
 			wieght_w = 0;
 			wieght_ch = 0;
 			ProgramID = -1;
+			isProspective = true;
 			//MaxDesir = 0;
 			//MaxDesireDis = 0;
 			//MaxDesireHos = 0;

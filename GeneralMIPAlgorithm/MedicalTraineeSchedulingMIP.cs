@@ -24,6 +24,7 @@ namespace GeneralMIPAlgorithm
 		public INumVar MaxND;
 		public INumVar[][][] Res_twh;
 		public INumVar[][][] Emr_twh;
+		public INumVar[][][] sld_twh;
 		public INumVar[][] AccSl_tr;
 
 		public string[][][][] Y_idDh;
@@ -35,6 +36,8 @@ namespace GeneralMIPAlgorithm
 		public string[] dN_i;
 		public string[][][] RES_twh;
 		public string[][][] EMR_twh;
+		public string[][][] SLD_twh;
+
 		public string[][] ACCSL_tr;
 		public string[] DESMin_p;
 
@@ -127,57 +130,104 @@ namespace GeneralMIPAlgorithm
 						for (int h = 0; h < Hospitals; h++)
 						{
 							y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 1, Y_idDh[i][d][dd][h]);
-							for (int w = 0; w < Wards; w++)
+
+							// not oversea
+							if (h < Hospitals - 1)
 							{
-								// not oversea
-								if (h < Hospitals - 1)
+								bool overSea = false;
+								for (int t = 0; t < Timepriods && dd > 0; t++)
 								{
-									bool overSea = false;
-									for (int t = 0; t < Timepriods && dd >0 ; t++)
+									if (data.Intern[i].OverSea_dt[dd - 1][t])
 									{
-										if (data.Intern[i].OverSea_dt[dd-1][t])
-										{
-											overSea = true;
-										}
-									}
-									if (dd == 0 || dd == d)
-									{
-										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-									} // dd can not be 0
-									else if (!data.Intern[i].Abi_dh[dd - 1][h]) // ability for dd in Hospital
-									{
-										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-									}
-									else if (overSea) // if dd should happen in oversea
-									{
-										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-									}
-									else if (!data.Hospital[h].Hospital_dw[dd - 1][w])
-									{
-										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-									} // availability of dd in hospital
-									else
-									{
-										bool dexist = false;
-										bool ddexist = false;
-										for (int g = 0; g < DisciplineGr; g++)
-										{
-											if (data.Intern[i].DisciplineList_dg[dd - 1][g])
-											{
-												ddexist = true;
-											}
-											else if (d != 0 && data.Intern[i].DisciplineList_dg[d - 1][g])
-											{
-												dexist = true;
-											}
-										}
-										if (!dexist || !ddexist)
-										{
-											y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
-										}
+										overSea = true;
 									}
 								}
-							}													
+								bool ddinWard = false;
+								for (int w = 0; w < Wards && dd > 0; w++)
+								{
+									if (data.Hospital[h].Hospital_dw[dd - 1][w])
+									{
+										ddinWard = true;
+									}
+								}
+								if (dd == 0 || dd == d)// dd can not be 0
+								{
+									y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+								} 
+								else if (!data.Intern[i].Abi_dh[dd - 1][h]) // ability for dd in Hospital
+								{
+									y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+								}
+								else if (overSea) // if dd should happen in oversea
+								{
+									y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+								}
+								else if (!ddinWard)// availability of dd in hospital
+								{
+									y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+								}
+								else if(d>0) //when at least one of them not in the the list
+								{
+									bool dexist = false;
+									bool ddexist = false;
+									for (int g = 0; g < DisciplineGr; g++)
+									{
+										if (data.Intern[i].DisciplineList_dg[dd - 1][g])
+										{
+											ddexist = true;
+										}
+										if (d != 0 && data.Intern[i].DisciplineList_dg[d - 1][g])
+										{
+											dexist = true;
+										}
+									}
+									if (!dexist || !ddexist)
+									{
+										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+									}
+								}
+								else if (d == 0)
+								{
+									bool ddexist = false;
+									for (int g = 0; g < DisciplineGr; g++)
+									{
+										if (data.Intern[i].DisciplineList_dg[dd - 1][g])
+										{
+											ddexist = true;
+										}
+										
+									}
+									if (!ddexist)
+									{
+										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+									}
+								}
+							}
+							else
+							{
+								bool FHexist = false;
+								if (dd == 0)
+								{
+									y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+								}
+								else
+								{
+									for (int t = 0; t < Timepriods; t++)
+									{
+										if (data.Intern[i].OverSea_dt[dd - 1][t])
+										{
+											FHexist = true;
+										}
+									}
+									if (!FHexist)
+									{
+										y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 0, Y_idDh[i][d][dd][h]);
+									}
+								}
+
+							}
+
+
 							MIPModel.Add(y_idDh[i][d][dd][h]);
 						}
 					}
@@ -219,7 +269,7 @@ namespace GeneralMIPAlgorithm
 							{
 								s_idth[i][d][t][h] = MIPModel.IntVar(0, 0, S_idth[i][d][t][h]);
 							}
-							else 
+							else if(d>0)
 							{
 								bool dexist = false;
 								for (int g = 0; g < DisciplineGr; g++)
@@ -384,7 +434,7 @@ namespace GeneralMIPAlgorithm
 				for (int w = 0; w < Wards; w++)
 				{
 					Res_twh[t][w] = new INumVar[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
+					for (int h = 0; h < Hospitals - 1; h++)
 					{
 						Res_twh[t][w][h] = MIPModel.NumVar(0,data.Hospital[h].ReservedCap_tw[t][w], RES_twh[t][w][h]);
 					}
@@ -412,9 +462,37 @@ namespace GeneralMIPAlgorithm
 				for (int w = 0; w < Wards; w++)
 				{
 					Emr_twh[t][w] = new INumVar[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
+					for (int h = 0; h < Hospitals - 1; h++)
 					{
 						Emr_twh[t][w][h] = MIPModel.NumVar(0, data.Hospital[h].EmergencyCap_tw[t][w], EMR_twh[t][w][h]);
+					}
+				}
+			}
+
+			SLD_twh = new string[Timepriods][][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				SLD_twh[t] = new string[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					SLD_twh[t][w] = new string[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						SLD_twh[t][w][h] = "SLD_twh[" + t + "][" + w + "][" + h + "]";
+					}
+				}
+			}
+
+			sld_twh = new INumVar[Timepriods][][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				sld_twh[t] = new INumVar[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					sld_twh[t][w] = new INumVar[Hospitals];
+					for (int h = 0; h < Hospitals - 1; h++)
+					{
+						sld_twh[t][w][h] = MIPModel.NumVar(0, data.Hospital[h].HospitalMinDem_tw[t][w], SLD_twh[t][w][h]);
 					}
 				}
 			}
@@ -486,7 +564,7 @@ namespace GeneralMIPAlgorithm
 						}
 					}
 
-					MIPModel.AddGe(mandatory, data.Intern[i].ShouldattendInGr_g[g] - fulfilled, "DisciplineGroup_" + i + "_" + g);
+					MIPModel.AddGe(mandatory, data.Intern[i].ShouldattendInGr_g[g] - fulfilled, "DisciplineGroupIG_" + i + "_" + g);
 
 				}
 			}
@@ -497,7 +575,7 @@ namespace GeneralMIPAlgorithm
 				ILinearNumExpr AllDiscipline = MIPModel.LinearNumExpr();
 				// check if the training program and involved mandatory discipline
 				int totalFulfilled = 0;
-				for (int d = 0; d < Disciplins; d++)
+				for (int d = 1; d < Disciplins; d++)
 				{
 					for (int h = 0; h < Hospitals - 1; h++)
 					{
@@ -510,7 +588,15 @@ namespace GeneralMIPAlgorithm
 				}
 				for (int d = 1; d < Disciplins; d++)
 				{
-					for (int dd = 0; dd < Disciplins; dd++)
+					bool dexist = false;
+					for (int g = 0; g < DisciplineGr; g++)
+					{
+						if (data.Intern[i].DisciplineList_dg[d-1][g])
+						{
+							dexist = true;
+						}
+					}
+					for (int dd = 0; dd < Disciplins && dexist; dd++)
 					{
 						for (int h = 0; h < Hospitals; h++)
 						{
@@ -523,7 +609,7 @@ namespace GeneralMIPAlgorithm
 				{
 					totalList += data.Intern[i].ShouldattendInGr_g[g];
 				}
-				MIPModel.AddEq(AllDiscipline, totalList - totalFulfilled, "AllDiscipline" + "_" + i);
+				MIPModel.AddGe(AllDiscipline, totalList - totalFulfilled, "AllDisciplineI" + "_" + i);
 			}
 
 			// Each discipline Once,
@@ -536,10 +622,11 @@ namespace GeneralMIPAlgorithm
 					{
 						for (int h = 0; h < Hospitals ; h++)
 						{
-							DiscAssign.AddTerm(1,y_idDh[i][d-1][dd][h]);
+							DiscAssign.AddTerm(1,y_idDh[i][dd][d][h]);
 						}
 					}
 					int totalFF = 0;
+					
 					for (int h = 0; h < Hospitals - 1 ; h++)
 					{
 						for (int p = 0; p < TrainingPr; p++)
@@ -551,8 +638,7 @@ namespace GeneralMIPAlgorithm
 							}
 						}
 					}
-
-					MIPModel.AddLe(DiscAssign, 1, "AssignOnce_" + i + "_" + d);
+					MIPModel.AddLe(DiscAssign, 1-totalFF, "AssignOnceID_" + i + "_" + d);
 				}
 			}
 
@@ -561,11 +647,7 @@ namespace GeneralMIPAlgorithm
 			{
 				for (int d = 1; d < Disciplins; d++)
 				{
-					ILinearNumExpr OverseaH = MIPModel.LinearNumExpr();
-					for (int dd = 0; dd < Disciplins; dd++)
-					{
-						OverseaH.AddTerm(1, y_idDh[i][d][dd][Hospitals-1]);					
-					}
+					// check if there are oversea demand
 					bool FH = false;
 					for (int t = 0; t < Timepriods; t++)
 					{
@@ -577,9 +659,16 @@ namespace GeneralMIPAlgorithm
 							}
 						}
 					}
-
-
-					MIPModel.AddLe(OverseaH, FH ? 1 : 0, "Oversea_" + i + "_" + d);
+					if (FH)
+					{
+						ILinearNumExpr OverseaH = MIPModel.LinearNumExpr();
+						for (int dd = 0; dd < Disciplins; dd++)
+						{
+							OverseaH.AddTerm(1, y_idDh[i][dd][d][Hospitals - 1]);
+						}
+						MIPModel.AddEq(OverseaH, 1, "OverseaID_" + i + "_" + d);
+					}
+					
 				}
 			}
 
@@ -633,7 +722,7 @@ namespace GeneralMIPAlgorithm
 							follownext.AddTerm(y_idDh[i][d][dd][h], -1);
 						}
 					}
-					MIPModel.AddLe(follownext, 0, "follownext" +
+					MIPModel.AddLe(follownext, 0, "follownextID" +
 						"_" + i + "_" + dd);
 				}
 			}
@@ -644,13 +733,34 @@ namespace GeneralMIPAlgorithm
 				ILinearNumExpr dummy = MIPModel.LinearNumExpr();
 				for (int d = 1; d < Disciplins; d++)
 				{
-					for (int h = 0; h < Hospitals; h++)
+					bool dexist = false;
+					for (int g = 0; g < DisciplineGr; g++)
 					{
-						dummy.AddTerm(y_idDh[i][0][d][h], 1);
+						if (data.Intern[i].DisciplineList_dg[d-1][g])
+						{
+							dexist = true;
+						}
+					}
+					bool hexist = false;
+					for (int h = 0; h < Hospitals  && dexist; h++)
+					{
+						
+						for (int w = 0; w < Wards && h < Hospitals - 1 ; w++)
+						{
+							if (data.Hospital[h].Hospital_dw[d-1][w])
+							{
+								hexist = true;
+							}
+						}
+						if (hexist || h == Hospitals - 1)
+						{
+							dummy.AddTerm(y_idDh[i][0][d][h], 1);
+						}
+						
 					}
 				}
 
-				MIPModel.AddEq(dummy, 1, "dummy_" + i);
+				MIPModel.AddEq(dummy, 1, "dummyI_" + i);
 			}
 
 
@@ -663,8 +773,7 @@ namespace GeneralMIPAlgorithm
 					{
 						ILinearNumExpr onestarttime = MIPModel.LinearNumExpr();
 						// check if the training program and involved mandatory discipline
-						for (int p = 0; p < TrainingPr; p++)
-						{
+						
 							for (int t = 0; t < Timepriods; t++)
 							{
 								onestarttime.AddTerm(s_idth[i][d][t][h], 1);
@@ -674,9 +783,9 @@ namespace GeneralMIPAlgorithm
 							{
 								onestarttime.AddTerm(y_idDh[i][dd][d][h], -1);								
 							}
-							MIPModel.AddEq(onestarttime, 0, "OneStart" +
+							MIPModel.AddEq(onestarttime, 0, "OneStartIDH" +
 								"_" + i + "_" + d + "_" + h);
-						}
+						
 					}
 				}
 			}
@@ -708,7 +817,7 @@ namespace GeneralMIPAlgorithm
 
 						starttime.AddTerm(w_id[i][d], -1);
 
-						MIPModel.AddLe(starttime, Timepriods, "StartWait_" + i + "_" + d + "_" + dd);
+						MIPModel.AddLe(starttime, Timepriods, "StartWaitIdD_" + i + "_" + d + "_" + dd);
 
 					}
 				}
@@ -739,7 +848,7 @@ namespace GeneralMIPAlgorithm
 						}
 						starttime.AddTerm(w_id[i][d], -1);
 
-						MIPModel.AddGe(starttime, -Timepriods, "Start_" + i + "_" + d + "_" + dd);
+						MIPModel.AddGe(starttime, -Timepriods, "StartIdD_" + i + "_" + d + "_" + dd);
 					}
 				}
 			}
@@ -761,7 +870,7 @@ namespace GeneralMIPAlgorithm
 						{
 							rhs += data.Intern[i].Ave_t[tt] ? 1 : 0;
 						}
-						MIPModel.AddLe(avail, rhs, "Availbility_" + i + "_" + d + "_" + t);
+						MIPModel.AddLe(avail, rhs, "AvailbilityIDT_" + i + "_" + d + "_" + t);
 					}
 				}
 			}
@@ -769,11 +878,11 @@ namespace GeneralMIPAlgorithm
 			// oversea start time 
 			for (int i = 0; i < Interns; i++)
 			{
-				for (int d = 0; d < Disciplins; d++)
+				for (int d = 1; d < Disciplins; d++)
 				{
 					for (int t = 0; t < Timepriods; t++)
 					{
-						if (data.Intern[i].OverSea_dt[d][t])
+						if (data.Intern[i].OverSea_dt[d-1][t])
 						{
 							ILinearNumExpr OverseaStart = MIPModel.LinearNumExpr();
 							int RHS = 0;
@@ -815,7 +924,7 @@ namespace GeneralMIPAlgorithm
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									fhRequirement.AddTerm(t, s_idth[i][dd][t][Hospitals]);
+									fhRequirement.AddTerm(t, s_idth[i][dd][t][h]);
 								}
 								
 							}
@@ -837,9 +946,9 @@ namespace GeneralMIPAlgorithm
 						for (int dd = 1; dd < Disciplins; dd++)
 						{
 							bool fulfilled = false;
-							for (int h = 0; h < Hospitals; h++)
+							for (int h = 0; h < Hospitals - 1; h++)
 							{
-								if (data.Intern[i].Fulfilled_dhp[d][h][data.Intern[i].ProgramID])
+								if (data.Intern[i].Fulfilled_dhp[d-1][h][data.Intern[i].ProgramID])
 								{
 									fulfilled = true;
 								}
@@ -855,7 +964,7 @@ namespace GeneralMIPAlgorithm
 
 									skill.AddTerm(s_idth[i][dd][t][h], -t);
 								}
-								MIPModel.AddGe(skill, 0, "Skill_" + i + "_" + t + "_" + d);
+								MIPModel.AddGe(skill, 0, "SkillITD_" + i + "_" + t + "_" + d);
 							}
 
 						}
@@ -886,7 +995,7 @@ namespace GeneralMIPAlgorithm
 								change.AddTerm(y_idDh[i][ddd][dd][h], 1);
 							}
 
-							MIPModel.AddGe(change, 0, "Change_" + i + "_" + d + "_" + dd + "_" + h);
+							MIPModel.AddGe(change, 0, "ChangeIdDH_" + i + "_" + d + "_" + dd + "_" + h);
 						}
 					}
 				}
@@ -911,7 +1020,7 @@ namespace GeneralMIPAlgorithm
 						}
 					}
 				}
-				MIPModel.AddEq(internDes, 0, "Des_" + i);
+				MIPModel.AddEq(internDes, 0, "DesI_" + i);
 			}
 
 			// min desire
@@ -925,7 +1034,7 @@ namespace GeneralMIPAlgorithm
 
 						dev.AddTerm(des_i[i], -1);
 						dev.AddTerm(desMin_p[p], 1);
-						MIPModel.AddLe(dev, 0, "MinDes_" + i);
+						MIPModel.AddLe(dev, 0, "MinDesIP_" + i + "_" + p);
 					}
 				}
 				
@@ -949,17 +1058,20 @@ namespace GeneralMIPAlgorithm
 			{
 				for (int w = 0; w < Wards; w++)
 				{
-					for (int h = 0; h < Hospitals; h++)
+					for (int h = 0; h < Hospitals - 1; h++)
 					{
 						for (int p = 0; p < TrainingPr; p++)
 						{
 							Obj.AddTerm(Res_twh[t][w][h], -data.TrainingPr[p].CoeffObj_ResCap);
 							Obj.AddTerm(Emr_twh[t][w][h], -data.TrainingPr[p].CoeffObj_EmrCap);
+							Obj.AddTerm(sld_twh[t][w][h], -data.TrainingPr[p].CoeffObj_MINDem);
 						}
 						
 					}
 				}
 			}
+
+
 
 			for (int t = 0; t < Timepriods; t++)
 			{
@@ -989,7 +1101,7 @@ namespace GeneralMIPAlgorithm
 						for (int i = 0; i < Interns; i++)
 						{
 							int trp = data.Intern[i].ProgramID;
-							for (int d = 1; d < Disciplins; d++)
+							for (int d = 1; d < Disciplins && data.Intern[i].isProspective; d++)
 							{
 								if (data.Hospital[h].Hospital_dw[d - 1][w])
 								{
@@ -1001,7 +1113,8 @@ namespace GeneralMIPAlgorithm
 
 							}
 						}
-						MIPModel.AddGe(minDem, data.Hospital[h].HospitalMinDem_tw[t][w], "MinDem_" + t + "_" + w + "_" + h);
+						minDem.AddTerm(sld_twh[t][w][h], 1);
+						MIPModel.AddEq(minDem, data.Hospital[h].HospitalMinDem_tw[t][w], "MinDemTWH_" + t + "_" + w + "_" + h);
 					}
 				}
 			}
@@ -1032,7 +1145,7 @@ namespace GeneralMIPAlgorithm
 							}
 						}
 
-						MIPModel.AddGe(maxDem, data.Hospital[h].HospitalMaxDem_tw[t][w], "MaxDemTWH_" + t + "_" + w + "_" + h);
+						MIPModel.AddLe(maxDem, data.Hospital[h].HospitalMaxDem_tw[t][w], "MaxDemTWH_" + t + "_" + w + "_" + h);
 					}
 				}
 			}
@@ -1069,6 +1182,7 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 		}
+
 		public void solve_MIPmodel(string Path, string InsName)
 		{
 			//*************set program
@@ -1094,8 +1208,17 @@ namespace GeneralMIPAlgorithm
 								{
 									if (MIPModel.GetValue(s_idth[i][d][t][h]) > 1 - 0.5)
 									{
-										mipOpt.Intern_itdh[i][t][d - 1][h] = true;
-										Console.WriteLine("intern " + i + " started " + d + " at time " + t + " in hospital " + h + " and changed " + MIPModel.GetValue(ch_id[i][d]));
+										if (h < Hospitals - 1)
+										{
+											mipOpt.Intern_itdh[i][t][d - 1][h] = true;
+											Console.WriteLine("intern " + i + " started " + d + " at time " + t + " in hospital " + h + " and changed " + MIPModel.GetValue(ch_id[i][d]));
+										}
+										else
+										{
+											
+											Console.WriteLine("intern " + i + " started " + d + " at time " + t + " in Oversea hospital " + h + " and changed " + MIPModel.GetValue(ch_id[i][d]));
+										}
+										
 									}
 								}
 							}
