@@ -1,363 +1,536 @@
-﻿//using System;
-//using System.Collections;
-//using System.Text;
-//using DataLayer;
+﻿using System;
+using System.Collections;
+using System.Text;
+using DataLayer;
 
-//namespace NestedHungarianAlgorithm
-//{
-//	public class HungarianNode
-//	{
-//		public struct PositionMap
-//		{
-//			public int HIndex;
-//			public int DIndex;
-//			public int DemandIndex;
+namespace NestedHungarianAlgorithm
+{
+	public class HungarianNode
+	{
+		public struct PositionMap
+		{
+			public int HIndex;
+			public int WIndex;
+			public int dIndex;
+			public int DemandIndex;
+			public bool EmrDem;
+			public bool ResDem;
+			public void CopyPosition(PositionMap copyable)
+			{
+				HIndex = copyable.HIndex;
+				WIndex = copyable.WIndex;
+				dIndex = copyable.dIndex;
+				DemandIndex = copyable.DemandIndex;
+				EmrDem = copyable.EmrDem;
+				ResDem = copyable.ResDem;
+			}
+		}
+		public AllData data;
+		public bool isRoot;
+		public int TimeID;
+		public double[][] CostMatrix_i_whDem;
+		public int[] BestSchedule;
+		public bool[][][] Schedule_idh;
+		public HungarianNode parentNode;
+		public int[][] TimeLine_it;
+		public int[][][] DemMax_wth;
+		public int[][][] DemMin_wth;
+		public int[][][] Disc_iwh;
+		public int[][] AvAcc_rt;
+		public PositionMap[][] ResidentSchedule_it; // it shows the disciplne 
+		public ArrayList MappingTable;
+		public int TotalAvailablePosition;
+		public PositionMap[] LastPosition_i;
 
-//			public void CopyPosition(PositionMap copyable)
-//			{
-//				HIndex = copyable.HIndex;
-//				DIndex = copyable.DIndex;
-//				DemandIndex = copyable.DemandIndex;
-//			}
-//		}
-//		public AllData data;
-//		public bool isRoot;
-//		public int TimeID;
-//		public double[][][] CostMatrix_i_tdhDem;
-//		public int[] BestSchedule;
-//		public bool[][][] Schedule_idh;
-//		public HungarianNode parentNode;
-//		public int[][] TimeLine_it;
-//		public int[][][] DemMax_dth;
-//		public int[][][] DemMin_dth;
-//		public ArrayList MappingTable;
-//		public int TotalAvailablePosition;
-//		public PositionMap[] LastPosition_i;
+		public int Interns;
+		public int Disciplins;
+		public int Hospitals;
+		public int Timepriods;
+		public int TrainingPr;
+		public int Wards;
+		public int Region;
+		
 
-//		public int Interns;
-//		public int Disciplins;
-//		public int Hospitals;
-//		public int Timepriods;
-//		public int TrainingPr;
+		public void Initial()
+		{
+			Disciplins = data.General.Disciplines;
+			Hospitals = data.General.Hospitals;
+			Timepriods = data.General.TimePriods;
+			TrainingPr = data.General.TrainingPr;
+			Interns = data.General.Interns;
+			Wards = data.General.HospitalWard;
+			Region = data.General.Region;
+			TimeLine_it = new int[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				TimeLine_it[i] = new int[Timepriods];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					//  0 available
+					// -1 not available 
+					//  1 engaged with a discipline
+					if (data.Intern[i].Ave_t[t])
+					{
+						if (isRoot)
+						{
+							TimeLine_it[i][t] = 0;
+						}
+						else
+						{
+							TimeLine_it[i][t] = parentNode.TimeLine_it[i][t];
+						}
+					}
+					else
+					{
+						TimeLine_it[i][t] = -1;
+					}
+				}
+			}
 
-//		public void Initial()
-//		{
-//			Disciplins = data.General.Disciplines;
-//			Hospitals = data.General.Hospitals;
-//			Timepriods = data.General.TimePriods;
-//			TrainingPr = data.General.TrainingPr;
-//			Interns = data.General.Interns;
-//			TimeLine_it = new int[Interns][];
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				TimeLine_it[i] = new int[Timepriods];
-//				for (int t = 0; t < Timepriods; t++)
-//				{
-//					//  0 available
-//					// -1 not available 
-//					//  1 engaged with a discipline
-//					if (data.Intern[i].Ave_t[t])
-//					{
-//						if (isRoot)
-//						{
-//							TimeLine_it[i][t] = 0;
-//						}
-//						else
-//						{
-//							TimeLine_it[i][t] = parentNode.TimeLine_it[i][t];
-//						}
-//					}
-//					else
-//					{
-//						TimeLine_it[i][t] = -1;
-//					}
+			TotalAvailablePosition = 0;
+			setDisc_iwh();
+			MappingTable = new ArrayList();
 
+			// max demand has reserved and emergency inside
+			DemMax_wth = new int[Wards][][];
+			for (int d = 0; d < Wards; d++)
+			{
+				DemMax_wth[d] = new int[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					DemMax_wth[d][t] = new int[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (isRoot)
+						{
+							DemMax_wth[d][t][h] = data.Hospital[h].HospitalMaxDem_tw[t][d] + data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d];
+						}
+						else
+						{
+							DemMax_wth[d][t][h] = parentNode.DemMax_wth[d][t][h];							
+						}
+						// we need map for current time
+						if (t == TimeID)
+						{
+							TotalAvailablePosition += DemMax_wth[d][t][h];
+							for (int dd = 0; dd < DemMax_wth[d][t][h] - (data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d]); dd++)
+							{
+								MappingTable.Add(new PositionMap()
+								{
+									DemandIndex = dd,
+									WIndex = d,
+									HIndex = h,
+									ResDem = false,
+									EmrDem = false,
+								});
+							}
+							int start = DemMax_wth[d][t][h] - (data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d]);
+							for (int dd = start; dd < DemMax_wth[d][t][h] - data.Hospital[h].EmergencyCap_tw[t][d]; dd++)
+							{
+								MappingTable.Add(new PositionMap()
+								{
+									DemandIndex = dd,
+									WIndex = d,
+									HIndex = h,
+									ResDem = true,
+									EmrDem = false,
+								});
+							}
+							start = DemMax_wth[d][t][h] - data.Hospital[h].EmergencyCap_tw[t][d];
+							for (int dd = start; dd < DemMax_wth[d][t][h]; dd++)
+							{
+								MappingTable.Add(new PositionMap()
+								{
+									DemandIndex = dd,
+									WIndex = d,
+									HIndex = h,
+									ResDem = false,
+									EmrDem = true,
+								});
+							}
+						}
+					}
+				}
+			}
+
+			DemMin_wth = new int[Wards][][];
+			for (int d = 0; d < Wards; d++)
+			{
+				DemMin_wth[d] = new int[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					DemMin_wth[d][t] = new int[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (isRoot)
+						{
+							DemMin_wth[d][t][h] = data.Hospital[h].HospitalMinDem_tw[t][d];
+						}
+						else
+						{
+							DemMin_wth[d][t][h] = parentNode.DemMin_wth[d][t][h];
+						}
+					}
+				}
+			}
+			AvAcc_rt = new int[Region][];
+			for (int r = 0; r < Region; r++)
+			{
+				AvAcc_rt[r] = new int[Timepriods];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					if (isRoot)
+					{
+						AvAcc_rt[r][t] = data.Region[r].AvaAcc_t[t];
+					}
+					else
+					{
+						AvAcc_rt[r][t] = parentNode.AvAcc_rt[r][t];
+					}
+
+				}
+			}
+			LastPosition_i = new PositionMap[Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				LastPosition_i[i] = new PositionMap();
+				if (isRoot)
+				{
+
+				}
+				else
+				{
+					LastPosition_i[i].CopyPosition(parentNode.LastPosition_i[i]);
+				}
+			}
+
+			ResidentSchedule_it = new PositionMap[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				ResidentSchedule_it[i] = new PositionMap[Timepriods];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					ResidentSchedule_it[i][t] =new PositionMap();
+					if (isRoot)
+					{
+
+
+					}
+					else
+					{
+						ResidentSchedule_it[i][t].CopyPosition(parentNode.ResidentSchedule_it[i][t]);
+					}
 					
-//				}
-//			}
+				}
+			}
 
-//			TotalAvailablePosition = 0;
-//			MappingTable = new ArrayList();
-//			DemMax_dth = new int[Disciplins][][];
-//			for (int d = 0; d < Disciplins; d++)
-//			{
-//				DemMax_dth[d] = new int[Timepriods][];
-//				for (int t = 0; t < Timepriods; t++)
-//				{
-//					DemMax_dth[d][t] = new int[Hospitals];
-//					for (int h = 0; h < Hospitals; h++)
-//					{
-//						if (t == TimeID)
-//						{
-//							TotalAvailablePosition += data.Hospital[h].HospitalMaxDem_td[t][d];
-//							for (int dd = 0; dd < data.Hospital[h].HospitalMaxDem_td[t][d]; dd++)
-//							{
-//								MappingTable.Add(new PositionMap()
-//								{
-//									DemandIndex = dd,
-//									DIndex = d,
-//									HIndex = h,
-//								});
-//							}
-//						}
-						
-//						if (isRoot)
-//						{
-//							DemMax_dth[d][t][h] = data.Hospital[h].HospitalMaxDem_td[t][d];
-//						}
-//						else
-//						{
-//							DemMax_dth[d][t][h] = parentNode.DemMax_dth[d][t][h];
-//						}
-//					}
-//				}
-//			}
+		}
 
-//			DemMin_dth = new int[Disciplins][][];
-//			for (int d = 0; d < Disciplins; d++)
-//			{
-//				DemMin_dth[d] = new int[Timepriods][];
-//				for (int t = 0; t < Timepriods; t++)
-//				{
-//					DemMin_dth[d][t] = new int[Hospitals];
-//					for (int h = 0; h < Hospitals; h++)
-//					{
-//						if (isRoot)
-//						{
-//							DemMin_dth[d][t][h] = data.Hospital[h].HospitalMinDem_td[t][d];
-//						}
-//						else
-//						{
-//							DemMin_dth[d][t][h] = parentNode.DemMin_dth[d][t][h];
-//						}
-//					}
-//				}
-//			}
+		public void setCostMatrix()
+		{
+			CostMatrix_i_whDem = new double[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				// total available position + in case to not assign the student to position 
+				CostMatrix_i_whDem[i] = new double[TotalAvailablePosition + Interns];
+				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				{
+					CostMatrix_i_whDem[i][j] = 0;
+					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
 
-//			LastPosition_i = new PositionMap[Interns];
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				LastPosition_i[i] = new PositionMap();
-//				if (isRoot)
-//				{
+					// just desire 
+					setDesire();
+					// if intern is not available 
+					setAvailibility();
+					// if interns can not
+					setAbility();
 
-//				}
-//				else
-//				{
-//					LastPosition_i[i].CopyPosition(parentNode.LastPosition_i[i]);
-//				}
-//			}
-//		}
+				}
+			}
 
-//		public void setCostMatrix()
-//		{
-//			CostMatrix_i_tdhDem = new double[Interns][][];
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				CostMatrix_i_tdhDem[i] = new double[Timepriods][];
-//				for (int t = 0; t < Timepriods; t++)
-//				{
-//					// total available position + in case to not assign the student to position 
-//					CostMatrix_i_tdhDem[i][t] = new double[TotalAvailablePosition + Interns];
-//					for (int j = 0; j < TotalAvailablePosition + Interns; j++)
-//					{
-//						CostMatrix_i_tdhDem[i][t][j] = 0;
-//						if (isRoot)
-//						{
-//							// just desire 
-//							if (j < TotalAvailablePosition)
-//							{
-//								CostMatrix_i_tdhDem[i][t][j] -= (double)data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex] / data.PrHosp_i[i];
-//								CostMatrix_i_tdhDem[i][t][j] -= (double)data.Intern[i].wieght_d * data.Intern[i].Prf_d[((PositionMap)MappingTable[j]).DIndex] / data.PrDisc_i[i];
-//							}
-//							else // if the intern wants to wait(weight_w<0)
-//							{
-//								CostMatrix_i_tdhDem[i][t][j] -= (double)data.Intern[i].wieght_w / data.PrWait_i[i];
-//							}
-//							// if intern is not available 
-//							if (!data.Intern[i].Ave_t[0])
-//							{
-//								CostMatrix_i_tdhDem[i][t][j] += data.AlgSettings.BigM;
-//							}
-//							// if interns can not
-//							if (j < TotalAvailablePosition && !data.Intern[i].Abi_d[((PositionMap)MappingTable[j]).DIndex])
-//							{
-//								CostMatrix_i_tdhDem[i][t][j] += data.AlgSettings.BigM;
-//							}
-//						}
-//						else
-//						{
-//							CostMatrix_i_tdhDem[i][t][j] = parentNode.CostMatrix_i_tdhDem[i][t][j];
-//						}
-//					}
-//				}
-//			}
+		}
 
-//		}
+		public void setDesire()
+		{
+			for (int i = 0; i < Interns; i++)
+			{
 
-//		public HungarianNode(int t, AllData allData)
-//		{
-//			if (t == 0)
-//			{
-//				isRoot = true;
-//			}
-//			data = allData;
-//			Initial();
-//			setCostMatrix();
-//			setBestSchedule();
-//			updateLastPos();
-//			updateDemand();
-//			updateTimeLine();
+				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				{
+					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+					// if the intern is already assigned to this discipline
+					if (discIn < 0)
+					{
+						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+					}
+					// just desire 
+					else if (j < TotalAvailablePosition)
+					{
+						// hospital prf
+						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
+						// discipline prf
+						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+						// Training Program prf
+						CostMatrix_i_whDem[i][j] -= (double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+						//Change
+						int prHosp = parentNode.LastPosition_i[i].HIndex;
+						if (prHosp != ((PositionMap)MappingTable[j]).HIndex && !isRoot)
+						{
+							CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_ch * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+						}
+					}
+					else // if the intern wants to wait(weight_w<0)
+					{
+						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_w;
+					}
+				}
+
+			}
+		}
+
+		public void setAvailibility()
+		{
+			for (int i = 0; i < Interns; i++)
+			{
+				// if it is not available j must be less than TotalAvailablePosition
+				for (int j = 0; j < TotalAvailablePosition; j++)
+				{
+					// if intern is not available 
+					if (!data.Intern[i].Ave_t[TimeID])
+					{
+						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+					}
+				}
+			}
+		}
+
+		public void setAbility()
+		{
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				{
+					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+					// if the intern is already assigned to this discipline
+					if (discIn < 0)
+					{
+						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+					}
+					// if intern is not available 
+					else if (j < TotalAvailablePosition && !data.Intern[i].Abi_dh[discIn][((PositionMap)MappingTable[j]).HIndex])
+					{
+						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+					}
+				}
+			}
+		}
+
+		public void setResEmrDemand()
+		{
+			// this function considers if at the timeID the intern assigned to emergency or reserved capacity 
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int j = 0; j < TotalAvailablePosition; j++)
+				{
+					if (((PositionMap)MappingTable[j]).ResDem )
+					{
+						CostMatrix_i_whDem[i][j] += data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_ResCap;
+					}
+					if (((PositionMap)MappingTable[j]).EmrDem)
+					{
+						CostMatrix_i_whDem[i][j] += data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_EmrCap;
+					}
+				}
+			}
+
+		}
+
+		public void setUnaccupiedAcc()
+		{
+			// this function considers if at the timeID the intern assigned to emergency or reserved capacity 
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int j = 0; j < TotalAvailablePosition; j++)
+				{
+					for (int r = 0; r < Region; r++)
+					{
+						if (data.Intern[i].TransferredTo_r[r] && data.Hospital[((PositionMap)MappingTable[j]).HIndex].InToRegion_r[r] && AvAcc_rt[r][TimeID] > 0)
+						{
+							CostMatrix_i_whDem[i][j] -= data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_NotUsedAcc;
+						}
+					}
+				}
+			}
+
+		}
+
+		public HungarianNode(int startTime, AllData allData, HungarianNode parent)
+		{
+			if (startTime == 0)
+			{
+				TimeID = startTime;
+				parentNode = parent;
+				isRoot = true;
+			}
+			data = allData;
+			Initial();
+			setCostMatrix();
+			setBestSchedule();
+			updateLastPos();
+			updateDemand();
+			updateTimeLine();
 			
-//			updateCost();
-//		}
+		}
 
-//		public void setBestSchedule()
-//		{
-//			int[,] tmpCost = new int[Interns, TotalAvailablePosition + Interns];
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
-//				{
-//					tmpCost[i, j] = (int)Math.Round(CostMatrix_i_tdhDem[i][TimeID][j] * 100);
-//				}
-//			}
-//			BestSchedule = HungarianAlgorithm.FindAssignments(tmpCost);
-//		}
+		public void setBestSchedule()
+		{
+			int[,] tmpCost = new int[Interns, TotalAvailablePosition + Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				{
+					tmpCost[i, j] = (int)Math.Round(CostMatrix_i_whDem[i][j] * 100);
+				}
+			}
+			BestSchedule = HungarianAlgorithm.FindAssignments(tmpCost);
+		}
 
-//		public void updateDemand()
-//		{
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				for (int d = 0; d < Disciplins; d++)
-//				{
-//					for (int h = 0; h < Hospitals; h++)
-//					{
-//						if (Schedule_idh[i][d][h])
-//						{
-//							for (int t = TimeID; t < data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; t++)
-//							{
-//								DemMax_dth[d][t][h]--;
-//								if (DemMin_dth[d][t][h] > 0)
-//								{
-//									DemMin_dth[d][t][h]--;
-//								}
-//								else
-//								{
-//									DemMin_dth[d][t][h] = 0;
-//								}
-								
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
+		public void updateDemand()
+		{
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int w = 0; w < Disciplins; w++)
+				{
+					for (int h = 0; h < Hospitals; h++)
+					{
+						for (int d = 0; d < Disciplins; d++)
+						{
+							if (Schedule_idh[i][d][h] && data.Hospital[h].Hospital_dw[d][w])
+							{
+								for (int t = TimeID; t < TimeID + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; t++)
+								{
+									DemMax_wth[w][t][h]--;
+									if (DemMin_wth[w][t][h] > 0)
+									{
+										DemMin_wth[w][t][h]--;
+									}
+									else
+									{
+										DemMin_wth[w][t][h] = 0;
+									}
+									for (int r = 0; r < Region; r++)
+									{
+										if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
+										{
+											AvAcc_rt[r][t]--;
+										}
+									}
+									
+								}
+							}
+						}
+						
+					}
+				}
+			}
+		}
 
-//		public void updateTimeLine()
-//		{
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				for (int d = 0; d < Disciplins; d++)
-//				{
-//					for (int h = 0; h < Hospitals; h++)
-//					{
-//						if (Schedule_idh[i][d][h])
-//						{
-//							for (int t = TimeID; t < data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; t++)
-//							{
-//								TimeLine_it[i][t] = 1;
+		public void updateTimeLine()
+		{
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int d = 0; d < Disciplins; d++)
+				{
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (Schedule_idh[i][d][h])
+						{
+							for (int t = TimeID; t < TimeID + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; t++)
+							{
+								TimeLine_it[i][t] = 1;
+							}
+						}
+					}
+				}
+			}
+		}
 
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
 
-//		public void updateLastPos()
-//		{
-//			new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals, false);
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				int Index = BestSchedule[i] < TotalAvailablePosition ? BestSchedule[i] : -1;
-
-//				// if intern waits 
-//				if (Index < 0)
-//				{
-//					// waited 
-//					// it is already copied from parents
-//					continue;
-//				}
-//				// Hospital changed
-//				LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
-//				Schedule_idh[i][((PositionMap)MappingTable[Index]).DIndex][((PositionMap)MappingTable[Index]).HIndex] = true;
-//			}
-//		}
-
-//		public void updateCost()
-//		{
-//			for (int i = 0; i < Interns; i++)
-//			{
-//				int Index = BestSchedule[i] < TotalAvailablePosition ? BestSchedule[i] : -1;
-//				int HIndex = -1;
-//				int DIndex = -1;
-//				int DemIndex = -1;
+		/// <summary>
+		/// It sets the last position of the interns
+		/// It also changes the ward to discipline
+		/// </summary>
+		public void updateLastPos()
+		{
+			new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals, false);
+			for (int i = 0; i < Interns; i++)
+			{
+				int Index = BestSchedule[i] < TotalAvailablePosition ? BestSchedule[i] : -1;
+				int discIn = -1;
+				// if intern waits 
+				if (Index < 0)
+				{
+					// waited 
+					// it is already copied from parents
+					continue;
+				}
+				discIn = Disc_iwh[i][((PositionMap)MappingTable[Index]).WIndex][((PositionMap)MappingTable[Index]).HIndex];
 				
-//				if (Index < 0) // if intern waits 
-//				{
-//					// waited 
-//					// Last position 
-//					HIndex = LastPosition_i[i].HIndex;
-//					DIndex = LastPosition_i[i].DIndex;
-//					DemIndex = LastPosition_i[i].DemandIndex - 1;
-//				}
-//				else // if not
-//				{
-//					// Hospital change 
-//					HIndex = ((PositionMap)MappingTable[Index]).HIndex;
-//					DIndex = ((PositionMap)MappingTable[Index]).DIndex;
-//					DemIndex = ((PositionMap)MappingTable[Index]).DemandIndex - 1;
-//				}
-				
-//				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
-//				{
-					
-//					if (((PositionMap)MappingTable[j]).DIndex == DIndex)
-//					{
-//						// If it is assigned you should not assign it any more
-//						for (int t = TimeID+1; t < Timepriods; t++)
-//						{
-//							CostMatrix_i_tdhDem[i][t][j] = data.AlgSettings.BigM;
-//						}						
-//					}
-//					// alias
-//					if (j < TotalAvailablePosition && data.TrainingPr[data.Intern[i].ProgramID].Alias_d_d[((PositionMap)MappingTable[j]).DIndex][DIndex])
-//					{
-//						for (int t = TimeID + 1; t < Timepriods; t++)
-//						{
-//							CostMatrix_i_tdhDem[i][t][j] = data.AlgSettings.BigM;
-//						}
-//					}
-					
-//					// Duration
-//					for (int h = 0; h < Hospitals; h++)
-//					{
-//						for (int t = TimeID + 1; t < TimeID + data.Discipline[DIndex].Duration_p[data.Intern[i].ProgramID]; t++)
-//						{
-//							CostMatrix_i_tdhDem[i][t][j] = data.AlgSettings.BigM;
-//						}
-//					}
+				// Hospital changed
+				LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
+				LastPosition_i[i].dIndex = discIn;
+				// we need to assign intern to the discipline not to ward
+				Schedule_idh[i][discIn][((PositionMap)MappingTable[Index]).HIndex] = true;
+			}
+		}
 
-//					// Hospital change 
-//					if (((PositionMap)MappingTable[j]).HIndex != HIndex)
-//					{
-//						// The interns assigned to the hospital
-//						CostMatrix_i_tdhDem[i][TimeID + 1][j] += data.Intern[i].wieght_ch / data.PrChan_i[i];
-//					}
-//				}
-//			}
-//		}
+		public int get_DisciplineFromWard(int theI, int theW, int theH)
+		{
+			int result = -1;
+			
+			int MaxObj = -1;
+			int discInd = -1;
+			for (int d = 0; d < Disciplins ; d++)
+			{
+				if (data.Hospital[theH].Hospital_dw[d][theW])
+				{
+					// if already assigned
+					bool assigned = false;
+					for (int t = 0; t < TimeID; t++)
+					{
+						if (ResidentSchedule_it[theI][t].dIndex == d)
+						{
+							assigned = true;
+							break;
+						}						
+					}
+					if (!assigned && MaxObj >= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
+					{
+						MaxObj = data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d];
+						discInd = d;
+					}
+				}
+			}
+			result = discInd;
+			return result;
+		}
 
-//	}
-//}
+		public void setDisc_iwh()
+		{
+			Disc_iwh = new int[Interns][][];
+			for (int i = 0; i < Interns; i++)
+			{
+				Disc_iwh[i] = new int[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					Disc_iwh[i][w] = new int[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						Disc_iwh[i][w][h] = get_DisciplineFromWard(i, w, h);
+					}
+				}
+			}
+		}
+
+	}
+}
