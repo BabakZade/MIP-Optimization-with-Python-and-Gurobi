@@ -238,19 +238,24 @@ namespace NestedHungarianAlgorithm
 					CostMatrix_i_whDem[i][j] = 0;
 					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
 
-					// just desire 
-					setDesire();
+					// just desire (discipline + hospital + training program + change) + weight
+					setDesireCost();
 					// if intern is not available 
-					setAvailibility();
+					setAvailibilityCost();
 					// if interns can not
-					setAbility();
+					setAbilityCost();
+
+					// set emergency and reserved demand in cost
+					setResEmrDemandCost();
+					// set unoccupied accommodation 
+					setUnaccupiedAccCost();
 
 				}
 			}
 
 		}
 
-		public void setDesire()
+		public void setDesireCost()
 		{
 			for (int i = 0; i < Interns; i++)
 			{
@@ -288,7 +293,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void setAvailibility()
+		public void setAvailibilityCost()
 		{
 			for (int i = 0; i < Interns; i++)
 			{
@@ -304,7 +309,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void setAbility()
+		public void setAbilityCost()
 		{
 			for (int i = 0; i < Interns; i++)
 			{
@@ -325,7 +330,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void setResEmrDemand()
+		public void setResEmrDemandCost()
 		{
 			// this function considers if at the timeID the intern assigned to emergency or reserved capacity 
 			for (int i = 0; i < Interns; i++)
@@ -345,7 +350,7 @@ namespace NestedHungarianAlgorithm
 
 		}
 
-		public void setUnaccupiedAcc()
+		public void setUnaccupiedAccCost()
 		{
 			// this function considers if at the timeID the intern assigned to emergency or reserved capacity 
 			for (int i = 0; i < Interns; i++)
