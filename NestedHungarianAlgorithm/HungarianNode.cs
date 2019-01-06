@@ -236,23 +236,19 @@ namespace NestedHungarianAlgorithm
 				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
 				{
 					CostMatrix_i_whDem[i][j] = 0;
-					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
-
-					// just desire (discipline + hospital + training program + change) + weight
-					setDesireCost();
-					// if intern is not available 
-					setAvailibilityCost();
-					// if interns can not
-					setAbilityCost();
-
-					// set emergency and reserved demand in cost
-					setResEmrDemandCost();
-					// set unoccupied accommodation 
-					setUnaccupiedAccCost();
-
 				}
 			}
+			// just desire (discipline + hospital + training program + change) + weight
+			setDesireCost();
+			// if intern is not available 
+			setAvailibilityCost();
+			// if interns can not
+			setAbilityCost();
 
+			// set emergency and reserved demand in cost
+			setResEmrDemandCost();
+			// set unoccupied accommodation 
+			setUnaccupiedAccCost();
 		}
 
 		public void setDesireCost()
@@ -262,27 +258,36 @@ namespace NestedHungarianAlgorithm
 
 				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
 				{
-					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
-					// if the intern is already assigned to this discipline
-					if (discIn < 0)
-					{
-						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
-					}
+					
 					// just desire 
-					else if (j < TotalAvailablePosition)
+					if (j < TotalAvailablePosition)
 					{
-						// hospital prf
-						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
-						// discipline prf
-						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
-						// Training Program prf
-						CostMatrix_i_whDem[i][j] -= (double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
-						//Change
-						int prHosp = parentNode.LastPosition_i[i].HIndex;
-						if (prHosp != ((PositionMap)MappingTable[j]).HIndex && !isRoot)
+						int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+						// if the intern is already assigned to this discipline
+						if (discIn < 0)
 						{
-							CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_ch * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
 						}
+						else
+						{
+							// hospital prf
+							CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
+							// discipline prf
+							CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+							// Training Program prf
+							CostMatrix_i_whDem[i][j] -= (double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+							//Change
+							if (!isRoot)
+							{
+								int prHosp = parentNode.LastPosition_i[i].HIndex;
+								if (prHosp != ((PositionMap)MappingTable[j]).HIndex)
+								{
+									CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_ch * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+								}
+							}
+							
+						}
+						
 					}
 					else // if the intern wants to wait(weight_w<0)
 					{
@@ -313,7 +318,7 @@ namespace NestedHungarianAlgorithm
 		{
 			for (int i = 0; i < Interns; i++)
 			{
-				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				for (int j = 0; j < TotalAvailablePosition ; j++)
 				{
 					int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
 					// if the intern is already assigned to this discipline
@@ -368,6 +373,8 @@ namespace NestedHungarianAlgorithm
 			}
 
 		}
+
+		public HungarianNode() { }
 
 		public HungarianNode(int startTime, AllData allData, HungarianNode parent)
 		{
@@ -509,7 +516,7 @@ namespace NestedHungarianAlgorithm
 							break;
 						}						
 					}
-					if (!assigned && MaxObj >= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
+					if (!assigned && MaxObj <= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
 					{
 						MaxObj = data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d];
 						discInd = d;

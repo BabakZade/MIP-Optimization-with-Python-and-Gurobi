@@ -533,8 +533,6 @@ namespace GeneralMIPAlgorithm
 
 		public void CreateModel()
 		{
-
-
 			// Discipline List  
 			for (int i = 0; i < Interns; i++)
 			{
