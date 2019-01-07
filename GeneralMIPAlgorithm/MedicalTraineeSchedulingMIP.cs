@@ -61,22 +61,16 @@ namespace GeneralMIPAlgorithm
 			SetObjective();
 			CreateModel();
 			setDemandConstraint();
-			//SetSol();
+			SetSol();
 			solve_MIPmodel(Path, InsName);
 		}
 		public void SetSol()
 		{
 			ILinearNumExpr sol = MIPModel.LinearNumExpr();
-			for (int i = 0; i < Interns; i++)
-			{
-				for (int d = 0; d < Disciplins; d++)
-				{
-
-				}
-			}
-
+			sol.AddTerm(y_idDh[0][0][1][1],1);
+			sol.AddTerm(s_idth[0][1][0][1], 1);
 			//sol.AddTerm(w_id[1][1], 1);
-			MIPModel.AddLe(sol, 10);
+			MIPModel.AddEq(sol, 2);
 		}
 		public void Initial()
 		{
@@ -1112,7 +1106,7 @@ namespace GeneralMIPAlgorithm
 							}
 						}
 						minDem.AddTerm(sld_twh[t][w][h], 1);
-						MIPModel.AddEq(minDem, data.Hospital[h].HospitalMinDem_tw[t][w], "MinDemTWH_" + t + "_" + w + "_" + h);
+						MIPModel.AddGe(minDem, data.Hospital[h].HospitalMinDem_tw[t][w], "MinDemTWH_" + t + "_" + w + "_" + h);
 					}
 				}
 			}
@@ -1157,7 +1151,7 @@ namespace GeneralMIPAlgorithm
 					{
 						ILinearNumExpr Accommodation = MIPModel.LinearNumExpr();
 						Accommodation.AddTerm(1, AccSl_tr[t][r]);
-						for (int h = 0; h < Hospitals; h++)
+						for (int h = 0; h < Hospitals - 1 ; h++)
 						{
 							for (int i = 0; i < Interns; i++)
 							{
@@ -1184,7 +1178,7 @@ namespace GeneralMIPAlgorithm
 		public void solve_MIPmodel(string Path, string InsName)
 		{
 			//*************set program
-			MIPModel.ExportModel(Path + InsName + "MIPModel.lp");
+			MIPModel.ExportModel(data.allPath.OutPutLocation + "MIPModel.lp");
 			MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
 			MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
 			MIPModel.SetParam(Cplex.IntParam.Threads, 3);
@@ -1258,7 +1252,7 @@ namespace GeneralMIPAlgorithm
 					Console.WriteLine(MIPModel.GetValue(des_i[i]));
 				}
 				Console.WriteLine(MIPModel.ObjValue);
-				mipOpt.WriteSolution(Path, InsName, data);
+				mipOpt.WriteSolution(Path, InsName);
 
 
 				MIPModel.End();

@@ -53,6 +53,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadInformation.cs" />
     <Compile Include="RegionInfo.cs" />
+    <Compile Include="SetAllPathForResult.cs" />
     <Compile Include="TrainingProgramInfo.cs" />
     <Compile Include="WriteInformation.cs" />
   </ItemGroup>

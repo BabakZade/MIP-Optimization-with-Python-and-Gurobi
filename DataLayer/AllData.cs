@@ -14,6 +14,10 @@ namespace DataLayer
 		public HospitalInfo[] Hospital;
 		public TrainingProgramInfo[] TrainingPr;
 		public AlgorithmSettings AlgSettings;
-
+		public SetAllPathForResult allPath;
+		public AllData(string ExprimentName, string InsName)
+		{
+			allPath = new SetAllPathForResult(ExprimentName, InsName);
+		}
 	}
 }

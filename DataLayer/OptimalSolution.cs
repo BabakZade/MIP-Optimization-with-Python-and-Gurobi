@@ -8,6 +8,7 @@ namespace DataLayer
 {
 	public class OptimalSolution
 	{
+		AllData data;
 		public bool[][][][] Intern_itdh;
 		public double[] PrDisp_i;
 		public double[] PrHosp_i;
@@ -30,6 +31,7 @@ namespace DataLayer
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
+			this.data = data;
 		}
 		public void Initial(AllData data)
 		{
@@ -55,7 +57,7 @@ namespace DataLayer
 
 		}
 
-		public void WriteSolution(string Path, string Name, AllData data)
+		public void WriteSolution(string Path, string Name)
 		{
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 

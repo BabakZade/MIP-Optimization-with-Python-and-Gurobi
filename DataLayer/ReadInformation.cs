@@ -9,18 +9,18 @@ namespace DataLayer
 	public class ReadInformation
 	{
 		public AllData data;
-		public ReadInformation(string path)
+		public ReadInformation(string path, string ExprimentName, string InsName)
 		{
-			ReadInstances(path);
+			ReadInstances(path, ExprimentName, InsName);
 			NormalizeData();
 		}
 		/// <summary>
 		/// this function creates the instances and writes it in the given location
 		/// </summary>
-		public void ReadInstances(string path)
+		public void ReadInstances(string path, string ExprimentName, string InsName)
 		{
-			data = new AllData();
-			StreamReader tw = new StreamReader(path);
+			data = new AllData(ExprimentName, InsName);
+			StreamReader tw = new StreamReader(path+InsName);
 			string line = tw.ReadLine();
 
 			int indexN;

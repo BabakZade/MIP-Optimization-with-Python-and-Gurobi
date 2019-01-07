@@ -15,6 +15,15 @@ namespace NestedHungarianAlgorithm
 			public int DemandIndex;
 			public bool EmrDem;
 			public bool ResDem;
+			public PositionMap(int x)
+			{
+				HIndex = x;
+				WIndex = x ;
+				dIndex = x;
+				DemandIndex = x;
+				EmrDem = false;
+				ResDem = false;
+			}
 			public void CopyPosition(PositionMap copyable)
 			{
 				HIndex = copyable.HIndex;
@@ -88,6 +97,25 @@ namespace NestedHungarianAlgorithm
 			}
 
 			TotalAvailablePosition = 0;
+			ResidentSchedule_it = new PositionMap[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				ResidentSchedule_it[i] = new PositionMap[Timepriods];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					ResidentSchedule_it[i][t] = new PositionMap(-1);
+					if (isRoot)
+					{
+
+
+					}
+					else
+					{
+						ResidentSchedule_it[i][t].CopyPosition(parentNode.ResidentSchedule_it[i][t]);
+					}
+
+				}
+			}
 			setDisc_iwh();
 			MappingTable = new ArrayList();
 
@@ -204,25 +232,7 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 
-			ResidentSchedule_it = new PositionMap[Interns][];
-			for (int i = 0; i < Interns; i++)
-			{
-				ResidentSchedule_it[i] = new PositionMap[Timepriods];
-				for (int t = 0; t < Timepriods; t++)
-				{
-					ResidentSchedule_it[i][t] =new PositionMap();
-					if (isRoot)
-					{
-
-
-					}
-					else
-					{
-						ResidentSchedule_it[i][t].CopyPosition(parentNode.ResidentSchedule_it[i][t]);
-					}
-					
-				}
-			}
+			
 
 		}
 
@@ -378,10 +388,10 @@ namespace NestedHungarianAlgorithm
 
 		public HungarianNode(int startTime, AllData allData, HungarianNode parent)
 		{
+			TimeID = startTime;
+			parentNode = parent;
 			if (startTime == 0)
-			{
-				TimeID = startTime;
-				parentNode = parent;
+			{				
 				isRoot = true;
 			}
 			data = allData;
@@ -411,7 +421,7 @@ namespace NestedHungarianAlgorithm
 		{
 			for (int i = 0; i < Interns; i++)
 			{
-				for (int w = 0; w < Disciplins; w++)
+				for (int w = 0; w < Wards; w++)
 				{
 					for (int h = 0; h < Hospitals; h++)
 					{
@@ -493,6 +503,16 @@ namespace NestedHungarianAlgorithm
 				LastPosition_i[i].dIndex = discIn;
 				// we need to assign intern to the discipline not to ward
 				Schedule_idh[i][discIn][((PositionMap)MappingTable[Index]).HIndex] = true;
+				for (int t = TimeID; t < TimeID + data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID]; t++)
+				{
+					ResidentSchedule_it[i][t] = new PositionMap
+					{
+						dIndex = discIn,
+						WIndex = ((PositionMap)MappingTable[Index]).WIndex,
+						HIndex = ((PositionMap)MappingTable[Index]).HIndex,
+					};
+				}
+				
 			}
 		}
 
