@@ -30,6 +30,7 @@ namespace DataLayer
 		public bool[][] DisciplineList_dg;
 		public int[] ShouldattendInGr_g;
 		public bool isProspective;
+		public int K_AllDiscipline;
 		public InternInfo(int Hospitals, int Disciplines, int TimePeriods, int DisciplineGr, int TrainingPr, int Region)
 		{
 			Name = "";
@@ -52,6 +53,7 @@ namespace DataLayer
 			wieght_ch = 0;
 			ProgramID = -1;
 			isProspective = true;
+			K_AllDiscipline = 0;
 			//MaxDesir = 0;
 			//MaxDesireDis = 0;
 			//MaxDesireHos = 0;
@@ -154,6 +156,12 @@ namespace DataLayer
 
 			//MaxDesir = MaxDesireHos + MaxDesireDis;
 		}
-
+		public void setKAllDiscipline(AllData allData)
+		{
+			for (int g = 0; g < allData.General.DisciplineGr; g++)
+			{
+				K_AllDiscipline += this.ShouldattendInGr_g[g];
+			}
+		}
 	}
 }

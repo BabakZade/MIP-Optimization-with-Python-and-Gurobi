@@ -10,7 +10,7 @@ namespace MedicalTraineeScheduling
 			Console.WriteLine("Hello World!");
 			//new DataLayer.WriteInformation("","inst.txt");
 
-			new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(new DataLayer.ReadInformation("", "MIP", "inst.txt").data, "", "inst");
+			//new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(new DataLayer.ReadInformation("", "MIP", "inst.txt").data, "", "inst");
 
 			new NestedHungarianAlgorithm.NHA(new DataLayer.ReadInformation("","NHA","inst.txt").data);
 

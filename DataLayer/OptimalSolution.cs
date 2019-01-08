@@ -24,6 +24,7 @@ namespace DataLayer
 		public double[] MinDis;
 		public double ResDemand;
 		public double EmrDemand;
+		public int SlackDem;
 		public double[][] NotUsesAcc;
 		public double[] TotalDis;
 		public double NotUsedAccTotal;
@@ -35,7 +36,7 @@ namespace DataLayer
 		}
 		public void Initial(AllData data)
 		{
-			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, false);
+			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals + 1, false); // one for oversea hospital
 			new ArrayInitializer().CreateArray(ref PrDisp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
@@ -54,14 +55,12 @@ namespace DataLayer
 			EmrDemand = 0;
 			NotUsedAccTotal = 0;
 			Obj = 0;
-
+			SlackDem = 0;
 		}
 
 		public void WriteSolution(string Path, string Name)
 		{
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
-
-
 			tw.WriteLine("PP | II | GG | DD | TT | HH | K_G | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
@@ -77,16 +76,18 @@ namespace DataLayer
 								{
 									for (int t = 0; t < data.General.TimePriods; t++)
 									{
-										for (int h = 0; h < data.General.Hospitals; h++)
-										{
-											if (data.Intern[i].OverSea_dt[d][t])
+										for (int h = 0; h < data.General.Hospitals + 1; h++)
+										{											
+											if (Intern_itdh[i][t][d][h])
 											{
-												tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
-											}
-											else if (Intern_itdh[i][t][d][h])
-											{
-												tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
-
+												if (data.Intern[i].OverSea_dt[d][t])
+												{
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
+												}
+												else
+												{
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
+												}
 												for (int r = 0; r < data.General.Region; r++)
 												{
 													if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
@@ -212,6 +213,7 @@ namespace DataLayer
 				{
 					for (int w = 0; w < data.General.HospitalWard; w++)
 					{
+						int filledDem = 0;
 						for (int d = 0; d < data.General.Disciplines; d++)
 						{
 
@@ -222,9 +224,14 @@ namespace DataLayer
 									if (Intern_itdh[i][t][d][h])
 									{
 										Assigned_twh[t][w][h]++;
+										filledDem++;
 									}
 								}
 							}
+						}
+						if (filledDem < data.Hospital[h].HospitalMinDem_tw[t][w])
+						{
+							SlackDem += data.Hospital[h].HospitalMinDem_tw[t][w] - filledDem;
 						}
 					}
 				}
@@ -342,10 +349,12 @@ namespace DataLayer
 				Obj -= ResDemand * data.TrainingPr[p].CoeffObj_ResCap;
 				Obj -= EmrDemand * data.TrainingPr[p].CoeffObj_EmrCap;
 				Obj -= NotUsedAccTotal * data.TrainingPr[p].CoeffObj_NotUsedAcc;
+				Obj -= SlackDem * data.TrainingPr[p].CoeffObj_MINDem;
 			}
 			tw.WriteLine("Res: " + ResDemand.ToString("000.0"));
 			tw.WriteLine("Emr: " + EmrDemand.ToString("000.0"));
 			tw.WriteLine("Acc: " + NotUsedAccTotal.ToString("000.0"));
+			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.Close();
 		}

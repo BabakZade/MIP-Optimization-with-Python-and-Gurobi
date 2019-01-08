@@ -1200,9 +1200,9 @@ namespace GeneralMIPAlgorithm
 								{
 									if (MIPModel.GetValue(s_idth[i][d][t][h]) > 1 - 0.5)
 									{
+										mipOpt.Intern_itdh[i][t][d - 1][h] = true;
 										if (h < Hospitals - 1)
-										{
-											mipOpt.Intern_itdh[i][t][d - 1][h] = true;
+										{											
 											Console.WriteLine("intern " + i + " started " + d + " at time " + t + " in hospital " + h + " and changed " + MIPModel.GetValue(ch_id[i][d]));
 										}
 										else

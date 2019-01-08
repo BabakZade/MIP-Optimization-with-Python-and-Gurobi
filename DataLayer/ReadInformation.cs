@@ -578,6 +578,7 @@ namespace DataLayer
 			for (int i = 0; i < data.General.Interns; i++)
 			{
 				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines, data.General.DisciplineGr, data.General.HospitalWard, data);
+				data.Intern[i].setKAllDiscipline(data);
 			}
 
 		}

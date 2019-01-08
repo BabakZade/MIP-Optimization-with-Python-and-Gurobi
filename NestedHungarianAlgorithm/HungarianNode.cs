@@ -50,7 +50,7 @@ namespace NestedHungarianAlgorithm
 		public ArrayList MappingTable;
 		public int TotalAvailablePosition;
 		public PositionMap[] LastPosition_i;
-
+		public int[] K_totalDiscipline;
 		public int Interns;
 		public int Disciplins;
 		public int Hospitals;
@@ -116,6 +116,19 @@ namespace NestedHungarianAlgorithm
 
 				}
 			}
+			K_totalDiscipline = new int[Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				if (isRoot)
+				{
+					K_totalDiscipline[i] = data.Intern[i].K_AllDiscipline;
+				}
+				else
+				{
+					K_totalDiscipline[i] = parentNode.K_totalDiscipline[i];
+				}
+				
+			}
 			setDisc_iwh();
 			MappingTable = new ArrayList();
 
@@ -136,49 +149,61 @@ namespace NestedHungarianAlgorithm
 						else
 						{
 							DemMax_wth[d][t][h] = parentNode.DemMax_wth[d][t][h];							
-						}
-						// we need map for current time
-						if (t == TimeID)
-						{
-							TotalAvailablePosition += DemMax_wth[d][t][h];
-							for (int dd = 0; dd < DemMax_wth[d][t][h] - (data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d]); dd++)
-							{
-								MappingTable.Add(new PositionMap()
-								{
-									DemandIndex = dd,
-									WIndex = d,
-									HIndex = h,
-									ResDem = false,
-									EmrDem = false,
-								});
-							}
-							int start = DemMax_wth[d][t][h] - (data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d]);
-							for (int dd = start; dd < DemMax_wth[d][t][h] - data.Hospital[h].EmergencyCap_tw[t][d]; dd++)
-							{
-								MappingTable.Add(new PositionMap()
-								{
-									DemandIndex = dd,
-									WIndex = d,
-									HIndex = h,
-									ResDem = true,
-									EmrDem = false,
-								});
-							}
-							start = DemMax_wth[d][t][h] - data.Hospital[h].EmergencyCap_tw[t][d];
-							for (int dd = start; dd < DemMax_wth[d][t][h]; dd++)
-							{
-								MappingTable.Add(new PositionMap()
-								{
-									DemandIndex = dd,
-									WIndex = d,
-									HIndex = h,
-									ResDem = false,
-									EmrDem = true,
-								});
-							}
-						}
+						}						
 					}
 				}
+			}
+
+			// we need map for current time
+			for (int w = 0; w < Wards; w++)
+			{
+				for (int h = 0; h < Hospitals; h++)
+				{
+					TotalAvailablePosition += DemMax_wth[w][TimeID][h];
+					for (int dd = 0; dd < DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]); dd++)
+					{
+						MappingTable.Add(new PositionMap()
+						{
+							DemandIndex = dd,
+							WIndex = w,
+							HIndex = h,
+							ResDem = false,
+							EmrDem = false,
+						});
+					}
+					int start = DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]);
+					for (int dd = start; dd < DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w]; dd++)
+					{
+						MappingTable.Add(new PositionMap()
+
+						{
+							DemandIndex = dd,
+							WIndex = w,
+							HIndex = h,
+							ResDem = true,
+							EmrDem = false,
+						});
+					}
+					start = DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w];
+					for (int dd = start; dd < DemMax_wth[w][TimeID][h]; dd++)
+					{
+						MappingTable.Add(new PositionMap()
+						{
+							DemandIndex = dd,
+							WIndex = w,
+							HIndex = h,
+							ResDem = false,
+							EmrDem = true,
+						});
+					}
+					
+					
+				}
+			}
+			// oversea
+			for (int dd = TotalAvailablePosition; dd < TotalAvailablePosition + Interns; dd++)
+			{
+				MappingTable.Add(new PositionMap(-1));
 			}
 
 			DemMin_wth = new int[Wards][][];
@@ -231,9 +256,7 @@ namespace NestedHungarianAlgorithm
 					LastPosition_i[i].CopyPosition(parentNode.LastPosition_i[i]);
 				}
 			}
-
 			
-
 		}
 
 		public void setCostMatrix()
@@ -241,20 +264,22 @@ namespace NestedHungarianAlgorithm
 			CostMatrix_i_whDem = new double[Interns][];
 			for (int i = 0; i < Interns; i++)
 			{
-				// total available position + in case to not assign the student to position 
-				CostMatrix_i_whDem[i] = new double[TotalAvailablePosition + Interns];
-				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				// total available position 
+				// intern = if we want to assign oversea
+				// intern = if intern wants to wait
+
+				CostMatrix_i_whDem[i] = new double[TotalAvailablePosition + Interns + Interns];
+				for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
 				{
 					CostMatrix_i_whDem[i][j] = 0;
 				}
 			}
-			// just desire (discipline + hospital + training program + change) + weight
+			// just desire (discipline + hospital + training program + change) + wait + oversea
 			setDesireCost();
 			// if intern is not available 
 			setAvailibilityCost();
 			// if interns can not
 			setAbilityCost();
-
 			// set emergency and reserved demand in cost
 			setResEmrDemandCost();
 			// set unoccupied accommodation 
@@ -265,10 +290,8 @@ namespace NestedHungarianAlgorithm
 		{
 			for (int i = 0; i < Interns; i++)
 			{
-
-				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
-				{
-					
+				for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
+				{					
 					// just desire 
 					if (j < TotalAvailablePosition)
 					{
@@ -296,15 +319,33 @@ namespace NestedHungarianAlgorithm
 								}
 							}
 							
+						}						
+					}
+					else if(j < TotalAvailablePosition + Interns) // oversea intern
+					{
+						bool overseaExist = false;
+						for (int d = 0; d < Disciplins; d++)
+						{
+							if (data.Intern[i].OverSea_dt[d][TimeID])
+							{
+								overseaExist = true;
+								break;
+							}
 						}
-						
+						if (overseaExist) // he or she has to go oversea
+						{
+							CostMatrix_i_whDem[i][j] -= data.AlgSettings.BigM;
+						}
+						else
+						{
+							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+						}						
 					}
 					else // if the intern wants to wait(weight_w<0)
 					{
 						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_w;
 					}
 				}
-
 			}
 		}
 
@@ -384,6 +425,7 @@ namespace NestedHungarianAlgorithm
 
 		}
 
+
 		public HungarianNode() { }
 
 		public HungarianNode(int startTime, AllData allData, HungarianNode parent)
@@ -406,12 +448,12 @@ namespace NestedHungarianAlgorithm
 
 		public void setBestSchedule()
 		{
-			int[,] tmpCost = new int[Interns, TotalAvailablePosition + Interns];
+			int[,] tmpCost = new int[Interns, TotalAvailablePosition + Interns + Interns];
 			for (int i = 0; i < Interns; i++)
 			{
-				for (int j = 0; j < TotalAvailablePosition + Interns; j++)
+				for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
 				{
-					tmpCost[i, j] = (int)Math.Round(CostMatrix_i_whDem[i][j] * 100);
+					tmpCost[i, j] = (int)Math.Round(CostMatrix_i_whDem[i][j]);
 				}
 			}
 			BestSchedule = HungarianAlgorithm.FindAssignments(tmpCost);
@@ -484,10 +526,10 @@ namespace NestedHungarianAlgorithm
 		/// </summary>
 		public void updateLastPos()
 		{
-			new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals, false);
+			new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals+1, false);
 			for (int i = 0; i < Interns; i++)
 			{
-				int Index = BestSchedule[i] < TotalAvailablePosition ? BestSchedule[i] : -1;
+				int Index = BestSchedule[i] < TotalAvailablePosition + Interns ? BestSchedule[i] : -1;
 				int discIn = -1;
 				// if intern waits 
 				if (Index < 0)
@@ -496,23 +538,51 @@ namespace NestedHungarianAlgorithm
 					// it is already copied from parents
 					continue;
 				}
-				discIn = Disc_iwh[i][((PositionMap)MappingTable[Index]).WIndex][((PositionMap)MappingTable[Index]).HIndex];
-				
-				// Hospital changed
-				LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
-				LastPosition_i[i].dIndex = discIn;
-				// we need to assign intern to the discipline not to ward
-				Schedule_idh[i][discIn][((PositionMap)MappingTable[Index]).HIndex] = true;
-				for (int t = TimeID; t < TimeID + data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID]; t++)
+				if (BestSchedule[i] < TotalAvailablePosition)
 				{
-					ResidentSchedule_it[i][t] = new PositionMap
+					discIn = Disc_iwh[i][((PositionMap)MappingTable[Index]).WIndex][((PositionMap)MappingTable[Index]).HIndex];
+
+					// Hospital changed
+					LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
+					LastPosition_i[i].dIndex = discIn;
+					// we need to assign intern to the discipline not to ward
+					Schedule_idh[i][discIn][((PositionMap)MappingTable[Index]).HIndex] = true;
+					for (int t = TimeID; t < TimeID + data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID]; t++)
 					{
-						dIndex = discIn,
-						WIndex = ((PositionMap)MappingTable[Index]).WIndex,
-						HIndex = ((PositionMap)MappingTable[Index]).HIndex,
-					};
+						ResidentSchedule_it[i][t] = new PositionMap
+						{
+							dIndex = discIn,
+							WIndex = ((PositionMap)MappingTable[Index]).WIndex,
+							HIndex = ((PositionMap)MappingTable[Index]).HIndex,
+						};
+					}
+					K_totalDiscipline[i]--;
 				}
-				
+				else if(BestSchedule[i] < TotalAvailablePosition + Interns) // oversea
+				{
+					for (int d = 0; d < Disciplins; d++)
+					{
+						if (data.Intern[i].OverSea_dt[d][TimeID])
+						{
+							discIn = d;
+							// Hospital changed
+							LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
+							LastPosition_i[i].dIndex = discIn;
+							// we need to assign intern to the discipline not to ward
+							Schedule_idh[i][discIn][Hospitals] = true; // oversea hospital
+							for (int t = TimeID; t < TimeID + data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID]; t++)
+							{
+								ResidentSchedule_it[i][t] = new PositionMap
+								{
+									dIndex = discIn,
+									WIndex = ((PositionMap)MappingTable[Index]).WIndex,
+									HIndex = Hospitals,
+								};
+							}
+						}
+					}
+					
+				}				
 			}
 		}
 
@@ -524,6 +594,56 @@ namespace NestedHungarianAlgorithm
 			int discInd = -1;
 			for (int d = 0; d < Disciplins ; d++)
 			{
+				if (data.Intern[theI].OverSea_dt[d][TimeID]) // if the interns must go oversea now
+				{
+					discInd = -1;
+					break;
+				}
+				bool overseaLater = false;
+				for (int t = TimeID; t < Timepriods; t++)
+				{
+					if (data.Intern[theI].OverSea_dt[d][t]) // if the interns must go oversea later
+					{
+						overseaLater = true;
+						if (TimeID == 0)
+						{
+							K_totalDiscipline[theI]--;
+						}
+						break;
+					}
+				}
+				if (overseaLater)
+				{
+					continue;
+				}
+				int thep = -1;
+				
+				for (int p = 0; p < TrainingPr && thep < 0; p++)
+				{
+					for (int h = 0; h < Hospitals && thep < 0; h++)
+					{
+						if (data.Intern[theI].Fulfilled_dhp[d][h][p])
+						{
+							thep = p;
+							
+						}
+					}					
+				}
+
+				if (thep >= 0)
+				{
+					if (thep == data.Intern[theI].ProgramID && TimeID == 0)
+					{
+						K_totalDiscipline[theI]--;
+					}
+					continue;
+				}
+
+				if (K_totalDiscipline[theI] < 0) // no more assignment 
+				{
+					discInd = -1;
+					break;
+				}
 				if (data.Hospital[theH].Hospital_dw[d][theW])
 				{
 					// if already assigned
@@ -535,6 +655,10 @@ namespace NestedHungarianAlgorithm
 							assigned = true;
 							break;
 						}						
+					}
+					if (!assigned ) // if he wanted
+					{
+
 					}
 					if (!assigned && MaxObj <= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
 					{

@@ -60,7 +60,7 @@ namespace NestedHungarianAlgorithm
 					bool assignedDisc = false;
 					for (int t = 0; t < Timepriods && !assignedDisc; t++)
 					{
-						for (int h = 0; h < Hospitals && !assignedDisc; h++)
+						for (int h = 0; h < Hospitals + 1 && !assignedDisc; h++)
 						{
 							if (((HungarianNode)ActiveList[ActiveList.Count - 1]).ResidentSchedule_it[i][t].dIndex == d
 								&& ((HungarianNode)ActiveList[ActiveList.Count - 1]).ResidentSchedule_it[i][t].HIndex == h)
