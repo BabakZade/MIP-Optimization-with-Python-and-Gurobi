@@ -425,6 +425,28 @@ namespace NestedHungarianAlgorithm
 
 		}
 
+		public void setOverseaReq()
+		{
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
+				{
+					// just desire 
+					if (j < TotalAvailablePosition && data.Intern[i].overseaReq)
+					{
+						int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+						// if the intern is already assigned to this discipline
+						if (discIn >= 0)
+						{
+							if (data.Intern[i].FHRequirment_d[discIn])
+							{
+								CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
+							}
+						}
+					}
+				}
+			}
+		}
 
 		public HungarianNode() { }
 
@@ -624,8 +646,7 @@ namespace NestedHungarianAlgorithm
 					{
 						if (data.Intern[theI].Fulfilled_dhp[d][h][p])
 						{
-							thep = p;
-							
+							thep = p;							
 						}
 					}					
 				}
@@ -654,16 +675,32 @@ namespace NestedHungarianAlgorithm
 						{
 							assigned = true;
 							break;
-						}						
+						}
+						if (!checkCompetence(d,theI)) // requires other discipline
+						{
+							assigned = true;
+							break;
+						}
 					}
-					if (!assigned ) // if he wanted
-					{
 
+					// availibity during the disciplien
+					bool durAve = true;
+					for (int t = 0; t < TimeID + data.Discipline[d].Duration_p[data.Intern[theI].ProgramID]; t++)
+					{
+						if (!data.Intern[theI].Ave_t[t])
+						{
+							durAve = false;
+						}
 					}
-					if (!assigned && MaxObj <= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
+					if (durAve && !assigned && MaxObj <= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
 					{
 						MaxObj = data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d];
 						discInd = d;
+					}
+					if (data.Intern[theI].overseaReq && data.Intern[theI].FHRequirment_d[d]) // spacial request for required discipline oversea
+					{
+						discInd = d;
+						break;
 					}
 				}
 			}
@@ -687,6 +724,48 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 		}
+
+		public bool checkCompetence(int theI, int theD)
+		{
+			bool result = true;
+			if (data.Discipline[theD].requiresSkill)
+			{
+				result = false;
+				for (int d = 0; d < Disciplins; d++)
+				{
+					if (data.Discipline[theD].Skill4D_dp[d][data.Intern[theI].ProgramID])
+					{
+						bool alreadyDone = false;
+						for (int t = 0; t < TimeID && !alreadyDone; t++)
+						{
+							for (int h = 0; h < Hospitals && !alreadyDone; h++)
+							{
+								if (Schedule_idh[theI][d][h])
+								{
+									alreadyDone = true;
+
+								}
+							}							
+						}
+						if (!alreadyDone)
+						{
+							result = false;
+							break;
+						}
+						else
+						{
+							result = true;
+						}
+					}
+				}
+			}
+			else
+			{
+				result = true;
+			}
+			return result;
+		}
+
 
 	}
 }

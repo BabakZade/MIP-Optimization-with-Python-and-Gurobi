@@ -10,6 +10,8 @@ namespace DataLayer
 		public string Name;
 		public int SQLID;
 		public bool[][] Skill4D_dp;
+		public bool requiresSkill;
+		public bool requiredLater;
 		public int[] Duration_p;
 
 		public DisciplineInfo(int Disciplines, int Programs)
@@ -18,6 +20,8 @@ namespace DataLayer
 			SQLID = 0;
 			new ArrayInitializer().CreateArray(ref Skill4D_dp, Disciplines,Programs, false);
 			new ArrayInitializer().CreateArray(ref Duration_p, Programs, 0);
+			requiresSkill = false;
+			requiredLater = false;
 		}
 
 

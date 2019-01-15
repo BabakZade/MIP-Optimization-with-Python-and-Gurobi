@@ -282,6 +282,11 @@ namespace DataLayer
 					{
 						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 						data.Discipline[d].Skill4D_dp[dd][p] = int.Parse(line.Substring(0, indexN)) == 1;
+						if (data.Discipline[d].Skill4D_dp[dd][p])
+						{
+							data.Discipline[d].requiresSkill = true;
+							data.Discipline[dd].requiredLater = true;
+						}
 						line = line.Substring(indexN + 1);
 					}
 					line = tw.ReadLine();
@@ -378,6 +383,7 @@ namespace DataLayer
 
 				int indext = int.Parse(line.Substring(0, indexN));
 				data.Intern[IndexI].OverSea_dt[indexD][indext] = true;
+				data.Intern[IndexI].overseaReq = true;
 				line = tw.ReadLine();
 			}
 

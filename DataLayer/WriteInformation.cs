@@ -857,7 +857,8 @@ namespace DataLayer
 			tmpalgorithmSettings.RHSepsi = 0.000001;
 			tmpalgorithmSettings.SubTime = 600;
 			tmpalgorithmSettings.NodeTime = 3600;
-			tmpalgorithmSettings.BigM = 4000;
+			tmpalgorithmSettings.BigM = 40000;
+			tmpalgorithmSettings.MotivationBM = tmpalgorithmSettings.BigM/100;
 			strline = "// Algorithm Settings MIPtime BPtime Nodetime Mastertime Subtime RCepsi RCepsi BigM";
 			tw.WriteLine(strline);
 			tw.WriteLine(tmpalgorithmSettings.MIPTime +" "+ tmpalgorithmSettings.BPTime + " " + tmpalgorithmSettings.NodeTime + " " + tmpalgorithmSettings.MasterTime + " " + tmpalgorithmSettings.SubTime + " " + tmpalgorithmSettings.RHSepsi + " " + tmpalgorithmSettings.RCepsi+ " " + tmpalgorithmSettings.BigM);

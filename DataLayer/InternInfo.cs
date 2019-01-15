@@ -22,6 +22,7 @@ namespace DataLayer
 		public bool[][][] Fulfilled_dhp;
 		public bool[][] OverSea_dt;
 		public bool[] FHRequirment_d;
+		public bool overseaReq;
 		public int[] SortedPrfD_pos;
 		public int[] SortedPrfH_pos;
 		//public int MaxDesireHos;
@@ -54,6 +55,7 @@ namespace DataLayer
 			ProgramID = -1;
 			isProspective = true;
 			K_AllDiscipline = 0;
+			overseaReq = false;
 			//MaxDesir = 0;
 			//MaxDesireDis = 0;
 			//MaxDesireHos = 0;

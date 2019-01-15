@@ -14,6 +14,7 @@ namespace DataLayer
 		public int NodeTime;
 		public int BPTime;
 		public int BigM;
+		public int MotivationBM;
 
 		// Epsilon
 		public double RHSepsi;
