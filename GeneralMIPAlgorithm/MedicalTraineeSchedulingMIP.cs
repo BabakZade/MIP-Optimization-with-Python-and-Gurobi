@@ -601,7 +601,7 @@ namespace GeneralMIPAlgorithm
 				{
 					totalList += data.Intern[i].ShouldattendInGr_g[g];
 				}
-				MIPModel.AddGe(AllDiscipline, totalList - totalFulfilled, "AllDisciplineI" + "_" + i);
+				MIPModel.AddEq(AllDiscipline, totalList - totalFulfilled, "AllDisciplineI" + "_" + i);
 			}
 
 			// Each discipline Once,
@@ -1252,7 +1252,7 @@ namespace GeneralMIPAlgorithm
 					Console.WriteLine(MIPModel.GetValue(des_i[i]));
 				}
 				Console.WriteLine(MIPModel.ObjValue);
-				mipOpt.WriteSolution(Path, InsName);
+				mipOpt.WriteSolution(data.allPath.OutPutLocation, InsName);
 
 
 				MIPModel.End();

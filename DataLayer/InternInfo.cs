@@ -25,6 +25,7 @@ namespace DataLayer
 		public bool overseaReq;
 		public int[] SortedPrfD_pos;
 		public int[] SortedPrfH_pos;
+		public int[][] AllDes_dh;
 		//public int MaxDesireHos;
 		//public int MaxDesireDis;
 		//public double MaxDesir;
@@ -48,6 +49,7 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref Fulfilled_dhp, Disciplines, Hospitals, TrainingPr, false);
 			new ArrayInitializer().CreateArray(ref DisciplineList_dg, Disciplines, DisciplineGr, false);
 			new ArrayInitializer().CreateArray(ref OverSea_dt, Disciplines, TimePeriods, false);
+			new ArrayInitializer().CreateArray(ref AllDes_dh,Disciplines, Hospitals, -1);
 			wieght_d = 0;
 			wieght_h = 0;
 			wieght_w = 0;
@@ -98,65 +100,14 @@ namespace DataLayer
 					}
 				}
 			}
-			int totalAssigned = 0;
-			//MaxDesireHos = 0;
-			//MaxDesireDis = 0;
-			//MaxDesir = 0;
-			//for (int g = 0; g < DisciplineGr; g++)
-			//{
-			//	totalAssigned = ShouldattendInGr_g[g];
-			//	for (int d = 0; d < Disciplines && totalAssigned > 0; d++)
-			//	{
-			//		if (DisciplineList_dg[d][g])
-			//		{
-			//			bool findH = true;
-			//			for (int h = 0; h < Hospitals && findH; h++)
-			//			{
-			//				if (Abi_dh[d][h])
-			//				{								
-			//					for (int w = 0; w < HospitalWard; w++)
-			//					{
-			//						if (allData.Hospital[SortedPrfH_pos[h]].Hospital_dw[d][w])
-			//						{
-			//							totalAssigned--;
-			//							MaxDesireHos += Prf_h[SortedPrfH_pos[h]];
-			//							MaxDesireDis += Prf_d[d];
-			//							findH = false;
-			//							break;
-			//						}
-			//					}
-								
-			//				}
-							
-			//			}
-			//		}
-			//	}
-			//}
-			
 
-			//for (int d = 0; d < Disciplines; d++)
-			//{
-			//	if (!allData.TrainingPr[ProgramID].PrManDis_d[SortedPrfD_pos[d]]
-			//		&& Abi_d[SortedPrfD_pos[d]] && allData.TrainingPr[ProgramID].Program_d[SortedPrfD_pos[d]])
-			//	{
-			//		totalAssigned++;
-			//		for (int h = 0; h < Hospitals; h++)
-			//		{
-			//			if (allData.Hospital[SortedPrfH_pos[h]].Hospital_d[SortedPrfD_pos[d]])
-			//			{
-			//				MaxDesireHos += Prf_h[SortedPrfH_pos[h]];
-			//				MaxDesireDis += Prf_d[SortedPrfD_pos[d]];
-			//				break;
-			//			}
-			//		}
-			//		if (totalAssigned == allData.TrainingPr[ProgramID].MandatoryD + allData.TrainingPr[ProgramID].ArbitraryD)
-			//		{
-			//			break;
-			//		}
-			//	}
-			//}
-
-			//MaxDesir = MaxDesireHos + MaxDesireDis;
+			for (int d = 0; d < Disciplines; d++)
+			{
+				for (int h = 0; h < Hospitals; h++)
+				{
+					AllDes_dh[d][h] = Prf_d[d] * wieght_d + Prf_h[h] * wieght_h + allData.TrainingPr[ProgramID].weight_p * Prf_d[d];
+				}
+			}
 		}
 		public void setKAllDiscipline(AllData allData)
 		{

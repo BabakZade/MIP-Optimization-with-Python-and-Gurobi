@@ -34,6 +34,7 @@ namespace DataLayer
 			Initial(data);
 			this.data = data;
 		}
+
 		public void Initial(AllData data)
 		{
 			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals + 1, false); // one for oversea hospital
@@ -66,18 +67,19 @@ namespace DataLayer
 			{
 				for (int i = 0; i < data.General.Interns; i++)
 				{
-					for (int g = 0; g < data.General.DisciplineGr; g++)
+					for (int t = 0; t < data.General.TimePriods; t++)
 					{
-						if (data.Intern[i].ProgramID == p)
+						for (int g = 0; g < data.General.DisciplineGr; g++)
 						{
-							for (int d = 0; d < data.General.Disciplines; d++)
+							if (data.Intern[i].ProgramID == p)
 							{
-								if (data.Intern[i].DisciplineList_dg[d][g])
+								for (int d = 0; d < data.General.Disciplines; d++)
 								{
-									for (int t = 0; t < data.General.TimePriods; t++)
+									if (data.Intern[i].DisciplineList_dg[d][g])
 									{
+
 										for (int h = 0; h < data.General.Hospitals + 1; h++)
-										{											
+										{
 											if (Intern_itdh[i][t][d][h])
 											{
 												if (data.Intern[i].OverSea_dt[d][t])

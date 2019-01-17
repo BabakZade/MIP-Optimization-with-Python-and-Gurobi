@@ -284,8 +284,8 @@ namespace DataLayer
 						data.Discipline[d].Skill4D_dp[dd][p] = int.Parse(line.Substring(0, indexN)) == 1;
 						if (data.Discipline[d].Skill4D_dp[dd][p])
 						{
-							data.Discipline[d].requiresSkill = true;
-							data.Discipline[dd].requiredLater = true;
+							data.Discipline[d].requiresSkill_p[p] = true;
+							data.Discipline[dd].requiredLater_p[p] = true;
 						}
 						line = line.Substring(indexN + 1);
 					}
@@ -573,6 +573,7 @@ namespace DataLayer
 			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 			data.AlgSettings.BigM = Convert.ToInt32(line.Substring(0, indexN));
+			data.AlgSettings.MotivationBM = data.AlgSettings.BigM / 1000;
 			line = tw.ReadLine();
 
 		

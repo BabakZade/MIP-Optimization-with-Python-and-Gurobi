@@ -22,7 +22,6 @@ namespace NestedHungarianAlgorithm
 			this.data = data;
 			Initialization();
 			TimelineBasedHungarianAlgorithm();
-
 			setSolution();
 		}
 		public void Initialization()
@@ -35,8 +34,6 @@ namespace NestedHungarianAlgorithm
 			Wards = data.General.HospitalWard;
 			Region = data.General.Region;
 			ActiveList = new ArrayList();
-		
-
 		}
 
 		public void TimelineBasedHungarianAlgorithm()
