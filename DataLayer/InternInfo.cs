@@ -105,7 +105,7 @@ namespace DataLayer
 			{
 				for (int h = 0; h < Hospitals; h++)
 				{
-					AllDes_dh[d][h] = Prf_d[d] * wieght_d + Prf_h[h] * wieght_h + allData.TrainingPr[ProgramID].weight_p * Prf_d[d];
+					AllDes_dh[d][h] = Prf_d[d] * wieght_d + Prf_h[h] * wieght_h + allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d];
 				}
 			}
 		}
