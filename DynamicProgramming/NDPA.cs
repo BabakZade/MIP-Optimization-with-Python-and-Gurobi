@@ -18,10 +18,10 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					for (int t = 0; t < allData.General.TimePriods; t++)
 					{
-						if (((StateStage)tmp.Allsol[0]).theSchedule_t[t] == d)
+						if (tmp.BestSol.theSchedule_t[t].theDiscipline == d)
 						{
-							optimalSolution.Intern_itdh[i][t][d][((StateStage)tmp.Allsol[0]).x_Hosp
-] = true;
+							optimalSolution.Intern_itdh[i][t][d][tmp.BestSol.theSchedule_t[t].theHospital] = true;
+							break;
 						}
 					}
 				}
@@ -29,5 +29,6 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 			optimalSolution.WriteSolution(allData.allPath.OutPutLocation, "NDPA");
 		}
+		
 	}
 }

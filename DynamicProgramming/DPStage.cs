@@ -16,12 +16,18 @@ namespace NestedDynamicProgrammingAlgorithm
 		public ArrayList[] activeStatesValue;
 		public ArrayList FutureActiveState;
 		public int ActiveStatesCount;
-		public DPStage(ref ArrayList finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime)
+		public DPStage(ref StateStage finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime, bool isRoot)
 		{
+
 			data = alldata;
 			theIntern = theI;
 			stageTime = theTime;
-			if (theTime==0)
+			FutureActiveState = new ArrayList();
+			if (!data.Intern[theI].Ave_t[theTime])
+			{
+				FutureActiveState = parent.FutureActiveState;
+			}
+			if (isRoot)
 			{				
 				rootStage = true;
 			}
@@ -29,44 +35,36 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				rootStage = false;
 				parentNode = parent;
-			}			
-
+			}
+			DPStageProcedure(ref finalSchedule);
 		}
-		public void setStateStage(ref ArrayList finalSchedule)
+		public void Initial() { }
+		public void setStateStage(ref StateStage finalSchedule)
 		{
 			if (rootStage)
 			{
 				// there are no state available 
 				activeStatesValue = new ArrayList[1];
 				activeStatesValue[0] = new ArrayList();
+				ActiveStatesCount = 1;
 				// add dummy state
-				activeStatesValue[0].Add(new StateStage());
-				// add first wait value
-				StateStage tmpWait = new StateStage();
-				tmpWait.isRoot = rootStage;
-				tmpWait.x_wait = true;
-				activeStatesValue[0].Add(tmpWait);
+				activeStatesValue[0].Add(new StateStage(data));
+
 				// rest of the values
-				for (int g = 0; g < data.General.DisciplineGr; g++)
+				for (int d = 0; d < data.General.Disciplines; d++)
 				{
-					for (int d = 0; d < data.General.Disciplines; d++)
+					for (int h = 0; h < data.General.Hospitals; h++)
 					{
-						if (!((StateStage)parentNode.FutureActiveState[0]).activeDisc[d])
+						for (int w = 0; w < data.General.HospitalWard; w++)
 						{
-							for (int h = 0; h < data.General.Hospitals; h++)
+							if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
+								&& checkDiscipline(d, h, new StateStage(data) { }))
 							{
-								for (int w = 0; w < data.General.HospitalWard; w++)
-								{
-									if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
-										&& checkDiscipline(d, h, (StateStage)parentNode.FutureActiveState[0]))
-									{
-										StateStage tmp = new StateStage();
-										tmp.isRoot = true;
-										tmp.x_Hosp = h;
-										tmp.x_Disc = d;
-										activeStatesValue[0].Add(tmp);
-									}
-								}
+								StateStage tmp = new StateStage(data);
+								tmp.isRoot = true;
+								tmp.x_Hosp = h;
+								tmp.x_Disc = d;
+								activeStatesValue[0].Add(tmp);
 							}
 						}
 					}
@@ -76,7 +74,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				for (int c = 0; c < parentNode.FutureActiveState.Count; c++)
 				{
-					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0)
+					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline == -1)
 					{
 						ActiveStatesCount++;
 					}
@@ -88,36 +86,35 @@ namespace NestedDynamicProgrammingAlgorithm
 				int counter = -1;
 				for (int c = 0; c < parentNode.FutureActiveState.Count; c++)
 				{
+					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline != -1)
+					{
+						FutureActiveState.Add((StateStage)parentNode.FutureActiveState[c]);
+						((StateStage)FutureActiveState[FutureActiveState.Count-1]).tStage++;						
+						continue;
+					}
 					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0)
 					{
 						counter++;
 						activeStatesValue[counter] = new ArrayList();
 						activeStatesValue[counter].Add(parentNode.FutureActiveState[c]);
-						// add first wait value
-						StateStage tmpWait = new StateStage();
-						tmpWait.isRoot = false;
-						tmpWait.x_wait = true;
-						activeStatesValue[counter].Add(tmpWait);
 						// rest of the values
-						for (int g = 0; g < data.General.DisciplineGr; g++)
+
+						for (int d = 0; d < data.General.Disciplines; d++)
 						{
-							for (int d = 0; d < data.General.Disciplines; d++)
+							if (!((StateStage)parentNode.FutureActiveState[c]).activeDisc[d])
 							{
-								if (!((StateStage)parentNode.FutureActiveState[c]).activeDisc[d])
+								for (int h = 0; h < data.General.Hospitals; h++)
 								{
-									for (int h = 0; h < data.General.Hospitals; h++)
+									for (int w = 0; w < data.General.HospitalWard; w++)
 									{
-										for (int w = 0; w < data.General.HospitalWard; w++)
+										if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
+											&& checkDiscipline(d, h, (StateStage)parentNode.FutureActiveState[c]))
 										{
-											if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0 
-												&& checkDiscipline(d,h, (StateStage)parentNode.FutureActiveState[c]))
-											{
-												StateStage tmp = new StateStage();
-												tmp.isRoot = false;
-												tmp.x_Hosp = h;
-												tmp.x_Disc = d;
-												activeStatesValue[counter].Add(tmp);
-											}
+											StateStage tmp = new StateStage(data);
+											tmp.isRoot = false;
+											tmp.x_Hosp = h;
+											tmp.x_Disc = d;
+											activeStatesValue[counter].Add(tmp);
 										}
 									}
 								}
@@ -127,19 +124,12 @@ namespace NestedDynamicProgrammingAlgorithm
 					else
 					{
 						// it is a complete  solution 
-						int Fxcounter = 0;
-						foreach (StateStage sol in finalSchedule)
+						// we need the best one 						
+
+						if (((StateStage)parentNode.FutureActiveState[c]).Fx > finalSchedule.Fx)
 						{
-							if (((StateStage)parentNode.FutureActiveState[c]).Fx > sol.Fx)
-							{
-								break;
-							}
-							else
-							{
-								Fxcounter++;
-							}
+							finalSchedule = (StateStage)parentNode.FutureActiveState[c];
 						}
-						finalSchedule.Insert(Fxcounter,parentNode.FutureActiveState[c]);
 					}
 
 				}
@@ -148,13 +138,13 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void setFutureState()
 		{
-			FutureActiveState = new ArrayList();
+			
 			for (int c = 0; c < ActiveStatesCount; c++)
 			{
 				// 0 is the current state
 				for (int i = 1; i < activeStatesValue[c].Count; i++)
 				{
-					StateStage tmp = new StateStage((StateStage)activeStatesValue[0][i], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime);
+					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime ,rootStage);
 					foreach (StateStage item in tmp.possibleStates)
 					{
 						FutureActiveState.Add(item);
@@ -163,18 +153,32 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 		}
 
-		public void DPStageProcedure(ref ArrayList finalSchedule)
+		public void DPStageProcedure(ref StateStage finalSchedule)
 		{
 			setStateStage(ref finalSchedule);
 			setFutureState();
 		}
+
 		public bool checkDiscipline(int theDisc,int theH, StateStage theState)
 		{
 			bool result = true;
 			// already assigned or the time is filled
-			if (theState.activeDisc[theDisc] || theState.theSchedule_t[stageTime]!=-1)
+			if (theState.activeDisc[theDisc] || theState.theSchedule_t[stageTime].theDiscipline!=-1)
 			{
 				result = false;
+			}
+			// if the intern needs it 
+			if (result)
+			{
+				result = false;
+				for (int g = 0; g < data.General.DisciplineGr; g++)
+				{
+					if (data.Intern[theIntern].DisciplineList_dg[theDisc][g])
+					{
+						result = true;
+						break;
+					}
+				}
 			}
 			// check oversea
 			if (result)
@@ -241,7 +245,195 @@ namespace NestedDynamicProgrammingAlgorithm
 					result = false;
 				}
 			}
-				
+
+			// cut ruls
+			// 1- total number of discipline in one hospital
+			if (result)
+			{
+				int totaldisc = 0;
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					if (theState.activeDisc[d])
+					{
+						for (int t = 0; t < data.General.TimePriods; t++)
+						{
+							if (theState.theSchedule_t[t].theHospital == theH)
+							{
+								totaldisc++;
+								break;
+							}
+						}
+					}
+				}
+				if (totaldisc > data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp)
+				{
+					result = false;
+				}
+			}
+
+			// if it is here it means that he can attend to this hospital
+			// 2- same hospital next together (if it is possible)	
+			if (result)
+			{
+				result = differentDiscSameHospital(theDisc, theH, theState);
+			}
+
+			// if the consecutive disciplines happens to same hospital, they should follow chronological order 
+			// 3- same hospital and consecutive time, the discipline should be chronological
+			if (result)
+			{
+				result = chronologicalConsecutiveDiscSameHospital(theDisc, theH, theState);
+			}
+
+
+			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 
+			// 4- same hospital and consecutive time, the discipline should be chronological
+			if (result)
+			{
+				result = differentConsecutiveHospital(theDisc, theH, theState);
+			}
+			return result;
+		}
+
+		public bool differentDiscSameHospital(int theDisc, int theH, StateStage theState)
+		{
+			bool result = true;
+			if (rootStage)
+			{
+				return result;
+			}
+			if (theState.theSchedule_t[stageTime-1].theHospital == theH)
+			{
+				return result;
+			}
+			// if it is here it means that he can attend to this hospital
+			// 2- same hospital next together (if it is possible)			
+			for (int t = 0; t < stageTime; t++)
+			{
+				if (theState.theSchedule_t[t].theHospital == theH)
+				{
+					// find were the change in hospitals happens
+					int theTT = t;
+					for (int tt = t + 1; tt < stageTime && tt < data.General.TimePriods; tt++)
+					{
+						if (theState.theSchedule_t[tt].theHospital != theState.theSchedule_t[t].theHospital)
+						{
+							theTT = tt;
+						}
+					}
+					if (theTT < stageTime - 1) // there is at least one space 
+					{
+						// check if you do not need any skills of the discipline in between
+						if (data.Discipline[theDisc].requiresSkill_p[data.Intern[theIntern].ProgramID])
+						{
+							result = false;
+							break;
+						}
+						else
+						{
+							// see till theTT the required skills are there
+							bool itCanMove = true;
+							for (int d = 0; d < data.General.Disciplines && itCanMove; d++)
+							{
+								if (data.Discipline[theDisc].Skill4D_dp[d][data.Intern[theIntern].ProgramID])
+								{
+									itCanMove = false;
+									// check if it is not exist before theTT
+									for (int tc = 0; tc < theTT; tc++)
+									{
+										if (theState.theSchedule_t[tc].theDiscipline == d)
+										{
+											itCanMove = true;
+											break;
+										}
+									}
+								}
+							}
+
+							if (itCanMove)
+							{
+								result = false;
+								break;
+							}
+						}
+					}
+
+				}
+			}
+
+			return result;
+		}
+
+		public bool chronologicalConsecutiveDiscSameHospital(int theDisc, int theH, StateStage theState)
+		{
+			bool result = true;
+
+			// if the consecutive disciplines happens to same hospital, they should follow chronological order 
+			// 3- same hospital and consecutive time, the discipline should be chronological			
+			if (!rootStage)
+			{
+				if (theState.theSchedule_t[stageTime-1].theHospital == theH && theDisc < theState.theSchedule_t[stageTime - 1].theDiscipline)
+				{
+					if (!data.Discipline[theDisc].Skill4D_dp[theState.theSchedule_t[stageTime - 1].theDiscipline][data.Intern[theIntern].ProgramID])
+					{
+						result = false;
+					}
+				}
+			}
+
+			return result;
+		}
+
+		public bool differentConsecutiveHospital(int theDisc, int theH, StateStage theState)
+		{
+			bool result = true;					
+
+			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 
+			// 4- same hospital and consecutive time, the discipline should be chronological			
+			if (!rootStage)
+			{
+				// first see if he can attend to same hospital
+				int totaldisc = 0;
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					if (theState.activeDisc[d])
+					{
+						for (int t = 0; t < data.General.TimePriods; t++)
+						{
+							if (theState.theSchedule_t[t].theHospital == theState.theSchedule_t[stageTime - 1].theHospital)
+							{
+								totaldisc++;
+								break;
+							}
+						}
+					}
+				}
+				// +1 because we want to assign more
+				if (totaldisc + 1 > data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp)
+				{
+					return result;
+				}
+
+				// if he can go the previous hospital let him
+				if (theState.theSchedule_t[stageTime - 1].theHospital != theH
+					&& data.Intern[theIntern].Prf_h[theState.theSchedule_t[stageTime - 1].theHospital] >= data.Intern[theIntern].Prf_h[theH])
+				{
+					//see if the previous hospital has the discipline
+					bool preH = false;
+					for (int w = 0; w < data.General.HospitalWard; w++)
+					{
+						if (data.Hospital[theState.theSchedule_t[stageTime - 1].theHospital].Hospital_dw[theDisc][w])
+						{
+							preH = true;
+							break;
+						}
+					}
+					if (preH )
+					{
+						result = false;
+					}
+				}
+			}
 
 			return result;
 		}

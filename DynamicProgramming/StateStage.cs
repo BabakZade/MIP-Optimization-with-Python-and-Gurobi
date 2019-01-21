@@ -5,6 +5,28 @@ using DataLayer;
 
 namespace NestedDynamicProgrammingAlgorithm
 {
+	public class StateSchedule
+	{
+		public int theHospital;
+		public int theDiscipline;
+		public StateSchedule(int theH, int theD)
+		{
+			theDiscipline = theD;
+			theHospital = theH;
+		}
+		public StateSchedule()
+		{
+			theDiscipline = -1;
+			theHospital = -1;
+		}
+
+		public StateSchedule(StateSchedule theCopy)
+		{
+			theDiscipline = theCopy.theDiscipline;
+			theHospital = theCopy.theHospital;
+		}
+
+	}
 	public class StateStage
 	{
 		public double Fx;
@@ -18,20 +40,35 @@ namespace NestedDynamicProgrammingAlgorithm
 		public AllData data;
 		public ArrayList possibleStates;
 		public bool[] activeDisc;
-		public int[] theSchedule_t;
+		public StateSchedule[] theSchedule_t;
 		public int tStage;
 
-		public StateStage()
-		{
-
-		}
-		public StateStage(StateStage stateInput, StateStage xInput, int theI, AllData alldata, int theStage)
+		public StateStage(AllData alldata)
 		{
 			data = alldata;
-			tStage = theStage;
-			if (tStage == 0)
+			Fx = -1;
+			Initial(data);
+		}
+		public void Initial(AllData alldata)
+		{
+			theSchedule_t = new StateSchedule[alldata.General.TimePriods];
+			for (int t = 0; t < alldata.General.TimePriods; t++)
 			{
-				isRoot = true;
+
+				theSchedule_t[t] = new StateSchedule();
+			}
+			activeDisc = new bool[alldata.General.Disciplines];
+		}
+		public StateStage(StateStage stateInput, StateStage xInput, int theI, AllData alldata, int theStage, bool isRoot)
+		{
+			
+			data = alldata;
+			tStage = theStage;
+			Initial(data);
+			activeDisc = new bool[alldata.General.Disciplines];
+			if (isRoot)
+			{
+				this.isRoot = true;
 			}
 			
 			if (xInput.x_wait)
@@ -87,12 +124,20 @@ namespace NestedDynamicProgrammingAlgorithm
 				}
 				
 			}
-
-			setNextStates(stateInput, theI);
+			possibleStates = new ArrayList();
+			if (x_wait)
+			{
+				possibleStates.Add(this);
+			}
+			else
+			{
+				setNextStates(stateInput, theI);
+			}
+			
 		}
 		public void setNextStates(StateStage stateInput, int theI)
 		{
-			possibleStates = new ArrayList();
+			
 			x_K = 0;
 			x_K_g = new int[data.General.DisciplineGr];
 			for (int g = 0; g < data.General.DisciplineGr; g++)
@@ -109,16 +154,16 @@ namespace NestedDynamicProgrammingAlgorithm
 				}
 			}
 
-			theSchedule_t = new int[data.General.TimePriods];
+			theSchedule_t = new StateSchedule[data.General.TimePriods];
 			for (int t = 0; t < data.General.TimePriods; t++)
 			{
 				if (isRoot)
 				{
-					theSchedule_t[t] = -1;
+					theSchedule_t[t] = new StateSchedule();
 				}
 				else
 				{
-					theSchedule_t[t] = stateInput.theSchedule_t[t];
+					theSchedule_t[t] = new StateSchedule(stateInput.theSchedule_t[t]);
 				}
 			}
 			activeDisc = new bool[data.General.Disciplines];
@@ -131,6 +176,10 @@ namespace NestedDynamicProgrammingAlgorithm
 				else
 				{
 					activeDisc[d] = stateInput.activeDisc[d];
+				}
+				if (d == x_Disc)
+				{
+					activeDisc[d] = true;
 				}
 				
 			}
@@ -147,14 +196,14 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						for (int t = tStage; t < tStage+ data.Discipline[x_Disc].Duration_p[data.Intern[theI].ProgramID]; t++)
 						{
-							theSchedule_t[tStage] = x_Disc;
+							theSchedule_t[t] = new StateSchedule(x_Hosp,x_Disc);
 						}
 						// insert at right place 
 						int counter = 0;
 						StateStage tmp = copyState(this, g);
 						foreach (StateStage item in possibleStates)
 						{
-							if (tmp.Fx > item.Fx )
+							if (tmp.Fx > item.Fx)
 							{
 								break;
 							}
@@ -173,7 +222,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		// it is private function
 		StateStage copyState(StateStage copyable, int theG)
 		{
-			StateStage duplicated = new StateStage();
+			StateStage duplicated = new StateStage(data);
 			duplicated.Fx = copyable.Fx;
 			duplicated.xStar = copyable.xStar ;
 			duplicated.x_wait = copyable.x_wait;
@@ -196,10 +245,10 @@ namespace NestedDynamicProgrammingAlgorithm
 				duplicated.activeDisc[d] = copyable.activeDisc[d];
 			}
 			duplicated.tStage = copyable.tStage;
-			duplicated.theSchedule_t = new int[data.General.TimePriods];
+			duplicated.theSchedule_t = new StateSchedule[data.General.TimePriods];
 			for (int t = 0; t < data.General.TimePriods; t++)
 			{
-				duplicated.theSchedule_t[t] = copyable.theSchedule_t[t];
+				duplicated.theSchedule_t[t] =new StateSchedule( copyable.theSchedule_t[t]);
 				
 			}
 			return duplicated;

@@ -14,7 +14,7 @@ namespace MedicalTraineeScheduling
 
 			new NestedHungarianAlgorithm.NHA(new DataLayer.ReadInformation("","NHA","inst.txt").data);
 
-			
+			new NestedDynamicProgrammingAlgorithm.NDPA(new DataLayer.ReadInformation("", "NDPA", "inst.txt").data);
 		}
 	}
 }

@@ -160,12 +160,17 @@ namespace DataLayer
 				{
 					for (int t = 0; t < data.General.TimePriods; t++)
 					{
-						for (int h = 0; h < data.General.Hospitals; h++)
+						for (int h = 0; h < data.General.Hospitals + 1; h++)
 						{
-							if (Intern_itdh[i][t][d][h])
+							if (Intern_itdh[i][t][d][h] && h < data.General.Hospitals)
 							{
 								PrDisp_i[i] += data.Intern[i].Prf_d[d];
 								PrHosp_i[i] += data.Intern[i].Prf_h[h];
+								TrPrPrf[i] += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+							}
+							else if (Intern_itdh[i][t][d][h])
+							{
+								PrDisp_i[i] += data.Intern[i].Prf_d[d];
 								TrPrPrf[i] += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
 							}
 						}
@@ -189,7 +194,7 @@ namespace DataLayer
 						{
 							for (int d = 0; d < data.General.Disciplines; d++)
 							{
-								for (int h = 0; h < data.General.Hospitals; h++)
+								for (int h = 0; h < data.General.Hospitals + 1; h++)
 								{
 									if (Intern_itdh[i][t][d][h])
 									{
@@ -271,7 +276,7 @@ namespace DataLayer
 				{
 					for (int d = 0; d < data.General.Disciplines; d++)
 					{
-						for (int h = 0; h < data.General.Hospitals; h++)
+						for (int h = 0; h < data.General.Hospitals + 1; h++)
 						{
 							if (Intern_itdh[i][t][d][h])
 							{
