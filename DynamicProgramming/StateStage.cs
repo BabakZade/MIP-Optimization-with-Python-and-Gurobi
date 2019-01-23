@@ -29,6 +29,8 @@ namespace NestedDynamicProgrammingAlgorithm
 	}
 	public class StateStage
 	{
+		public bool flagResD;
+		public bool flagEmrD;
 		public double Fx;
 		public bool xStar;
 		public bool x_wait;
@@ -51,6 +53,8 @@ namespace NestedDynamicProgrammingAlgorithm
 		}
 		public void Initial(AllData alldata)
 		{
+			flagEmrD = false;
+			flagResD = false;
 			theSchedule_t = new StateSchedule[alldata.General.TimePriods];
 			for (int t = 0; t < alldata.General.TimePriods; t++)
 			{
@@ -121,8 +125,15 @@ namespace NestedDynamicProgrammingAlgorithm
 						Fx += data.Intern[theI].wieght_ch;
 
 					}
-				}
-				
+				}				
+			}
+			if (flagEmrD)
+			{
+				Fx -= (int)data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_EmrCap;
+			}
+			if (flagResD)
+			{
+				Fx -= (int)data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_ResCap;
 			}
 			possibleStates = new ArrayList();
 			if (x_wait)
@@ -228,6 +239,8 @@ namespace NestedDynamicProgrammingAlgorithm
 			duplicated.x_wait = copyable.x_wait;
 			duplicated.x_Disc = copyable.x_Disc;
 			duplicated.x_Hosp = copyable.x_Hosp;
+			duplicated.flagResD = copyable.flagResD;
+			duplicated.flagEmrD = copyable.flagEmrD;
 			duplicated.x_K_g = new int[data.General.DisciplineGr];
 			for (int g = 0; g < data.General.DisciplineGr; g++)
 			{

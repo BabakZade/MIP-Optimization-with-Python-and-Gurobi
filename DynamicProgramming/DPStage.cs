@@ -16,12 +16,17 @@ namespace NestedDynamicProgrammingAlgorithm
 		public ArrayList[] activeStatesValue;
 		public ArrayList FutureActiveState;
 		public int ActiveStatesCount;
-		public DPStage(ref StateStage finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime, bool isRoot)
+		public int[][][] MaxDem_twh;
+		public int[][][] MinDem_twh;
+		public int[][][] ResDem_twh;
+		public int[][][] EmrDem_twh;
+		public DPStage(ref StateStage finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, OptimalSolution incumbentSol)
 		{
 
 			data = alldata;
 			theIntern = theI;
 			stageTime = theTime;
+			Initial(alldata, incumbentSol);
 			FutureActiveState = new ArrayList();
 			if (!data.Intern[theI].Ave_t[theTime])
 			{
@@ -37,8 +42,72 @@ namespace NestedDynamicProgrammingAlgorithm
 				parentNode = parent;
 			}
 			DPStageProcedure(ref finalSchedule);
+			
 		}
-		public void Initial() { }
+
+		public void Initial(AllData alldata, OptimalSolution incumbentSol)
+		{
+			new ArrayInitializer().CreateArray(ref MaxDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals,0);
+			new ArrayInitializer().CreateArray(ref MinDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref ResDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref EmrDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals, 0);
+			for (int t = 0; t < data.General.TimePriods; t++)
+			{
+				for (int w = 0; w < data.General.HospitalWard; w++)
+				{
+					for (int h = 0; h < data.General.Hospitals; h++)
+					{
+						MaxDem_twh[t][w][h] = data.Hospital[h].HospitalMaxDem_tw[t][w];
+						MinDem_twh[t][w][h] = data.Hospital[h].HospitalMinDem_tw[t][w];
+						ResDem_twh[t][w][h] = data.Hospital[h].ReservedCap_tw[t][w];
+						EmrDem_twh[t][w][h] = data.Hospital[h].EmergencyCap_tw[t][w];
+					}
+				}
+			}
+
+			// use incumbent solution
+			bool improved = false;
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				if (i != theIntern)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						for (int h = 0; h < data.General.Hospitals; h++)
+						{
+							for (int t = 0; t < data.General.TimePriods; t++)
+							{
+								if (incumbentSol.Intern_itdh[i][t][d][h])
+								{
+									for (int w = 0; w < data.General.HospitalWard; w++)
+									{
+										if (data.Hospital[h].Hospital_dw[d][w])
+										{
+											if (MaxDem_twh[t][w][h]>0)
+											{
+												MaxDem_twh[t][w][h]--;
+												MinDem_twh[t][w][h]--;
+												improved = true;
+											}
+											else if(ResDem_twh[t][w][h] > 0)
+											{
+												ResDem_twh[t][w][h]--;
+											}
+											else if(EmrDem_twh[t][w][h] > 0)
+											{
+												EmrDem_twh[t][w][h]--;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
+
+		}
 		public void setStateStage(ref StateStage finalSchedule)
 		{
 			if (rootStage)
@@ -245,7 +314,68 @@ namespace NestedDynamicProgrammingAlgorithm
 					result = false;
 				}
 			}
+			//check demand
+			if (result)
+			{
+				result = false;
 
+				for (int w = 0; w < data.General.HospitalWard; w++)
+				{
+					if (data.Hospital[theH].Hospital_dw[theDisc][w])
+					{
+						if (MaxDem_twh[stageTime][w][theH] > 0)
+						{
+							result = true;
+							break;
+						}
+						else if(ResDem_twh[stageTime][w][theH] > 0)
+						{
+							result = true;
+							theState.flagResD = true;
+							break;
+						}
+						else if (EmrDem_twh[stageTime][w][theH] > 0)
+						{
+							result = true;
+							theState.flagEmrD = true;
+							break;
+						}
+					}
+				}
+				// check minimum
+				if (result)
+				{
+					bool goCheck = true;
+					// if we need someone in this discipline
+					for (int w = 0; w < data.General.HospitalWard; w++)
+					{
+						if (data.Hospital[theH].Hospital_dw[theDisc][w])
+						{
+							if (MinDem_twh[stageTime][w][theH] > 0)
+							{
+								goCheck = false;
+							}
+						}
+					}
+					// if this discipline does not have min demand check if we need this intern somewhere else 
+					for (int d = 0; d < data.General.Disciplines && result && goCheck; d++)
+					{
+						for (int h = 0; h < data.General.Hospitals && result; h++)
+						{
+							for (int w = 0; w < data.General.HospitalWard && result; w++)
+							{
+								if (theH!=h && theDisc!=d && data.Hospital[h].Hospital_dw[d][w])
+								{
+									if (MinDem_twh[stageTime][w][h]>0)
+									{
+										result = false;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			// cut ruls
 			// 1- total number of discipline in one hospital
 			if (result)

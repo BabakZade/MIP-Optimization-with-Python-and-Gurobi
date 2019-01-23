@@ -349,7 +349,7 @@ namespace NestedHungarianAlgorithm
 								int prHosp = parentNode.LastPosition_i[i].HIndex;
 								if (prHosp != ((PositionMap)MappingTable[j]).HIndex)
 								{
-									CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_ch * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+									CostMatrix_i_whDem[i][j] -= data.Intern[i].wieght_ch;
 								}
 							}
 							
@@ -783,7 +783,8 @@ namespace NestedHungarianAlgorithm
 							durAve = false;
 						}
 					}
-					if (durAve && !assigned && !requiresDis && MaxObj <= (data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d]))
+					if (durAve && !assigned && !requiresDis && 
+						MaxObj <= (data.Intern[theI].Prf_d[d] * data.Intern[theI].wieght_d + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d] * data.TrainingPr[data.Intern[theI].ProgramID].weight_p ))
 					{
 						MaxObj = data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d];
 						discInd = d;
@@ -793,7 +794,7 @@ namespace NestedHungarianAlgorithm
 						discInd = d;
 						break;
 					}
-					if (durAve && !assigned && !requiresDis && data.Discipline[d].requiredLater_p[data.Intern[theI].ProgramID]) // the skill of this discipline is important
+					if (durAve && !assigned && !requiresDis && data.Discipline[d].requiredLater_p[data.Intern[theI].ProgramID] ) // the skill of this discipline is important
 					{
 						discInd = d;
 						break;
@@ -860,6 +861,7 @@ namespace NestedHungarianAlgorithm
 			{
 				result = true;
 			}
+			
 			return result;
 		}
 

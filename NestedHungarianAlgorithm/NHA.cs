@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Text;
 using DataLayer;
+using NestedDynamicProgrammingAlgorithm;
 
 namespace NestedHungarianAlgorithm
 {
@@ -18,13 +19,14 @@ namespace NestedHungarianAlgorithm
 		public int Region;
 		HungarianNode Root;
 		public OptimalSolution nhaResult;
-		public int[][] InternHospital;
+		public int[][] InternHospital; // the total change in one hospital
 		public NHA(AllData data)
 		{
 			this.data = data;
 			Initialization();
-			TimelineBasedHungarianAlgorithm(ref InternHospital);
+			TimelineBasedHungarianAlgorithm();
 			setSolution();
+			new InternBasedLocalSearch(data,nhaResult);
 		}
 		public void Initialization()
 		{
@@ -47,7 +49,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void TimelineBasedHungarianAlgorithm(ref int[][] InternHospital)
+		public void TimelineBasedHungarianAlgorithm()
 		{
 			Root = new HungarianNode(0, data, new HungarianNode(),ref InternHospital);
 			ActiveList.Add(Root);
@@ -57,7 +59,7 @@ namespace NestedHungarianAlgorithm
 				ActiveList.Add(nestedHungrian);
 			}
 		}
-
+		
 		public void setSolution()
 		{
 			nhaResult = new OptimalSolution(data);
