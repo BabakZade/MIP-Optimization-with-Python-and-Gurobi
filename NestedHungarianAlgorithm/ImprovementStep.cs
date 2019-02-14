@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 using NestedDynamicProgrammingAlgorithm;
 using DataLayer;
@@ -17,11 +17,13 @@ namespace NestedHungarianAlgorithm
 		public int TrainingPr;
 		public int Wards;
 		public int Region;
-		public ImprovementStep(AllData alldata)
+		public ImprovementStep(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList)
 		{
 			data = alldata;
 			Initial();
-			new InternBasedLocalSearch(data, incumbentSol.nhaResult);
+			BucketLinsLocalSearch bucketLinsLocal= new BucketLinsLocalSearch(0.5, data, incumbentSol, HungarianActiveList);
+			new InternBasedLocalSearch(data, bucketLinsLocal.improvedSolution);
+			
 
 		}
 		public void Initial()

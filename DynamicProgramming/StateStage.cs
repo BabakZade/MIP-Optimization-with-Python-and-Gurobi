@@ -86,6 +86,9 @@ namespace NestedDynamicProgrammingAlgorithm
 				
 				if (!isRoot)
 				{
+					// if it haven't had discipline yet
+					isRoot = stateInput.isRoot;
+
 					x_Disc = stateInput.x_Disc;
 					x_Hosp = stateInput.x_Hosp;
 				}

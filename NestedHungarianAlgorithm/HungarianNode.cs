@@ -64,7 +64,7 @@ namespace NestedHungarianAlgorithm
 		public int Region;
 		public int DisciplineGr;
 		public int[][] discGrCounter_ig;
-
+		public int[][] Change_ih;
 		public void Initial()
 		{
 			Disciplins = data.General.Disciplines;
@@ -101,7 +101,25 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			
+
+			Change_ih = new int[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				Change_ih[i] = new int[Hospitals];
+				for (int h = 0; h < Hospitals; h++)
+				{
+					if (isRoot)
+					{
+						Change_ih[i][h] = data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp;
+					}
+					else
+					{
+						Change_ih[i][h] = parentNode.Change_ih[i][h];
+					}
+					
+				}
+			}
+
 			TotalAvailablePosition = 0;
 			ResidentSchedule_it = new PositionMap[Interns][];
 			for (int i = 0; i < Interns; i++)
@@ -281,7 +299,7 @@ namespace NestedHungarianAlgorithm
 			
 		}
 
-		public void setCostMatrix(ref int[][] InternHospital)
+		public void setCostMatrix(bool[][][][] MotivationList_itdh)
 		{
 			CostMatrix_i_whDem = new double[Interns][];
 			for (int i = 0; i < Interns; i++)
@@ -297,7 +315,7 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 			// just desire (discipline + hospital + training program + change) + wait + oversea
-			setDesireCost(ref InternHospital);
+			setDesireCost(MotivationList_itdh);
 			// if intern is not available 
 			setAvailibilityCost();
 			// if interns can not
@@ -312,7 +330,7 @@ namespace NestedHungarianAlgorithm
 			setSkillbasedCost();
 		}
 
-		public void setDesireCost(ref int[][] InternHospital)
+		public void setDesireCost(bool[][][][] MotivationList_itdh)
 		{
 			for (int i = 0; i < Interns; i++)
 			{
@@ -329,9 +347,10 @@ namespace NestedHungarianAlgorithm
 						}
 						else
 						{
-							if (InternHospital[i][((PositionMap)MappingTable[j]).HIndex] > 0)
+							if (Change_ih[i][((PositionMap)MappingTable[j]).HIndex] > 0)
 							{
-								// hospital prf
+								// if the person can be assigned to this hospital
+								// it is based on total changes
 								CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
 							}
 							else
@@ -343,6 +362,13 @@ namespace NestedHungarianAlgorithm
 							CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
 							// Training Program prf
 							CostMatrix_i_whDem[i][j] -= (double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+
+							// motivationList
+							if (MotivationList_itdh[i][TimeID][discIn][((PositionMap)MappingTable[j]).HIndex])
+							{
+								CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
+							}
+							
 							//Change
 							if (!isRoot)
 							{
@@ -394,8 +420,7 @@ namespace NestedHungarianAlgorithm
 					if (!data.Intern[i].Ave_t[TimeID])
 					{
 						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
-					}
-					// if intern is engaged with other disciplines
+					} // if intern is engaged with other disciplines
 					else if (!isRoot && parentNode.TimeLine_it[i][TimeID] > 0)
 					{
 						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
@@ -512,7 +537,7 @@ namespace NestedHungarianAlgorithm
 
 		public HungarianNode() { }
 
-		public HungarianNode(int startTime, AllData allData, HungarianNode parent, ref int[][] InternHospital)
+		public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh)
 		{
 			TimeID = startTime;
 			parentNode = parent;
@@ -522,9 +547,9 @@ namespace NestedHungarianAlgorithm
 			}
 			data = allData;
 			Initial();
-			setCostMatrix(ref InternHospital);
+			setCostMatrix(MotivationList_itdh);
 			setBestSchedule();
-			updateLastPos(ref InternHospital);
+			updateLastPos();
 			updateDemand();
 			updateTimeLine();
 			
@@ -608,7 +633,7 @@ namespace NestedHungarianAlgorithm
 		/// It sets the last position of the interns
 		/// It also changes the ward to discipline
 		/// </summary>
-		public void updateLastPos(ref int[][] InternHospital)
+		public void updateLastPos()
 		{
 			new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals+1, false);
 			for (int i = 0; i < Interns; i++)
@@ -629,7 +654,7 @@ namespace NestedHungarianAlgorithm
 					// Hospital changed
 					LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
 					LastPosition_i[i].dIndex = discIn;
-					InternHospital[i][((PositionMap)MappingTable[Index]).HIndex]--;
+					Change_ih[i][((PositionMap)MappingTable[Index]).HIndex]--;
 					// we need to assign intern to the discipline not to ward
 					Schedule_idh[i][discIn][((PositionMap)MappingTable[Index]).HIndex] = true;
 					for (int t = TimeID; t < TimeID + data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID]; t++)

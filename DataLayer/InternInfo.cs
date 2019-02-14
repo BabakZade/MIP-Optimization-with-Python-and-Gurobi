@@ -50,6 +50,7 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref DisciplineList_dg, Disciplines, DisciplineGr, false);
 			new ArrayInitializer().CreateArray(ref OverSea_dt, Disciplines, TimePeriods, false);
 			new ArrayInitializer().CreateArray(ref AllDes_dh,Disciplines, Hospitals, -1);
+			
 			wieght_d = 0;
 			wieght_h = 0;
 			wieght_w = 0;

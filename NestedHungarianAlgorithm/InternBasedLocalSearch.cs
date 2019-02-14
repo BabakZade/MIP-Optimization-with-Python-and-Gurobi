@@ -43,7 +43,7 @@ namespace NestedHungarianAlgorithm
 					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[InternDesMin_p[p]].ProgramID] - 1;
 				}
 			}
-			finalSol.WriteSolution(data.allPath.OutPutLocation, "NHAIntern");
+			finalSol.WriteSolution(data.allPath.OutPutLocation, "InternBasedImproved");
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{

@@ -17,16 +17,16 @@ namespace NestedHungarianAlgorithm
 		public int TrainingPr;
 		public int Wards;
 		public int Region;
+		public bool[][][][] motivationList_itdh;
 		HungarianNode Root;
 		public OptimalSolution nhaResult;
-		public int[][] InternHospital; // the total change in one hospital
 		public NHA(AllData data)
 		{
 			this.data = data;
 			Initialization();
 			TimelineBasedHungarianAlgorithm();
 			setSolution();
-			new InternBasedLocalSearch(data,nhaResult);
+			new ImprovementStep(data,nhaResult,ActiveList);
 		}
 		public void Initialization()
 		{
@@ -38,24 +38,16 @@ namespace NestedHungarianAlgorithm
 			Wards = data.General.HospitalWard;
 			Region = data.General.Region;
 			ActiveList = new ArrayList();
-			InternHospital = new int[Interns][];
-			for (int i = 0; i < Interns; i++)
-			{
-				InternHospital[i] = new int[Hospitals];
-				for (int h = 0; h < Hospitals; h++)
-				{
-					InternHospital[i][h] = data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp;
-				}
-			}
+			new ArrayInitializer().CreateArray(ref motivationList_itdh, Interns, Timepriods, Disciplins, Hospitals, false);
 		}
 
 		public void TimelineBasedHungarianAlgorithm()
 		{
-			Root = new HungarianNode(0, data, new HungarianNode(),ref InternHospital);
+			Root = new HungarianNode(0, data, new HungarianNode(),motivationList_itdh);
 			ActiveList.Add(Root);
 			for (int t = 1; t < Timepriods; t++)
 			{
-				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)ActiveList[t-1], ref InternHospital);
+				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)ActiveList[t-1],motivationList_itdh);
 				ActiveList.Add(nestedHungrian);
 			}
 		}
