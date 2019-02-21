@@ -46,11 +46,13 @@ namespace NestedHungarianAlgorithm
 		public OptimalSolution improvedSolution;
 		public bool[][][][] bucketArray_itdh;
 		public int theTimeOfImprove;
+		public bool[][] NotRequiredSkill_id;
 		public BucketLinsLocalSearch(double neighbourhoodSize, AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList)
 		{
 			data = alldata;
 			Initial(incumbentSol);
-			InitialBucket(neighbourhoodSize, incumbentSol);
+			InitialBucketChange(neighbourhoodSize, incumbentSol);
+			InitialBucketSkill(incumbentSol);
 			ImproveTheSchedule(HungarianActiveList);
 			setSolution(HungarianActiveList);
 		}
@@ -66,8 +68,9 @@ namespace NestedHungarianAlgorithm
 			Region = data.General.Region;
 			theTimeOfImprove = Timepriods;
 			new ArrayInitializer().CreateArray(ref bucketArray_itdh, Interns, Timepriods, Disciplins, Hospitals, false);
+			new ArrayInitializer().CreateArray(ref NotRequiredSkill_id, Interns, Disciplins, false);
 		}
-		public void InitialBucket(double neighbourhoodSize, OptimalSolution incumbentSol)
+		public void InitialBucketChange(double neighbourhoodSize, OptimalSolution incumbentSol)
 		{
 			bucketlist = new ArrayList();
 			int AssignmentCounter = 0;
@@ -129,6 +132,50 @@ namespace NestedHungarianAlgorithm
 							}
 						}
 					}
+				}
+
+			}
+
+		}
+		public void InitialBucketSkill(OptimalSolution incumbentSol)
+		{
+			for (int i = 0; i < Interns; i++)
+			{
+				
+				for (int t = 0; t < Timepriods; t++)
+				{
+					for (int d = 0; d < Disciplins ; d++)
+					{
+						for (int h = 0; h < Hospitals ; h++)
+						{
+							if (incumbentSol.Intern_itdh[i][t][d][h] && data.Discipline[d].requiredLater_p[data.Intern[i].ProgramID])
+							{
+								bool redundantSkill = true;
+								for (int tt = t; tt < Timepriods && redundantSkill ; tt++)
+								{
+									for (int dd = 0; dd < Disciplins && redundantSkill; dd++)
+									{
+										for (int hh = 0; hh < Hospitals && redundantSkill; hh++)
+										{
+											if (incumbentSol.Intern_itdh[i][tt][dd][hh] && data.Discipline[dd].Skill4D_dp[d][data.Intern[i].ProgramID])
+											{
+												redundantSkill = false;
+											}
+										}
+									}
+								}
+								if (redundantSkill)
+								{
+									NotRequiredSkill_id[i][d] = true;
+									if (theTimeOfImprove > t)
+									{
+										theTimeOfImprove = t;
+									}
+								}
+							}
+						}
+					}
+
 				}
 
 			}
@@ -199,18 +246,18 @@ namespace NestedHungarianAlgorithm
 
 		public void ImproveTheSchedule(ArrayList HungarianActiveList)
 		{
+
+			HungarianActiveList.RemoveRange(theTimeOfImprove, HungarianActiveList.Count - theTimeOfImprove);
 			if (theTimeOfImprove == 0)
 			{
-				return;
+				theTimeOfImprove = 1;
+				HungarianNode Root = new HungarianNode(0, data, new HungarianNode(), bucketArray_itdh, NotRequiredSkill_id);
+				HungarianActiveList.Add(Root);
 			}
-			else
-			{
-
-				HungarianActiveList.RemoveRange(theTimeOfImprove, HungarianActiveList.Count - theTimeOfImprove);
-			}
+			
 			for (int t = theTimeOfImprove; t < Timepriods; t++)
 			{
-				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1],bucketArray_itdh);
+				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1],bucketArray_itdh, NotRequiredSkill_id);
 				HungarianActiveList.Add(nestedHungrian);
 			}
 		}

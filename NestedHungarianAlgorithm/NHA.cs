@@ -18,6 +18,7 @@ namespace NestedHungarianAlgorithm
 		public int Wards;
 		public int Region;
 		public bool[][][][] motivationList_itdh;
+		public bool[][] NotRequiredSkill_id;
 		HungarianNode Root;
 		public OptimalSolution nhaResult;
 		public NHA(AllData data)
@@ -39,15 +40,16 @@ namespace NestedHungarianAlgorithm
 			Region = data.General.Region;
 			ActiveList = new ArrayList();
 			new ArrayInitializer().CreateArray(ref motivationList_itdh, Interns, Timepriods, Disciplins, Hospitals, false);
+			new ArrayInitializer().CreateArray(ref NotRequiredSkill_id, Interns, Disciplins, false);
 		}
 
 		public void TimelineBasedHungarianAlgorithm()
 		{
-			Root = new HungarianNode(0, data, new HungarianNode(),motivationList_itdh);
+			Root = new HungarianNode(0, data, new HungarianNode(),motivationList_itdh, NotRequiredSkill_id);
 			ActiveList.Add(Root);
 			for (int t = 1; t < Timepriods; t++)
 			{
-				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)ActiveList[t-1],motivationList_itdh);
+				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)ActiveList[t-1],motivationList_itdh,NotRequiredSkill_id);
 				ActiveList.Add(nestedHungrian);
 			}
 		}

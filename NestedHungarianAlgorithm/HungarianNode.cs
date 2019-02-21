@@ -299,7 +299,7 @@ namespace NestedHungarianAlgorithm
 			
 		}
 
-		public void setCostMatrix(bool[][][][] MotivationList_itdh)
+		public void setCostMatrix(bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
 		{
 			CostMatrix_i_whDem = new double[Interns][];
 			for (int i = 0; i < Interns; i++)
@@ -327,7 +327,7 @@ namespace NestedHungarianAlgorithm
 			// set motivation to get oversea
 			setOverseaReq();
 			// set motivation for need skill in the future
-			setSkillbasedCost();
+			setSkillbasedCost(NotRequiredSkill_id);
 		}
 
 		public void setDesireCost(bool[][][][] MotivationList_itdh)
@@ -512,7 +512,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void setSkillbasedCost()
+		public void setSkillbasedCost(bool[][] NotRequiredSkill_id)
 		{
 			for (int i = 0; i < Interns; i++)
 			{
@@ -525,7 +525,7 @@ namespace NestedHungarianAlgorithm
 						// if the intern is already assigned to this discipline
 						if (discIn >= 0)
 						{
-							if (data.Discipline[discIn].requiredLater_p[data.Intern[i].ProgramID])
+							if (data.Discipline[discIn].requiredLater_p[data.Intern[i].ProgramID] && !NotRequiredSkill_id[i][discIn])
 							{
 								CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
 							}
@@ -537,7 +537,7 @@ namespace NestedHungarianAlgorithm
 
 		public HungarianNode() { }
 
-		public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh)
+		public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
 		{
 			TimeID = startTime;
 			parentNode = parent;
@@ -547,7 +547,7 @@ namespace NestedHungarianAlgorithm
 			}
 			data = allData;
 			Initial();
-			setCostMatrix(MotivationList_itdh);
+			setCostMatrix(MotivationList_itdh, NotRequiredSkill_id);
 			setBestSchedule();
 			updateLastPos();
 			updateDemand();
