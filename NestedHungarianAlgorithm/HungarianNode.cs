@@ -706,8 +706,7 @@ namespace NestedHungarianAlgorithm
 
 		public int get_DisciplineFromWard(int theI, int theW, int theH)
 		{
-			int result = -1;
-			
+			int result = -1;			
 			int MaxObj = -1;
 			int discInd = -1;
 			for (int d = 0; d < Disciplins ; d++)
