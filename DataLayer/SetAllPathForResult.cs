@@ -9,26 +9,38 @@ namespace DataLayer
 		public string OutPutLocation;
 		public string InstanceLocation;
 		public string ExprimentLocation;
-		
+		public string InsGroupLocation;
 		public string CurrentDir;
-		public SetAllPathForResult(string ExprimentName,string InsName)
+		public SetAllPathForResult(string Expriment, string Methodology, string InsGroupName)
 		{
 			
-			CurrentDir = System.IO.Directory.GetCurrentDirectory();
-			ExprimentLocation = CurrentDir + "\\" + ExprimentName + "\\";
-			if (!Directory.Exists(ExprimentLocation))
+			CurrentDir = System.IO.Directory.GetCurrentDirectory() + "\\" + Expriment + "\\";
+			if (Methodology !="")
 			{
-				Directory.CreateDirectory(ExprimentLocation);
+				ExprimentLocation = CurrentDir + "\\" + Methodology + "\\";
+				if (!Directory.Exists(ExprimentLocation))
+				{
+					Directory.CreateDirectory(ExprimentLocation);
+				}
+				OutPutLocation = ExprimentLocation + "Result\\";
+				if (!Directory.Exists(OutPutLocation))
+				{
+					Directory.CreateDirectory(OutPutLocation);
+				}
 			}
-			OutPutLocation = ExprimentLocation + "Result\\";
-			if (!Directory.Exists(OutPutLocation))
-			{
-				Directory.CreateDirectory(OutPutLocation);
-			}
-			InstanceLocation = ExprimentLocation + "\\Instance\\";
+			
+			InstanceLocation = CurrentDir + "\\Instance\\";
 			if (!Directory.Exists(InstanceLocation))
 			{
 				Directory.CreateDirectory(InstanceLocation);
+			}
+			if (InsGroupName!="")
+			{
+				InsGroupLocation = CurrentDir + "\\Instance\\"+InsGroupName + "\\";
+				if (!Directory.Exists(InsGroupLocation))
+				{
+					Directory.CreateDirectory(InsGroupLocation);
+				}
 			}
 			
 

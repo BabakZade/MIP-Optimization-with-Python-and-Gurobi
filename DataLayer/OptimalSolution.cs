@@ -113,19 +113,20 @@ namespace DataLayer
 											{
 												if (data.Intern[i].OverSea_dt[d][t])
 												{
-													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
 												}
 												else
 												{
 													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
-												}
-												for (int r = 0; r < data.General.Region; r++)
-												{
-													if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
+													for (int r = 0; r < data.General.Region; r++)
 													{
-														NotUsesAcc[r][t]++;
+														if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
+														{
+															NotUsesAcc[r][t]++;
+														}
 													}
 												}
+												
 											}
 										}
 									}

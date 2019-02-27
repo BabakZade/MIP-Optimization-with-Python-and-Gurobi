@@ -15,9 +15,10 @@ namespace DataLayer
 		public TrainingProgramInfo[] TrainingPr;
 		public AlgorithmSettings AlgSettings;
 		public SetAllPathForResult allPath;
-		public AllData(string ExprimentName, string InsName)
+		public AllData() { }
+		public AllData(string Expriment, string Methodology, string InsGroup)
 		{
-			allPath = new SetAllPathForResult(ExprimentName, InsName);
+			allPath = new SetAllPathForResult(Expriment, Methodology, InsGroup);
 		}
 	}
 }

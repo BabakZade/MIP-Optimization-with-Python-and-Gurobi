@@ -61,7 +61,7 @@ namespace GeneralMIPAlgorithm
 			SetObjective();
 			CreateModel();
 			setDemandConstraint();
-			SetSol();
+			//SetSol();
 			solve_MIPmodel(Path, InsName);
 		}
 		public void SetSol()
@@ -1183,7 +1183,7 @@ namespace GeneralMIPAlgorithm
 			MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
 			MIPModel.SetParam(Cplex.IntParam.Threads, 3);
 			MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.MIPTime);
-			MIPModel.SetParam(Cplex.DoubleParam.TiLim, 400);
+			//MIPModel.SetParam(Cplex.DoubleParam.TiLim, 400);
 			MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
 			try
 			{

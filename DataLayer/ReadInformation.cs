@@ -9,17 +9,17 @@ namespace DataLayer
 	public class ReadInformation
 	{
 		public AllData data;
-		public ReadInformation(string path, string ExprimentName, string InsName)
+		public ReadInformation(string path, string ExprimentName, string Methodology, string InsName)
 		{
-			ReadInstances(path, ExprimentName, InsName);
+			ReadInstances(path, ExprimentName,Methodology, InsName);
 			NormalizeData();
 		}
 		/// <summary>
 		/// this function creates the instances and writes it in the given location
 		/// </summary>
-		public void ReadInstances(string path, string ExprimentName, string InsName)
+		public void ReadInstances(string path, string ExprimentName, string Methodology, string InsName)
 		{
-			data = new AllData(ExprimentName, InsName);
+			data = new AllData(ExprimentName,Methodology,"");
 			StreamReader tw = new StreamReader(path+InsName);
 			string line = tw.ReadLine();
 

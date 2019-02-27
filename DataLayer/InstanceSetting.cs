@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 
@@ -7,6 +7,7 @@ namespace DataLayer
 {
 	public class InstanceSetting
 	{
+		public ArrayList AllinstanceSettings;
 		// ratio of ward to discipline
 		public double R_wd;
 
@@ -44,23 +45,44 @@ namespace DataLayer
 		// res demand
 		public int ResDem;
 
-		// ratio of mutual discipline
+		// ratio of mutual discipline in training program
 		public double R_muDp;
-		
+
+		// ratio of mutual discipline in discipline groups
+		public double R_muDg;
+
 		// preference max value 
 		public int PrfMaxValue;
 
 		// Coefficient Max value 
 		public int CoefficientMaxValue;
 
-		// isprespective
+		// is prespective
 		public double Prespective;
+
+		// oversea hospital
+		public double overseaHosp;
+
+		// fulfilled %
+		public double fulfilled;
+
+		// total Region
+		public int TRegion;
+
+		// total training Program
+		public int TTrainingP;
+
+		// total Groups
+		public int TDGroup;
+
+		// total TimePriod
+		public int TTime;
 
 		public InstanceSetting(double R_wd, double R_gk, double R_wh, 
 							   double R_Trel, double R_hi, int TotalIntern, 
 							   int TotalDiscipline, double R_dMin, int MinDem, int MaxDem,
-							   int EmrDem, int ResDem, double R_muDp, int PrfMaxValue, int CoefficientMaxValue,
-							   double Prespective)
+							   int EmrDem, int ResDem, double R_muDp, double R_muDg, int PrfMaxValue, int CoefficientMaxValue,
+							   double Prespective, double overseaHosp, double fulfilled, int TRegion, int TTrainingP, int TDGroup, int TTime)
 		{
 			this.R_wd = R_wd;
 			this.R_gk = R_gk;
@@ -75,11 +97,164 @@ namespace DataLayer
 			this.EmrDem = EmrDem;
 			this.ResDem = ResDem;
 			this.R_muDp = R_muDp;
+			this.R_muDg = R_muDg;
 			this.PrfMaxValue = PrfMaxValue;
 			this.CoefficientMaxValue = CoefficientMaxValue;
 			this.Prespective = Prespective;
+			this.overseaHosp = overseaHosp;
+			this.fulfilled = fulfilled;
+			this.TRegion = TRegion;
+			this.TTrainingP = TTrainingP;
+			this.TDGroup = TDGroup;
+			this.TTime = TTime;
+		}
+		public InstanceSetting() { setInstanceSetting(); }
+		public void setInstanceSetting()
+		{
+			// ratio of ward to discipline
+			AllinstanceSettings = new ArrayList();
+			double[] R_wd = new double[3] { 1, 0.75, 0.5 };
+
+			// ratio of discipline group size to attended course from that group
+			double[] R_gk = new double[3] { 1, 0.75, 0.5 };
+
+			// ratio of ward in hospital
+			double[] R_wh = new double[3] { 1, 0.75, 0.5 };
+
+			// ratio of required skills between total relationship
+			double[] R_Trel = new double[2] { 0, 0.1 };
+
+			// ratio of hospital to intern
+			double[] R_hi = new double[2] { 2, 4 };
+
+			// total number of intern
+			int[] Totalintern = new int[2] { 20, 40 };
+
+			// total number of discipline 
+			int[] TotalDiscipline = new int[2] { 12, 24 };
+
+			// min Demand Rate
+			double[] R_dMin = new double[1] { 0.05 };
+
+			// min demand 
+			int[] MinDem = new int[1] { 1 };
+
+			// max demand
+			int[] MaxDem = new int[1] { 4 };
+
+			// emr demand
+			int[] EmrDem = new int[1] { 1 };
+
+			// res demand
+			int[] ResDem = new int[1] { 1 };
+
+			// ratio of mutual discipline in training program
+			double[] R_muDp = new double[3] { 0, 0.1, 0.25 };
+
+			// ratio of mutual discipline in discipline groups
+			double[] R_muDg = new double[3] { 0, 0.1, 0.25 };
+
+			// preference max value 
+			int[] PrfMaxValue = new int[1] { 4 };
+
+			// Coefficient Max value 
+			int[] CoefficientMaxValue = new int[1] { 1 };
+
+			// is prespective
+			double[] Prespective = new double[1] { 0.95 };
+
+			// oversea hospital
+			double[] overseaHosp = new double[1] { 0.05 };
+
+			// fulfilled %
+			double[] fulfilled = new double[1] { 0.1 };
+
+			// total Region
+			int[] TRegion = new int[1] { 1 };
+
+			// total training Program
+			int[] TTrainingP = new int[1] { 2 };
+
+			// total Groups
+			int[] TDGroup = new int[1] { 2 };
+
+			// total TimePriod
+			int[] TTime = new int[1] { 24 };
+
+
+			for (int wd = 0; wd < R_wd.Length; wd++)
+			{
+				for (int gk = 0; gk < R_gk.Length; gk++)
+				{
+					for (int wh = 0; wh < R_wh.Length; wh++)
+					{
+						for (int trel = 0; trel < R_Trel.Length; trel++)
+						{
+							for (int hi = 0; hi < R_hi.Length; hi++)
+							{
+								for (int i = 0; i < Totalintern.Length; i++)
+								{
+									for (int d = 0; d < TotalDiscipline.Length; d++)
+									{
+										for (int rdmin = 0; rdmin < R_dMin.Length; rdmin++)
+										{
+											for (int mind = 0; mind < MinDem.Length; mind++)
+											{
+												for (int maxd = 0; maxd < MaxDem.Length; maxd++)
+												{
+													for (int emrd = 0; emrd < EmrDem.Length; emrd++)
+													{
+														for (int resd = 0; resd < ResDem.Length; resd++)
+														{
+															for (int mup = 0; mup < R_muDp.Length; mup++)
+															{
+																for (int mug = 0; mug < R_muDg.Length; mug++)
+																{
+																	for (int prfMax = 0; prfMax < PrfMaxValue.Length; prfMax++)
+																	{
+																		for (int coef = 0; coef < CoefficientMaxValue.Length; coef++)
+																		{
+																			for (int prs = 0; prs < Prespective.Length; prs++)
+																			{
+																				for (int overs = 0; overs < overseaHosp.Length; overs++)
+																				{
+																					for (int ff = 0; ff < fulfilled.Length; ff++)
+																					{
+																						for (int r = 0; r < TRegion.Length; r++)
+																						{
+																							for (int p = 0; p < TTrainingP.Length; p++)
+																							{
+																								for (int g = 0; g < TDGroup.Length; g++)
+																								{
+																									for (int t = 0; t < TTime.Length; t++)
+																									{
+																										AllinstanceSettings.Add(new InstanceSetting(R_wd[wd], R_gk[gk], R_wh[wh], R_Trel[trel], R_hi[hi], Totalintern[i], TotalDiscipline[d], R_dMin[rdmin], MinDem[mind],
+																											MaxDem[maxd], EmrDem[emrd], ResDem[resd], R_muDp[mup], R_muDg[mug], PrfMaxValue[prfMax], CoefficientMaxValue[coef], Prespective[prs],
+																											overseaHosp[overs], fulfilled[ff], TRegion[r], TTrainingP[p], TDGroup[g], TTime[t]));
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 
 		}
-
 	}
 }
