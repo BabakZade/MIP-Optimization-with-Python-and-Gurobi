@@ -11,8 +11,9 @@ namespace DataLayer
 		// ratio of ward to discipline
 		public double R_wd;
 
-		// ratio of discipline group size to attended course from that group
-		public double R_gk;
+		// ratio of discipline group size to attended course from each group
+		// this ratio is same in each training program
+		public double[] R_gk_g;
 
 		// ratio of ward in hospital
 		public double R_wh;
@@ -78,14 +79,31 @@ namespace DataLayer
 		// total TimePriod
 		public int TTime;
 
-		public InstanceSetting(double R_wd, double R_gk, double R_wh, 
+
+
+		// the percentage of discipline in each discipline groups
+		// 2 group, 2 traing program
+		// discipline distribution per training program (sum = 1)
+		// 0.6 => training program 1
+		// 0.4 => training program 2
+		public double[] DisciplineDistribution_p;
+		// discipline distribution per group (from all assigned discipline to the training program) 
+		// sum per row => 1
+		// 0.2 0.8 
+		// 0.5 0.5
+		// it is considired equal for all training program
+		public double[] DisciplineDistribution_g;
+	
+
+		public InstanceSetting(double R_wd, double[] R_gk_g, double R_wh, 
 							   double R_Trel, double R_hi, int TotalIntern, 
 							   int TotalDiscipline, double R_dMin, int MinDem, int MaxDem,
 							   int EmrDem, int ResDem, double R_muDp, double R_muDg, int PrfMaxValue, int CoefficientMaxValue,
-							   double Prespective, double overseaHosp, double fulfilled, int TRegion, int TTrainingP, int TDGroup, int TTime)
+							   double Prespective, double overseaHosp, double fulfilled, int TRegion, int TTrainingP, int TDGroup, int TTime,
+							   double[] DisciplineDistribution_p, double[] DisciplineDistribution_g)
 		{
 			this.R_wd = R_wd;
-			this.R_gk = R_gk;
+			this.R_gk_g = R_gk_g;
 			this.R_wh = R_wh;
 			this.R_Trel = R_Trel;
 			this.R_hi = R_hi;
@@ -107,6 +125,9 @@ namespace DataLayer
 			this.TTrainingP = TTrainingP;
 			this.TDGroup = TDGroup;
 			this.TTime = TTime;
+			this.DisciplineDistribution_p = DisciplineDistribution_p;
+			this.DisciplineDistribution_g = DisciplineDistribution_g;
+			
 		}
 		public InstanceSetting() { setInstanceSetting(); }
 		public void setInstanceSetting()
@@ -116,13 +137,13 @@ namespace DataLayer
 			double[] R_wd = new double[3] { 1, 0.75, 0.5 };
 
 			// ratio of discipline group size to attended course from that group
-			double[] R_gk = new double[3] { 1, 0.75, 0.5 };
+			double[][] R_gk_g = new double[3][]{ new double[2]{ 1, 0.2 }, new double[2]{ 0.8, 0.4 }, new double[2] { 0.6, 0.6 } };
 
 			// ratio of ward in hospital
 			double[] R_wh = new double[3] { 1, 0.75, 0.5 };
 
 			// ratio of required skills between total relationship
-			double[] R_Trel = new double[2] { 0, 0.1 };
+			double[] R_Trel = new double[3] { 0, 0.1, 0.25 };
 
 			// ratio of hospital to intern
 			double[] R_hi = new double[2] { 2, 4 };
@@ -164,7 +185,7 @@ namespace DataLayer
 			double[] Prespective = new double[1] { 0.95 };
 
 			// oversea hospital
-			double[] overseaHosp = new double[1] { 0.05 };
+			double[] overseaHosp = new double[3] { 0, 0.1, 0.25 };
 
 			// fulfilled %
 			double[] fulfilled = new double[1] { 0.1 };
@@ -181,10 +202,22 @@ namespace DataLayer
 			// total TimePriod
 			int[] TTime = new int[1] { 24 };
 
+			// the percentage of discipline in each discipline groups
+			// 2 group, 2 traing program
+			// discipline distribution per training program (sum = 1)
+			// 0.6 => training program 1
+			// 0.4 => training program 2
+			double[][] DisciplineDistribution_p = new double[3][] { new double[2] {0.3 , 0.7 }, new double[2] { 0.5 , 0.5 }, new double[2] { 0.7, 0.3 } };
+			// discipline distribution per group (from all assigned discipline to the training program) 
+			// sum per row => 1
+			// 0.2 0.8 
+			// 0.5 0.5
+			// it is considired equal for all training program
+		    double[][] DisciplineDistribution_g = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
 
 			for (int wd = 0; wd < R_wd.Length; wd++)
 			{
-				for (int gk = 0; gk < R_gk.Length; gk++)
+				for (int gk = 0; gk < R_gk_g.GetLength(0); gk++)
 				{
 					for (int wh = 0; wh < R_wh.Length; wh++)
 					{
@@ -228,9 +261,16 @@ namespace DataLayer
 																								{
 																									for (int t = 0; t < TTime.Length; t++)
 																									{
-																										AllinstanceSettings.Add(new InstanceSetting(R_wd[wd], R_gk[gk], R_wh[wh], R_Trel[trel], R_hi[hi], Totalintern[i], TotalDiscipline[d], R_dMin[rdmin], MinDem[mind],
-																											MaxDem[maxd], EmrDem[emrd], ResDem[resd], R_muDp[mup], R_muDg[mug], PrfMaxValue[prfMax], CoefficientMaxValue[coef], Prespective[prs],
-																											overseaHosp[overs], fulfilled[ff], TRegion[r], TTrainingP[p], TDGroup[g], TTime[t]));
+																										for (int ddistp = 0; ddistp < DisciplineDistribution_p.GetLength(0); ddistp++)
+																										{
+																											for (int ddistg = 0; ddistg < DisciplineDistribution_g.GetLength(0); ddistg++)
+																											{
+																												AllinstanceSettings.Add(new InstanceSetting(R_wd[wd], R_gk_g[gk], R_wh[wh], R_Trel[trel], R_hi[hi], Totalintern[i], TotalDiscipline[d], R_dMin[rdmin], MinDem[mind],
+																													MaxDem[maxd], EmrDem[emrd], ResDem[resd], R_muDp[mup], R_muDg[mug], PrfMaxValue[prfMax], CoefficientMaxValue[coef], Prespective[prs],
+																													overseaHosp[overs], fulfilled[ff], TRegion[r], TTrainingP[p], TDGroup[g], TTime[t], DisciplineDistribution_p[ddistp],DisciplineDistribution_g[ddistg]));
+																											}
+																										}
+																										
 																									}
 																								}
 																							}
