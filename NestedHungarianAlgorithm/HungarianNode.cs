@@ -50,7 +50,7 @@ namespace NestedHungarianAlgorithm
 		public int[][][] DemMin_wth;
 		public int[][][] Disc_iwh;
 		public int[][] AvAcc_rt;
-		public PositionMap[][] ResidentSchedule_it; // it shows the disciplne 
+		public PositionMap[][] ResidentSchedule_it; // it shows the discipline 
 		public ArrayList MappingTable;
 		public int TotalAvailablePosition;
 		public PositionMap[] LastPosition_i;
@@ -65,6 +65,7 @@ namespace NestedHungarianAlgorithm
 		public int DisciplineGr;
 		public int[][] discGrCounter_ig;
 		public int[][] Change_ih;
+		public bool[][] sHeOccupies_ir;
 		public void Initial()
 		{
 			Disciplins = data.General.Disciplines;
@@ -298,7 +299,6 @@ namespace NestedHungarianAlgorithm
 			}
 			
 		}
-
 		public void setCostMatrix(bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
 		{
 			CostMatrix_i_whDem = new double[Interns][];
@@ -472,6 +472,8 @@ namespace NestedHungarianAlgorithm
 
 		public void setUnaccupiedAccCost()
 		{
+			// set the sorting based algorithm
+			WhoWillOccupySingleRegionSortBased();
 			// this function considers if at the timeID the intern assigned to emergency or reserved capacity 
 			for (int i = 0; i < Interns; i++)
 			{
@@ -479,7 +481,7 @@ namespace NestedHungarianAlgorithm
 				{
 					for (int r = 0; r < Region; r++)
 					{
-						if (data.Intern[i].TransferredTo_r[r] && data.Hospital[((PositionMap)MappingTable[j]).HIndex].InToRegion_r[r] && AvAcc_rt[r][TimeID] > 0)
+						if (sHeOccupies_ir[i][r] && data.Intern[i].TransferredTo_r[r] && data.Hospital[((PositionMap)MappingTable[j]).HIndex].InToRegion_r[r] && AvAcc_rt[r][TimeID] > 0)
 						{
 							CostMatrix_i_whDem[i][j] -= data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_NotUsedAcc;
 						}
@@ -889,6 +891,104 @@ namespace NestedHungarianAlgorithm
 			return result;
 		}
 
+		public void WhoWillOccupySingleRegionSortBased()
+		{
+			new ArrayInitializer().CreateArray(ref sHeOccupies_ir, Interns, Region, false);
+			double[][] costForOccupying_ir = new double[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				costForOccupying_ir[i] = new double[Region];
+				for (int r = 0; r < Region; r++)
+				{
+					costForOccupying_ir[i][r] = 0;
+				}
+			}
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int r = 0; r < Region; r++)
+				{
+					for (int h = 0; h < Hospitals && data.Intern[i].TransferredTo_r[r]; h++)
+					{
+						double theObj = 0;
+						theObj += data.Intern[i].wieght_h * data.Intern[i].Prf_h[h];
+						double MaxDiscPrf = 0;
+						for (int w = 0; w < Wards; w++)
+						{
+							for (int d = 0; d < Disciplins && data.Hospital[h].InToRegion_r[r]; d++)
+							{
+								double tmpDiscPrf = 0;
+								if (data.Hospital[h].Hospital_dw[d][w])
+								{
+									tmpDiscPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
+									tmpDiscPrf += data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+								}
+								if (tmpDiscPrf > MaxDiscPrf)
+								{
+									MaxDiscPrf = tmpDiscPrf;
+								}
+							}
+						}
 
+						theObj += MaxDiscPrf;
+						if (costForOccupying_ir[i][r] < theObj)
+						{
+							costForOccupying_ir[i][r] = theObj;  
+						}
+					}
+					
+				}
+			}
+
+			int[][] indexInternInR_ri = new int[Region][];
+			for (int r = 0; r < Region; r++)
+			{
+				indexInternInR_ri[r] = new int[Interns];
+				for (int i = 0; i < Interns; i++)
+				{
+					indexInternInR_ri[r][i] = i;
+				}
+			}
+			for (int r = 0; r < Region; r++)
+			{
+				for (int i = 0; i < Interns; i++)
+				{
+					for (int j = i + 1; j < Interns; j++)
+					{
+						if (costForOccupying_ir[indexInternInR_ri[r][i]][r] < costForOccupying_ir[indexInternInR_ri[r][j]][r])
+						{
+							int tmp = indexInternInR_ri[r][i];
+							indexInternInR_ri[r][i] = indexInternInR_ri[r][j];
+							indexInternInR_ri[r][j] = tmp;
+						}
+					}
+				}
+			}
+			bool[] InternStatus = new bool[Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				InternStatus[i] = false;
+			}
+			for (int r = 0; r < Region; r++)
+			{
+				for (int cap = 0; cap < data.Region[r].AvaAcc_t[TimeID]; cap++)
+				{
+					for (int i = 0; i < Interns; i++)
+					{
+						// he is busy in the other hospital
+						if (!isRoot && parentNode.TimeLine_it[indexInternInR_ri[r][i]][TimeID] > 0)
+						{
+							continue;
+						}
+
+						// if he is not alreaady assigned to other region and available
+						if (!InternStatus[indexInternInR_ri[r][i]] && data.Intern[indexInternInR_ri[r][i]].Ave_t[TimeID] )
+						{
+							sHeOccupies_ir[indexInternInR_ri[r][i]][r] = true;
+							InternStatus[indexInternInR_ri[r][i]] = true;							
+						}
+					}					
+				}
+			}
+		}
 	}
 }

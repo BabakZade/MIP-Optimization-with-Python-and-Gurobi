@@ -43,22 +43,35 @@ namespace DataLayer
 			tmpGeneral.Interns = instancesetting.TotalIntern;
 			tmpGeneral.HospitalWard = (int)Math.Round(instancesetting.R_wd * tmpGeneral.Disciplines);
 			double R_Cap = instancesetting.R_wh * instancesetting.R_wd * tmpGeneral.Disciplines / tmpGeneral.Interns;
-			tmpGeneral.Hospitals = (int)Math.Round(instancesetting.R_hi / R_Cap);			
+			double totalInternship = 0;
+			tmpGeneral.Hospitals = 0;
+			for (int p = 0; p < instancesetting.TTrainingP; p++)
+			{
+				double Hosp = 0;
+				double internship = 0;
+				for (int g = 0; g < instancesetting.TDGroup; g++)
+				{
+					internship += instancesetting.TotalDiscipline * (instancesetting.DisciplineDistribution_p[p] + instancesetting.R_muDp)
+							   * instancesetting.DisciplineDistribution_g[g] * instancesetting.R_gk_g[g];
+				}
+				if (internship > totalInternship)
+				{
+					totalInternship = internship;
+				}
+				Hosp = Math.Ceiling(totalInternship / instancesetting.AllowedDiscInHospital_p[p]);
+				if (Hosp > tmpGeneral.Hospitals)
+				{
+					tmpGeneral.Hospitals = (int)Hosp;
+				}
+			}
+						
 			tmpGeneral.Region = instancesetting.TRegion;
 			tmpGeneral.TrainingPr = instancesetting.TTrainingP;
 			tmpGeneral.DisciplineGr = instancesetting.TDGroup;
 
 			//[groupName pr1 pr2 0 0]
-			double[,] prValue = new double[5, 5] {{ 0, 0 , 0 , 0 , 0},
-												  { 1, 1 , 0 , 0 , 0},
-												  { 2, 0.5 , 0.5 , 0 , 0},
-												  { 3, 0.2 , 0.3 , 0.5 , 0},
-												  { 4, 0.1 , 0.2 , 0.3 , 0.4}};
 			double[] prValueG = new double[tmpGeneral.DisciplineGr];
-			for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
-			{
-				prValueG[g] = prValue[tmpGeneral.DisciplineGr,g+1];
-			}
+			prValueG = instancesetting.DisciplineDistribution_g;
 			//time period 
 			// 12 => 4week
 			// 24 => 2week
@@ -90,7 +103,7 @@ namespace DataLayer
 				double cumolative = p;
 				for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
 				{	
-					init = (int)Math.Ceiling( cumolative * tmpGeneral.Disciplines / tmpGeneral.TrainingPr);
+					init = (int)Math.Ceiling( cumolative * tmpGeneral.Disciplines * instancesetting.DisciplineDistribution_p[p]);
 					cumolative += prValueG[g];
 					for (int d = init ;  d < Math.Ceiling( cumolative * tmpGeneral.Disciplines / tmpGeneral.TrainingPr); d++)
 					{
@@ -110,14 +123,7 @@ namespace DataLayer
 				tmpTrainingPr[p].CoeffObj_MINDem = random_.Next(1, instancesetting.CoefficientMaxValue);
 
 				tmpTrainingPr[p].DiscChangeInOneHosp = random_.Next(1, tmpGeneral.Disciplines);
-				if (p == 0)
-				{
-					tmpTrainingPr[p].DiscChangeInOneHosp = tmpGeneral.Disciplines;
-				}
-				else if(p == 1)
-				{
-					tmpTrainingPr[p].DiscChangeInOneHosp = 1;
-				}
+				tmpTrainingPr[p].DiscChangeInOneHosp = instancesetting.AllowedDiscInHospital_p[p];
 
 			}
 
@@ -1056,7 +1062,7 @@ namespace DataLayer
 					{
 						if (tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][d])
 						{
-							if (random.NextDouble() < 1 - instancesetting.R_gk)
+							if (random.NextDouble() < 1 - instancesetting.R_gk_g[g])
 							{
 								tmpinternInfos[i].DisciplineList_dg[d][g] = true;
 							}
