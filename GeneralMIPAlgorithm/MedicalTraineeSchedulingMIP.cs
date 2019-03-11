@@ -9,7 +9,9 @@ namespace GeneralMIPAlgorithm
 {
 	public class MedicalTraineeSchedulingMIP
 	{
+		public bool SolutionFound;
 		public AllData data;
+		public OptimalSolution mipOpt;
 
 		public Cplex MIPModel;
 		public IIntVar[][][][] y_idDh;
@@ -49,12 +51,12 @@ namespace GeneralMIPAlgorithm
 		public int Wards;
 		public int Regions;
 		public int DisciplineGr;
-		public MedicalTraineeSchedulingMIP(AllData InputData, string Path, string InsName)
+		public MedicalTraineeSchedulingMIP(AllData InputData, string InsName)
 		{
 			data = InputData;
-			MIPalgorithem(Path, InsName);
+			MIPalgorithem(InsName);
 		}
-		public void MIPalgorithem(string Path, string InsName)
+		public void MIPalgorithem( string InsName)
 		{
 			Initial();
 			InitialMIPVar();
@@ -62,7 +64,7 @@ namespace GeneralMIPAlgorithm
 			CreateModel();
 			setDemandConstraint();
 			//SetSol();
-			solve_MIPmodel(Path, InsName);
+			solve_MIPmodel(InsName);
 		}
 		public void SetSol()
 		{
@@ -1175,10 +1177,10 @@ namespace GeneralMIPAlgorithm
 			}
 		}
 
-		public void solve_MIPmodel(string Path, string InsName)
+		public void solve_MIPmodel(string InsName)
 		{
 			//*************set program
-			MIPModel.ExportModel(data.allPath.OutPutLocation + "MIPModel.lp");
+			MIPModel.ExportModel(data.allPath.InsGroupLocation + InsName + "LP.lp");
 			MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
 			MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
 			MIPModel.SetParam(Cplex.IntParam.Threads, 3);
@@ -1187,7 +1189,8 @@ namespace GeneralMIPAlgorithm
 			MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
 			try
 			{
-				OptimalSolution mipOpt = new OptimalSolution(data);
+				SolutionFound = true;
+				mipOpt = new OptimalSolution(data);
 				if (MIPModel.Solve())
 				{
 					for (int i = 0; i < Interns; i++)
@@ -1252,13 +1255,14 @@ namespace GeneralMIPAlgorithm
 					Console.WriteLine(MIPModel.GetValue(des_i[i]));
 				}
 				Console.WriteLine(MIPModel.ObjValue);
-				mipOpt.WriteSolution(data.allPath.OutPutLocation, InsName);
+				mipOpt.WriteSolution(data.allPath.InsGroupLocation, "MIP"+InsName);
 
 
 				MIPModel.End();
 			}
 			catch (ILOG.Concert.Exception e)
 			{
+				SolutionFound = false;
 				System.Console.WriteLine("Concert exception '" + e + "' caught");
 			}
 		}

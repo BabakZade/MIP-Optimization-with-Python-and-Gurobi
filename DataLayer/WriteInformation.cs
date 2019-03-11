@@ -15,6 +15,7 @@ namespace DataLayer
 		RegionInfo[] tmpRegionInfos;
 		AlgorithmSettings tmpalgorithmSettings;
 		InstanceSetting instancesetting;
+		public OptimalSolution FeasibleSolution;
 		bool[][][][] X_itdh;
 		int[][][] timelineHospMax_twh;
 		bool[][] timeline_it;
@@ -99,13 +100,26 @@ namespace DataLayer
 				int[] yy = new int[maxdisp];
 				yy = xx.OrderBy(x => random_.Next()).ToArray();
 				
-				int init = 0;
-				double cumolative = p;
+				double FirstDiscP = 0;
+				double FirstDiscG = 0;
+				double cumolativeP = 0;
+				double cumolativeG = 0;
+				double lastDiscP = 0;
+				double lastDiscG = 0;
+				for (int pp = 0; pp < p; pp++)
+				{
+					cumolativeP += instancesetting.DisciplineDistribution_p[pp];
+				}
+				FirstDiscP = (int)Math.Ceiling(cumolativeP * tmpGeneral.Disciplines);
+				cumolativeP += instancesetting.DisciplineDistribution_p[p];
+				lastDiscP = (int)Math.Ceiling(cumolativeP * tmpGeneral.Disciplines);
+				lastDiscG = FirstDiscP;
 				for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
-				{	
-					init = (int)Math.Ceiling( cumolative * tmpGeneral.Disciplines * instancesetting.DisciplineDistribution_p[p]);
-					cumolative += prValueG[g];
-					for (int d = init ;  d < Math.Ceiling( cumolative * tmpGeneral.Disciplines / tmpGeneral.TrainingPr); d++)
+				{
+					FirstDiscG = lastDiscG;
+					cumolativeG += prValueG[g];
+					lastDiscG = FirstDiscP + (lastDiscP - FirstDiscP) * cumolativeG;
+					for (int d = (int)FirstDiscG ;  d < Math.Ceiling(lastDiscG) && d < tmpGeneral.Disciplines; d++)
 					{
 						tmpTrainingPr[p].InvolvedDiscipline_gd[g][d] = true;
 						tmpTrainingPr[p].Prf_d[d] = random_.Next(1,instancesetting.PrfMaxValue);
@@ -243,7 +257,7 @@ namespace DataLayer
 				tmpdisciplineInfos[d].Name = d.ToString();
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
-					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)Math.Round((double)tmpGeneral.TimePriods / tmpGeneral.Disciplines) + 1);
+					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)Math.Ceiling((double)tmpGeneral.TimePriods / totalInternship) + 1);
 				}
 			}
 			for (int d = 0; d < tmpGeneral.Disciplines; d++)
@@ -897,11 +911,27 @@ namespace DataLayer
 			tw.WriteLine();
 
 
+			// write Instance setting 
+			tw.WriteLine("Ratio_wd: " + instancesetting.R_wd);
+			tw.WriteLine("Ratio_gk: " + String.Join(", ", instancesetting.R_gk_g.Select(p => p.ToString()).ToArray()));
+			tw.WriteLine("Ratio_wh: " + instancesetting.R_wh);
+			tw.WriteLine("R_sk: " + instancesetting.R_Trel );
+			tw.WriteLine("R_Ov: " + instancesetting.overseaHosp);
+			tw.WriteLine("Dist_p: " + String.Join(", ", instancesetting.DisciplineDistribution_p.Select(p => p.ToString()).ToArray()) );
+			tw.WriteLine("Dist_g: " + String.Join(", ", instancesetting.DisciplineDistribution_g.Select(p => p.ToString()).ToArray()));
+			tw.WriteLine("Ratio_muG: " + instancesetting.R_muDg); 
+			tw.WriteLine("Ratio_muP: " + instancesetting.R_muDp);
+			tw.WriteLine("I: " + tmpGeneral.Interns);
+			tw.WriteLine("H: " + tmpGeneral.Hospitals);
+			tw.WriteLine("D: " + tmpGeneral.Disciplines);
+
+
 			tw.Close();
 		}
 
 		public void feasibleSolution()
 		{
+			Random random = new Random();
 			timelineHospMax_twh = new int[tmpGeneral.TimePriods][][];
 			for (int t = 0; t < tmpGeneral.TimePriods; t++)
 			{
@@ -920,16 +950,19 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref discipline_id, tmpGeneral.Interns, tmpGeneral.Disciplines, false);
 			new ArrayInitializer().CreateArray(ref hospital_ih, tmpGeneral.Interns, tmpGeneral.Hospitals, 0);
 			new ArrayInitializer().CreateArray(ref X_itdh, tmpGeneral.Interns, tmpGeneral.TimePriods, tmpGeneral.Disciplines, tmpGeneral.Hospitals, false);
-			Random random = new Random();
+			
 			for (int i = 0; i < tmpGeneral.Interns; i++)
 			{
-				int t = 0;
-				int infinityLoop = 0;
-				for (int d = 0; d < tmpGeneral.Disciplines; d++)
+				int t = 0;				
+				for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
 				{
-					for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
+					for ( int d = 0; d < tmpGeneral.Disciplines; d++)
 					{
-						int total = 0;
+						if(random.NextDouble() > instancesetting.R_gk_g[g])
+						{
+							continue;
+						}
+						int infinityLoop = 0;
 						int disIndex = random.Next(0, tmpGeneral.Disciplines);
 						infinityLoop = 0;
 						while (!tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][disIndex] || discipline_id[i][disIndex])
@@ -1000,15 +1033,15 @@ namespace DataLayer
 									{
 										for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
 										{
-											if (tmpdisciplineInfos[d].Skill4D_dp[d][tmpinternInfos[i].ProgramID])
-											{												
+											if (tmpdisciplineInfos[disIndex].Skill4D_dp[disIndex][tmpinternInfos[i].ProgramID])
+											{
 												if (!discipline_id[i][dd])
 												{
 													theInternIsFree = false;
 												}
 											}
 										}
-										
+
 									}
 									if (theInternIsFree)
 									{
@@ -1028,8 +1061,8 @@ namespace DataLayer
 						}
 					}
 				}
-				
-			} 
+
+			}
 		}
 
 		public void setInternsList()
@@ -1146,9 +1179,9 @@ namespace DataLayer
 			allData.Intern = tmpinternInfos;
 			allData.Region = tmpRegionInfos;
 			allData.TrainingPr = tmpTrainingPr;
-			
-			OptimalSolution optimalSolution = new OptimalSolution(allData);
-			optimalSolution.copyRosters(X_itdh);
+
+			FeasibleSolution = new OptimalSolution(allData);
+			FeasibleSolution.copyRosters(X_itdh);
 			for (int i = 0; i < tmpGeneral.Hospitals; i++)
 			{
 				for (int d = 0; d < tmpGeneral.Disciplines; d++)
@@ -1161,8 +1194,8 @@ namespace DataLayer
 							{
 								if (X_itdh[i][t][d][h])
 								{
-									optimalSolution.Intern_itdh[i][t][d][h] = false;
-									optimalSolution.Intern_itdh[i][t][d][tmpGeneral.Hospitals] = true;
+									FeasibleSolution.Intern_itdh[i][t][d][h] = false;
+									FeasibleSolution.Intern_itdh[i][t][d][tmpGeneral.Hospitals] = true;
 								}
 							}
 						}
@@ -1170,7 +1203,7 @@ namespace DataLayer
 				}
 			}
 
-			optimalSolution.WriteSolution(location, name);
+			FeasibleSolution.WriteSolution(location, name);
 		}
 	}
 }

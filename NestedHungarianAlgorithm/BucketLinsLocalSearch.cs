@@ -47,14 +47,14 @@ namespace NestedHungarianAlgorithm
 		public bool[][][][] bucketArray_itdh;
 		public int theTimeOfImprove;
 		public bool[][] NotRequiredSkill_id;
-		public BucketLinsLocalSearch(double neighbourhoodSize, AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList)
+		public BucketLinsLocalSearch(double neighbourhoodSize, AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList, string Name)
 		{
 			data = alldata;
 			Initial(incumbentSol);
 			InitialBucketChange(neighbourhoodSize, incumbentSol);
 			InitialBucketSkill(incumbentSol);
 			ImproveTheSchedule(HungarianActiveList);
-			setSolution(HungarianActiveList);
+			setSolution(HungarianActiveList, Name);
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{
@@ -262,7 +262,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void setSolution(ArrayList HungarianActiveList)
+		public void setSolution(ArrayList HungarianActiveList, string Name)
 		{
 			improvedSolution = new OptimalSolution(data);
 			for (int i = 0; i < Interns; i++)
@@ -285,7 +285,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			improvedSolution.WriteSolution(data.allPath.OutPutLocation, "BucketListImproved");
+			improvedSolution.WriteSolution(data.allPath.OutPutLocation, "BucketListImproved" + Name);
 		}
 	}
 }

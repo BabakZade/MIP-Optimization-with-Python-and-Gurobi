@@ -3,6 +3,7 @@ using System.Collections;
 using System.Text;
 using DataLayer;
 using NestedDynamicProgrammingAlgorithm;
+using System.Diagnostics;
 
 namespace NestedHungarianAlgorithm
 {
@@ -17,17 +18,23 @@ namespace NestedHungarianAlgorithm
 		public int TrainingPr;
 		public int Wards;
 		public int Region;
+		public int TimeForNHA;
 		public bool[][][][] motivationList_itdh;
 		public bool[][] NotRequiredSkill_id;
 		HungarianNode Root;
 		public OptimalSolution nhaResult;
-		public NHA(AllData data)
+		public ImprovementStep improvementStep;
+		public NHA(AllData data, string Name)
 		{
 			this.data = data;
 			Initialization();
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
 			TimelineBasedHungarianAlgorithm();
-			setSolution();
-			new ImprovementStep(data,nhaResult,ActiveList);
+			stopwatch.Stop();
+			TimeForNHA = (int)stopwatch.ElapsedMilliseconds / 1000;
+			setSolution(Name);
+			improvementStep = new ImprovementStep(data, nhaResult, ActiveList, Name);
 		}
 		public void Initialization()
 		{
@@ -54,7 +61,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 		
-		public void setSolution()
+		public void setSolution(string Name)
 		{
 			nhaResult = new OptimalSolution(data);
 			for (int i = 0; i < Interns; i++)
@@ -77,7 +84,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			nhaResult.WriteSolution(data.allPath.OutPutLocation, "NHA");
+			nhaResult.WriteSolution(data.allPath.OutPutLocation, "NHA"+ Name);
 		}
 	}
 }

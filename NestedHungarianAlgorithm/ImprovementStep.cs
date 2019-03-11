@@ -3,6 +3,7 @@ using System.Collections;
 using System.Text;
 using NestedDynamicProgrammingAlgorithm;
 using DataLayer;
+using System.Diagnostics;
 namespace NestedHungarianAlgorithm
 {
 	public class ImprovementStep
@@ -17,13 +18,25 @@ namespace NestedHungarianAlgorithm
 		public int TrainingPr;
 		public int Wards;
 		public int Region;
-		public ImprovementStep(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList)
+		public int TimeForbucketListImp;
+		public int TimeForInternBaseImp;
+		public BucketLinsLocalSearch bucketLinsLocal;
+		public InternBasedLocalSearch internBasedLocalSearch;
+		public ImprovementStep(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList, string Name)
 		{
 			data = alldata;
 			Initial();
-			BucketLinsLocalSearch bucketLinsLocal= new BucketLinsLocalSearch(0.5, data, incumbentSol, HungarianActiveList);
-			new InternBasedLocalSearch(data, bucketLinsLocal.improvedSolution);
-			
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+			bucketLinsLocal = new BucketLinsLocalSearch(0.5, data, incumbentSol, HungarianActiveList,Name);
+			stopwatch.Stop();
+			TimeForbucketListImp = (int)stopwatch.ElapsedMilliseconds / 1000;
+			stopwatch.Reset();
+			stopwatch.Restart();
+			internBasedLocalSearch = new InternBasedLocalSearch(data, bucketLinsLocal.improvedSolution, Name);
+			stopwatch.Stop();
+			TimeForInternBaseImp = (int)stopwatch.ElapsedMilliseconds / 1000;
+
 
 		}
 		public void Initial()

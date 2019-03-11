@@ -17,14 +17,14 @@ namespace NestedHungarianAlgorithm
 		public int TrainingPr;
 		public int Wards;
 		public int Region;
-		OptimalSolution finalSol;
-		public InternBasedLocalSearch(AllData allData ,OptimalSolution incumbentSol)
+		public OptimalSolution finalSol;
+		public InternBasedLocalSearch(AllData allData ,OptimalSolution incumbentSol, string Name)
 		{
 			data = allData;
 			Initial(incumbentSol);
-			reScheduleIntern(incumbentSol);
+			reScheduleIntern(incumbentSol, Name);
 		}
-		public void reScheduleIntern(OptimalSolution incumbentSol)
+		public void reScheduleIntern(OptimalSolution incumbentSol, string Name)
 		{
 			finalSol = new OptimalSolution(data);
 			finalSol.copyRosters(incumbentSol.Intern_itdh);
@@ -43,7 +43,7 @@ namespace NestedHungarianAlgorithm
 					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[InternDesMin_p[p]].ProgramID] - 1;
 				}
 			}
-			finalSol.WriteSolution(data.allPath.OutPutLocation, "InternBasedImproved");
+			finalSol.WriteSolution(data.allPath.OutPutLocation, "InternBasedImproved" + Name);
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{
