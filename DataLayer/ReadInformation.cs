@@ -574,6 +574,15 @@ namespace DataLayer
 
 			data.AlgSettings.BigM = Convert.ToInt32(line.Substring(0, indexN));
 			data.AlgSettings.MotivationBM = data.AlgSettings.BigM / 1000;
+			line = line.Substring(indexN + 1);
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.AlgSettings.bucketBasedImpPercentage = Convert.ToDouble(line.Substring(0, indexN));
+			line = line.Substring(indexN + 1);
+			indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+			data.AlgSettings.internBasedImpPercentage = Convert.ToDouble(line.Substring(0, indexN));
+			
 			line = tw.ReadLine();
 
 		

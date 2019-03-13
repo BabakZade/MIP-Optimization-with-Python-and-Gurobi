@@ -9,7 +9,7 @@ namespace NestedHungarianAlgorithm
 	public class InternBasedLocalSearch
 	{
 		public AllData data;
-		public int[] InternDesMin_p;
+		public int InternDesMin;
 		public int Interns;
 		public int Disciplins;
 		public int Hospitals;
@@ -18,32 +18,46 @@ namespace NestedHungarianAlgorithm
 		public int Wards;
 		public int Region;
 		public OptimalSolution finalSol;
-		public InternBasedLocalSearch(AllData allData ,OptimalSolution incumbentSol, string Name)
+		public bool[] InternStatus;
+		public InternBasedLocalSearch(AllData allData, OptimalSolution incumbentSol, string Name)
 		{
 			data = allData;
 			Initial(incumbentSol);
-			reScheduleIntern(incumbentSol, Name);
+			reScheduleIntern(incumbentSol, data.AlgSettings.internBasedImpPercentage, Name);
 		}
-		public void reScheduleIntern(OptimalSolution incumbentSol, string Name)
+		public void reScheduleIntern(OptimalSolution incumbentSol, double ChangePercentage, string Name)
 		{
 			finalSol = new OptimalSolution(data);
+			OptimalSolution solI = new OptimalSolution(data);
 			finalSol.copyRosters(incumbentSol.Intern_itdh);
-			for (int p = 0; p < TrainingPr; p++)
-			{
-				DP neighbourhoodSol = new DP(data, InternDesMin_p[p], incumbentSol);
-				finalSol.CleanInternRoster(InternDesMin_p[p]);				
-
+			solI.copyRosters(incumbentSol.Intern_itdh);
+			solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
+			finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
+			for (int i = 0; i < Interns * ChangePercentage; i++)
+			{				
+				int theI = findCandidateForDP(solI);
+				if (theI < 0)
+				{
+					break;
+				}
+				DP neighbourhoodSol = new DP(data, theI, solI);
+				solI.CleanInternRoster(theI);
 				for (int t = 0; t < Timepriods; t++)
 				{
 					if (neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline < 0 || neighbourhoodSol.BestSol.theSchedule_t[t].theHospital < 0)
 					{
 						continue;
 					}
-					finalSol.Intern_itdh[InternDesMin_p[p]][t][neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline][neighbourhoodSol.BestSol.theSchedule_t[t].theHospital] = true;
-					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[InternDesMin_p[p]].ProgramID] - 1;
+					solI.Intern_itdh[theI][t][neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline][neighbourhoodSol.BestSol.theSchedule_t[t].theHospital] = true;
+					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theI].ProgramID] - 1;
 				}
+				finalSol.copyRosters(solI.Intern_itdh);
+				solI = new OptimalSolution(data);
+				solI.copyRosters(finalSol.Intern_itdh);
+				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + i + Name);
 			}
-			finalSol.WriteSolution(data.allPath.OutPutLocation, "InternBasedImproved" + Name);
+			finalSol.copyRosters(solI.Intern_itdh);
+			finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{
@@ -54,27 +68,35 @@ namespace NestedHungarianAlgorithm
 			Interns = data.General.Interns;
 			Wards = data.General.HospitalWard;
 			Region = data.General.Region;
-			
-			InternDesMin_p = new int[TrainingPr];
-			for (int p = 0; p < TrainingPr; p++)
+			InternStatus = new bool[Interns];
+			for (int i = 0; i < Interns; i++)
 			{
-				InternDesMin_p[p] = -1;
+				InternStatus[i] = false;
 			}
-			for (int p = 0; p < TrainingPr; p++)
+		}
+
+		public int findCandidateForDP(OptimalSolution incumbentSol)
+		{
+			int candidate = -1;
+			double MinObj = data.AlgSettings.BigM;
+
+			for (int i = 0; i < Interns; i++)
 			{
-				for (int i = 0; i < Interns; i++)
+				if (!InternStatus[i])
 				{
-					if (data.Intern[i].ProgramID == p && InternDesMin_p[p] < 0)
+					double tmpObj = incumbentSol.Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+					if (tmpObj < MinObj)
 					{
-						InternDesMin_p[p] = i;
-					}
-					if (data.Intern[i].ProgramID == p && InternDesMin_p[p] >= 0
-						&& incumbentSol.Des_i[i] < incumbentSol.Des_i[InternDesMin_p[p]])
-					{
-						InternDesMin_p[p] = i;
+						MinObj = tmpObj;
+						candidate = i;
 					}
 				}
 			}
+			if (candidate >= 0)
+			{
+				InternStatus[candidate] = true;
+			}
+			return candidate;
 		}
 	}
 }

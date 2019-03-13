@@ -7,6 +7,7 @@ namespace NestedDynamicProgrammingAlgorithm
 {
 	public class DPStage
 	{
+		public bool incombentExist;
 		public DPStage parentNode;
 		public AllData data;
 		public int theIntern;
@@ -20,13 +21,19 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][][] MinDem_twh;
 		public int[][][] ResDem_twh;
 		public int[][][] EmrDem_twh;
-		public DPStage(ref StateStage finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, OptimalSolution incumbentSol)
+		bool flagRes;
+		bool flagEmr;
+		public DPStage(ref StateStage finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, bool incombentExist)
 		{
-
-			data = alldata;
+			this.incombentExist = incombentExist;
+			this.MaxDem_twh = MaxDem_twh;
+			this.MinDem_twh = MinDem_twh;
+			this.ResDem_twh = ResDem_twh;
+			this.EmrDem_twh = EmrDem_twh;
+		    data = alldata;
 			theIntern = theI;
 			stageTime = theTime;
-			Initial(alldata, incumbentSol);
+			Initial(alldata);
 			FutureActiveState = new ArrayList();
 			if (!data.Intern[theI].Ave_t[theTime])
 			{
@@ -45,67 +52,9 @@ namespace NestedDynamicProgrammingAlgorithm
 			
 		}
 
-		public void Initial(AllData alldata, OptimalSolution incumbentSol)
+		public void Initial(AllData alldata)
 		{
-			new ArrayInitializer().CreateArray(ref MaxDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals,0);
-			new ArrayInitializer().CreateArray(ref MinDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals, 0);
-			new ArrayInitializer().CreateArray(ref ResDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals, 0);
-			new ArrayInitializer().CreateArray(ref EmrDem_twh, alldata.General.TimePriods, alldata.General.HospitalWard, alldata.General.Hospitals, 0);
-			for (int t = 0; t < data.General.TimePriods; t++)
-			{
-				for (int w = 0; w < data.General.HospitalWard; w++)
-				{
-					for (int h = 0; h < data.General.Hospitals; h++)
-					{
-						MaxDem_twh[t][w][h] = data.Hospital[h].HospitalMaxDem_tw[t][w];
-						MinDem_twh[t][w][h] = data.Hospital[h].HospitalMinDem_tw[t][w];
-						ResDem_twh[t][w][h] = data.Hospital[h].ReservedCap_tw[t][w];
-						EmrDem_twh[t][w][h] = data.Hospital[h].EmergencyCap_tw[t][w];
-					}
-				}
-			}
-
-			// use incumbent solution
-			bool improved = false;
-			for (int i = 0; i < data.General.Interns; i++)
-			{
-				if (i != theIntern)
-				{
-					for (int d = 0; d < data.General.Disciplines; d++)
-					{
-						for (int h = 0; h < data.General.Hospitals; h++)
-						{
-							for (int t = 0; t < data.General.TimePriods; t++)
-							{
-								if (incumbentSol.Intern_itdh[i][t][d][h])
-								{
-									for (int w = 0; w < data.General.HospitalWard; w++)
-									{
-										if (data.Hospital[h].Hospital_dw[d][w])
-										{
-											if (MaxDem_twh[t][w][h]>0)
-											{
-												MaxDem_twh[t][w][h]--;
-												MinDem_twh[t][w][h]--;
-												improved = true;
-											}
-											else if(ResDem_twh[t][w][h] > 0)
-											{
-												ResDem_twh[t][w][h]--;
-											}
-											else if(EmrDem_twh[t][w][h] > 0)
-											{
-												EmrDem_twh[t][w][h]--;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-			}
+			
 
 		}
 		public void setStateStage(ref StateStage finalSchedule)
@@ -117,7 +66,9 @@ namespace NestedDynamicProgrammingAlgorithm
 				activeStatesValue[0] = new ArrayList();
 				ActiveStatesCount = 1;
 				// add dummy state
-				activeStatesValue[0].Add(new StateStage(data));
+				StateStage tmpdummy = new StateStage(data);
+				activeStatesValue[0].Add(tmpdummy);
+				
 
 				// rest of the values
 				for (int d = 0; d < data.General.Disciplines; d++)
@@ -126,6 +77,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						for (int w = 0; w < data.General.HospitalWard; w++)
 						{
+							
 							if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
 								&& checkDiscipline(d, h, new StateStage(data) { }))
 							{
@@ -133,10 +85,24 @@ namespace NestedDynamicProgrammingAlgorithm
 								tmp.isRoot = true;
 								tmp.x_Hosp = h;
 								tmp.x_Disc = d;
+								tmp.flagEmrD = flagEmr;
+								tmp.flagResD = flagRes;
 								activeStatesValue[0].Add(tmp);
 							}
+
+							
 						}
 					}
+				}
+
+				// if no one added to fututre state add wait
+				if (activeStatesValue[0].Count == 1)
+				{
+					// wait 
+					StateStage tmpwait = new StateStage(data);
+					tmpwait.isRoot = true;
+					tmpwait.x_wait = true;
+					activeStatesValue[0].Add(tmpwait);
 				}
 			}
 			else
@@ -165,9 +131,10 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						counter++;
 						activeStatesValue[counter] = new ArrayList();
+						//first add itself 
 						activeStatesValue[counter].Add(parentNode.FutureActiveState[c]);
-						// rest of the values
-
+						
+						
 						for (int d = 0; d < data.General.Disciplines; d++)
 						{
 							if (!((StateStage)parentNode.FutureActiveState[c]).activeDisc[d])
@@ -183,11 +150,22 @@ namespace NestedDynamicProgrammingAlgorithm
 											tmp.isRoot = false;
 											tmp.x_Hosp = h;
 											tmp.x_Disc = d;
+
+											tmp.flagEmrD = flagEmr;
+											tmp.flagResD = flagRes;
 											activeStatesValue[counter].Add(tmp);
 										}
 									}
 								}
 							}
+						}
+						// if there was no future state add wait and intern is available
+						if (activeStatesValue[counter].Count == 1)
+						{
+							// the wait 
+							StateStage tmpwait = new StateStage(data);
+							tmpwait.x_wait = true;
+							activeStatesValue[counter].Add(tmpwait);
 						}
 					}
 					else
@@ -230,6 +208,8 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public bool checkDiscipline(int theDisc,int theH, StateStage theState)
 		{
+			flagEmr = false;
+			flagRes = false;
 			bool result = true;
 			// already assigned or the time is filled
 			if (theState.activeDisc[theDisc] || theState.theSchedule_t[stageTime].theDiscipline!=-1)
@@ -331,13 +311,13 @@ namespace NestedDynamicProgrammingAlgorithm
 						else if(ResDem_twh[stageTime][w][theH] > 0)
 						{
 							result = true;
-							theState.flagResD = true;
+							flagRes = true;
 							break;
 						}
 						else if (EmrDem_twh[stageTime][w][theH] > 0)
 						{
 							result = true;
-							theState.flagEmrD = true;
+							flagEmr = true;
 							break;
 						}
 					}
@@ -376,6 +356,16 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
+
+			// if there is no time to compelete the 
+			if (result)
+			{
+				if (theState.x_K > data.General.TimePriods - theState.tStage)
+				{
+					result = false;
+				}
+			}
+
 			// cut ruls
 			// 1- total number of discipline in one hospital
 			if (result)
@@ -403,22 +393,22 @@ namespace NestedDynamicProgrammingAlgorithm
 
 			// if it is here it means that he can attend to this hospital
 			// 2- same hospital next together (if it is possible)	
-			if (result)
+			if (result && !incombentExist)
 			{
 				result = differentDiscSameHospital(theDisc, theH, theState);
 			}
 
 			// if the consecutive disciplines happens to same hospital, they should follow chronological order 
 			// 3- same hospital and consecutive time, the discipline should be chronological
-			if (result)
+			if (result && !incombentExist)
 			{
 				result = chronologicalConsecutiveDiscSameHospital(theDisc, theH, theState);
 			}
 
-
 			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 
 			// 4- same hospital and consecutive time, the discipline should be chronological
-			if (result)
+			// when we have incumbent solution it will not work 
+			if (result && !incombentExist)
 			{
 				result = differentConsecutiveHospital(theDisc, theH, theState);
 			}

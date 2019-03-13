@@ -69,10 +69,21 @@ namespace GeneralMIPAlgorithm
 		public void SetSol()
 		{
 			ILinearNumExpr sol = MIPModel.LinearNumExpr();
-			sol.AddTerm(y_idDh[0][0][1][1],1);
-			sol.AddTerm(s_idth[0][1][0][1], 1);
+			sol.AddTerm(y_idDh[6][0][4][1], 1);
+			//sol.AddTerm(y_idDh[6][10][6][2], 1);
+			//sol.AddTerm(y_idDh[6][6][7][0], 1);
+			//sol.AddTerm(y_idDh[6][7][9][3], 1);
+			//sol.AddTerm(y_idDh[6][9][8][4], 1);
+			//sol.AddTerm(y_idDh[6][8][11][0], 1);
+
+			//sol.AddTerm(s_idth[6][10][0][1], 1);
+			//sol.AddTerm(s_idth[6][6][6][2], 1);
+			//sol.AddTerm(s_idth[6][7][10][0], 1);
+			//sol.AddTerm(s_idth[6][9][14][3], 1);
+			//sol.AddTerm(s_idth[6][8][15][4], 1);
+			//sol.AddTerm(s_idth[6][11][19][0], 1);
 			//sol.AddTerm(w_id[1][1], 1);
-			MIPModel.AddEq(sol, 2);
+			MIPModel.AddEq(sol, 1);
 		}
 		public void Initial()
 		{
@@ -126,7 +137,7 @@ namespace GeneralMIPAlgorithm
 						for (int h = 0; h < Hospitals; h++)
 						{
 							y_idDh[i][d][dd][h] = MIPModel.IntVar(0, 1, Y_idDh[i][d][dd][h]);
-
+						
 							// not oversea
 							if (h < Hospitals - 1)
 							{
@@ -970,29 +981,32 @@ namespace GeneralMIPAlgorithm
 			// change 
 			for (int i = 0; i < Interns; i++)
 			{
-				for (int d = 1; d < Disciplins; d++)
+				if (data.Intern[i].wieght_ch != 0)
 				{
-					for (int dd = 1; dd < Disciplins; dd++)
+					for (int d = 1; d < Disciplins; d++)
 					{
-						for (int h = 0; h < Hospitals - 1; h++)
-						{							
-							if (d == dd)
+						for (int dd = 1; dd < Disciplins; dd++)
+						{
+							for (int h = 0; h < Hospitals - 1; h++)
 							{
-								break;
-							}
-							ILinearNumExpr change = MIPModel.LinearNumExpr();
+								if (d == dd)
+								{
+									break;
+								}
+								ILinearNumExpr change = MIPModel.LinearNumExpr();
 
-							change.AddTerm(ch_id[i][d], 1);
-							change.AddTerm(y_idDh[i][dd][d][h], -1);
-							for (int ddd = 0; ddd < Disciplins; ddd++)
-							{
-								change.AddTerm(y_idDh[i][ddd][dd][h], 1);
-							}
+								change.AddTerm(ch_id[i][d], 1);
+								change.AddTerm(y_idDh[i][dd][d][h], -1);
+								for (int ddd = 0; ddd < Disciplins; ddd++)
+								{
+									change.AddTerm(y_idDh[i][ddd][dd][h], 1);
+								}
 
-							MIPModel.AddGe(change, 0, "ChangeIdDH_" + i + "_" + d + "_" + dd + "_" + h);
+								MIPModel.AddGe(change, 0, "ChangeIdDH_" + i + "_" + d + "_" + dd + "_" + h);
+							}
 						}
 					}
-				}
+				}				
 			}
 
 			// des_i

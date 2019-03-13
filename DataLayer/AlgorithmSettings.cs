@@ -20,5 +20,9 @@ namespace DataLayer
 		public double RHSepsi;
 		public double RCepsi;
 		public double TAILepsi;
+
+		//imporvement step
+		public double bucketBasedImpPercentage;
+		public double internBasedImpPercentage;
 	}
 }

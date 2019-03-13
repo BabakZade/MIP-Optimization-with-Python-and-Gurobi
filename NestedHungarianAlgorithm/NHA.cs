@@ -84,7 +84,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			nhaResult.WriteSolution(data.allPath.OutPutLocation, "NHA"+ Name);
+			nhaResult.WriteSolution(data.allPath.InsGroupLocation, "NHA"+ Name);
 		}
 	}
 }

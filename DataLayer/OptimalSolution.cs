@@ -29,6 +29,7 @@ namespace DataLayer
 		public double[] TotalDis;
 		public double NotUsedAccTotal;
 		public double Obj;
+		public double[] Obj_i;
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -68,6 +69,7 @@ namespace DataLayer
 		{
 			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals + 1, false); // one for oversea hospital
 			new ArrayInitializer().CreateArray(ref PrDisp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref Obj_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
@@ -376,7 +378,7 @@ namespace DataLayer
 			for (int i = 0; i < data.General.Interns; i++)
 			{
 				Obj += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
-				
+				Obj_i[i] += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
 				tw.WriteLine(i.ToString("000") + " " + Des_i[i].ToString("000")
 				 + " " + MinDis[data.Intern[i].ProgramID].ToString("000"));
 			}

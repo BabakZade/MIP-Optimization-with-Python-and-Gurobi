@@ -58,14 +58,12 @@ namespace NestedDynamicProgrammingAlgorithm
 			theSchedule_t = new StateSchedule[alldata.General.TimePriods];
 			for (int t = 0; t < alldata.General.TimePriods; t++)
 			{
-
 				theSchedule_t[t] = new StateSchedule();
 			}
 			activeDisc = new bool[alldata.General.Disciplines];
 		}
 		public StateStage(StateStage stateInput, StateStage xInput, int theI, AllData alldata, int theStage, bool isRoot)
-		{
-			
+		{			
 			data = alldata;
 			tStage = theStage;
 			Initial(data);
@@ -139,14 +137,9 @@ namespace NestedDynamicProgrammingAlgorithm
 				Fx -= (int)data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_ResCap;
 			}
 			possibleStates = new ArrayList();
-			if (x_wait)
-			{
-				possibleStates.Add(this);
-			}
-			else
-			{
-				setNextStates(stateInput, theI);
-			}
+			
+			setNextStates(stateInput, theI);
+			
 			
 		}
 		public void setNextStates(StateStage stateInput, int theI)
@@ -202,8 +195,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				possibleStates.Add(this);
 			}
 			else
-			{
-				
+			{				
 				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{
 					if (data.Intern[theI].DisciplineList_dg[x_Disc][g] && x_K_g[g] > 0)
