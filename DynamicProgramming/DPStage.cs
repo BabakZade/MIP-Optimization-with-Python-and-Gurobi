@@ -185,15 +185,17 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void setFutureState()
 		{
-			
+			//Console.WriteLine("====== Stage "+ stageTime + " ======");
 			for (int c = 0; c < ActiveStatesCount; c++)
 			{
+				//Console.WriteLine("*** " +((StateStage)activeStatesValue[c][0]).x_Hosp + " "+ ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
 				// 0 is the current state
 				for (int i = 1; i < activeStatesValue[c].Count; i++)
 				{
 					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime ,rootStage);
 					foreach (StateStage item in tmp.possibleStates)
 					{
+						//Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " +item.x_K + " " + item.x_wait + " " + item.Fx);
 						FutureActiveState.Add(item);
 					}					
 				}
@@ -216,6 +218,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				result = false;
 			}
+			
 			// if the intern needs it 
 			if (result)
 			{
@@ -229,6 +232,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
+			
 			// check oversea
 			if (result)
 			{
@@ -255,6 +259,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
+			
 			// check skills
 			if (result && data.Discipline[theDisc].requiresSkill_p[data.Intern[theIntern].ProgramID])
 			{
@@ -267,6 +272,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
+			
 			// check availability
 			if (result)
 			{
@@ -286,6 +292,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
+			
 			//check ability
 			if (result)
 			{
@@ -294,6 +301,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					result = false;
 				}
 			}
+			
 			//check demand
 			if (result)
 			{
@@ -322,8 +330,8 @@ namespace NestedDynamicProgrammingAlgorithm
 						}
 					}
 				}
-				// check minimum
-				if (result)
+				// check minimum => we do not check minimum demand
+				if (result && false)
 				{
 					bool goCheck = true;
 					// if we need someone in this discipline
@@ -346,7 +354,7 @@ namespace NestedDynamicProgrammingAlgorithm
 							{
 								if (theH!=h && theDisc!=d && data.Hospital[h].Hospital_dw[d][w])
 								{
-									if (MinDem_twh[stageTime][w][h]>0)
+									if (MinDem_twh[stageTime][w][h]>0 && incombentExist)
 									{
 										result = false;
 									}
@@ -393,14 +401,14 @@ namespace NestedDynamicProgrammingAlgorithm
 
 			// if it is here it means that he can attend to this hospital
 			// 2- same hospital next together (if it is possible)	
-			if (result && !incombentExist)
+			if (result)
 			{
 				result = differentDiscSameHospital(theDisc, theH, theState);
 			}
 
 			// if the consecutive disciplines happens to same hospital, they should follow chronological order 
 			// 3- same hospital and consecutive time, the discipline should be chronological
-			if (result && !incombentExist)
+			if (result)
 			{
 				result = chronologicalConsecutiveDiscSameHospital(theDisc, theH, theState);
 			}
@@ -408,7 +416,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 
 			// 4- same hospital and consecutive time, the discipline should be chronological
 			// when we have incumbent solution it will not work 
-			if (result && !incombentExist)
+			if (result)
 			{
 				result = differentConsecutiveHospital(theDisc, theH, theState);
 			}
@@ -494,7 +502,27 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				if (theState.theSchedule_t[stageTime-1].theHospital == theH && theDisc < theState.theSchedule_t[stageTime - 1].theDiscipline)
 				{
-					if (!data.Discipline[theDisc].Skill4D_dp[theState.theSchedule_t[stageTime - 1].theDiscipline][data.Intern[theIntern].ProgramID])
+					// see if there are capacity
+					bool isTherecapacity = true;
+					for (int t = 0; t < stageTime; t++)
+					{
+						if (theState.theSchedule_t[t].theDiscipline == theState.theSchedule_t[stageTime - 1].theDiscipline)
+						{
+							for (int tt = t; tt < stageTime; tt++)
+							{
+								for (int w = 0; w < data.General.HospitalWard; w++)
+								{
+									if (MaxDem_twh[tt][w][theH] == 0)
+									{
+										isTherecapacity = false;
+									}
+								}
+							}
+							break;
+						}
+						
+					}
+					if (isTherecapacity && !data.Discipline[theDisc].Skill4D_dp[theState.theSchedule_t[stageTime - 1].theDiscipline][data.Intern[theIntern].ProgramID])
 					{
 						result = false;
 					}
@@ -506,10 +534,12 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public bool differentConsecutiveHospital(int theDisc, int theH, StateStage theState)
 		{
-			bool result = true;					
-
-			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 
-			// 4- same hospital and consecutive time, the discipline should be chronological			
+			bool result = true;
+			if (!rootStage && theState.theSchedule_t[stageTime - 1].theHospital<=0)
+			{
+				return result;
+			}
+			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 			
 			if (!rootStage)
 			{
 				// first see if he can attend to same hospital
@@ -542,7 +572,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					bool preH = false;
 					for (int w = 0; w < data.General.HospitalWard; w++)
 					{
-						if (data.Hospital[theState.theSchedule_t[stageTime - 1].theHospital].Hospital_dw[theDisc][w])
+						if (data.Hospital[theState.theSchedule_t[stageTime - 1].theHospital].Hospital_dw[theDisc][w] && MaxDem_twh[stageTime][w][theState.theSchedule_t[stageTime - 1].theHospital] > 0)
 						{
 							preH = true;
 							break;

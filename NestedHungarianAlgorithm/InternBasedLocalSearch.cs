@@ -28,13 +28,14 @@ namespace NestedHungarianAlgorithm
 		public void reScheduleIntern(OptimalSolution incumbentSol, double ChangePercentage, string Name)
 		{
 			finalSol = new OptimalSolution(data);
-			OptimalSolution solI = new OptimalSolution(data);
+			
 			finalSol.copyRosters(incumbentSol.Intern_itdh);
-			solI.copyRosters(incumbentSol.Intern_itdh);
-			solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
 			finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
 			for (int i = 0; i < Interns * ChangePercentage; i++)
-			{				
+			{
+				OptimalSolution solI = new OptimalSolution(data);
+				solI.copyRosters(finalSol.Intern_itdh);
+				solI.WriteSolution(data.allPath.InsGroupLocation, "tmpImprovedSol" + Name);
 				int theI = findCandidateForDP(solI);
 				if (theI < 0)
 				{
@@ -55,9 +56,13 @@ namespace NestedHungarianAlgorithm
 				solI = new OptimalSolution(data);
 				solI.copyRosters(finalSol.Intern_itdh);
 				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + i + Name);
+				if (solI.Obj > finalSol.Obj)
+				{
+					finalSol = new OptimalSolution(data);
+					finalSol.copyRosters(solI.Intern_itdh);
+					finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);					
+				}
 			}
-			finalSol.copyRosters(solI.Intern_itdh);
-			finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{

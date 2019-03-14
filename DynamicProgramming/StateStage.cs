@@ -85,7 +85,12 @@ namespace NestedDynamicProgrammingAlgorithm
 				if (!isRoot)
 				{
 					// if it haven't had discipline yet
-					isRoot = stateInput.isRoot;
+					// its status and its father's status are same
+					// it only matters if its father is root and waited there
+					if (stateInput.x_Disc < 0)
+					{
+						isRoot = stateInput.isRoot;
+					}				
 
 					x_Disc = stateInput.x_Disc;
 					x_Hosp = stateInput.x_Hosp;
