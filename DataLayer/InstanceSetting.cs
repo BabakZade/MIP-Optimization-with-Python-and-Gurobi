@@ -137,7 +137,7 @@ namespace DataLayer
 
 			// ratio of discipline group size to attended course from that group
 			double[][] R_gk_g = new double[3][] { new double[2] { 1, 0.2 }, new double[2] { 0.8, 0.4 }, new double[2] { 0.6, 0.6 } };
-			R_gk_g = new double[3][] { new double[2] { 1, 0.2 }, new double[2] { 0.8, 0.4 }, new double[2] { 0.6, 0.6 } };
+			R_gk_g = new double[1][] {  new double[2] { 0.8, 0.4 } };
 
 			// ratio of ward in hospital
 			double[] R_wh = new double[3] { 1, 0.75, 0.5 };
@@ -145,7 +145,7 @@ namespace DataLayer
 
 			// ratio of required skills between total relationship
 			double[] R_Trel = new double[3] { 0, 0.1, 0.25 };
-			R_Trel = new double[1] { 0 };
+			R_Trel = new double[3] { 0, 0.1, 0.25 };
 
 			// total number of intern
 			int[] Totalintern = new int[2] { 20, 40 };
@@ -177,7 +177,7 @@ namespace DataLayer
 
 			// ratio of mutual discipline in discipline groups
 			double[] R_muDg = new double[3] { 0, 0.1, 0.25 };
-			R_muDg = new double[3] { 0, 0.1, 0.25 };
+			R_muDg = new double[1] { 0 };
 
 			// preference max value 
 			int[] PrfMaxValue = new int[1] { 4 };
@@ -190,7 +190,7 @@ namespace DataLayer
 
 			// oversea hospital
 			double[] overseaHosp = new double[3] { 0, 0.1, 0.25 };
-			overseaHosp = new double[1] { 0 };
+			overseaHosp = new double[3] { 0, 0.1, 0.25 };
 
 			// fulfilled %
 			double[] fulfilled = new double[1] { 0.1 };
@@ -220,7 +220,7 @@ namespace DataLayer
 			// 0.5 0.5
 			// it is considired equal for all training program
 			double[][] DisciplineDistribution_g = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
-			DisciplineDistribution_g = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
+			DisciplineDistribution_g = new double[1][] { new double[2] { 0.3, 0.7 } };
 
 			for (int wd = 0; wd < R_wd.Length; wd++)
 			{
@@ -230,7 +230,6 @@ namespace DataLayer
 					{
 						for (int trel = 0; trel < R_Trel.Length; trel++)
 						{
-
 							for (int i = 0; i < Totalintern.Length; i++)
 							{
 								for (int d = 0; d < TotalDiscipline.Length; d++)

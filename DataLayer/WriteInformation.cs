@@ -257,14 +257,15 @@ namespace DataLayer
 				tmpdisciplineInfos[d].Name = d.ToString();
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
-					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)Math.Ceiling((double)tmpGeneral.TimePriods / totalInternship) + 1);
+					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)((double)tmpGeneral.TimePriods / totalInternship));
 				}
 			}
-			for (int d = 0; d < tmpGeneral.Disciplines; d++)
+
+			for (int pp = 0; pp < tmpGeneral.TrainingPr; pp++)
 			{
-				for (int pp = 0; pp < tmpGeneral.TrainingPr; pp++)
+				for (int d = 0; d < tmpGeneral.Disciplines; d++)
 				{
-					for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+					for (int dd = d+1; dd < tmpGeneral.Disciplines; dd++)
 					{
 						bool dInv = false;
 						bool ddInv = false;
@@ -282,6 +283,8 @@ namespace DataLayer
 						if (random_.NextDouble() < instancesetting.R_Trel && !tmpdisciplineInfos[dd].Skill4D_dp[d][pp] && dd != d && dInv && ddInv)
 						{
 							tmpdisciplineInfos[d].Skill4D_dp[dd][pp] = true;
+							tmpdisciplineInfos[d].requiresSkill_p[pp] = true;
+							tmpdisciplineInfos[dd].requiredLater_p[pp] = true;
 							//minimum demand will be zero to not face conflict at time zero
 							for (int h = 0; h < tmpGeneral.Hospitals; h++)
 							{
@@ -963,119 +966,139 @@ namespace DataLayer
 				int t = 0;				
 				for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
 				{
-					for ( int d = 0; d < tmpGeneral.Disciplines; d++)
+					for (int d = 0; d < tmpGeneral.Disciplines; d++)
 					{
-						if (tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][d])
+						int infinityLoop = 0;
+						int disIndex = random.Next(0, tmpGeneral.Disciplines);
+						
+						infinityLoop = 0;
+						while (!tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][disIndex] || discipline_id[i][disIndex])
 						{
-							int infinityLoop = 0;
-							int disIndex = random.Next(0, tmpGeneral.Disciplines);
-							infinityLoop = 0;
-							while (!tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][disIndex] || discipline_id[i][disIndex])
-							{
-								disIndex = random.Next(0, tmpGeneral.Disciplines);
-								infinityLoop++;
-								if (infinityLoop == tmpGeneral.Disciplines)
-								{
-									break;
-								}
-							}
+							disIndex = random.Next(0, tmpGeneral.Disciplines);
+							infinityLoop++;
 							if (infinityLoop == tmpGeneral.Disciplines)
 							{
-								continue;
+								break;
 							}
-
-							int Hindex = random.Next(0, tmpGeneral.Hospitals);
-							// check if there is a ward for this discipline in this hospital
-							infinityLoop = 0;
-							while (true)
+						}
+						if (infinityLoop == tmpGeneral.Disciplines)
+						{
+							continue;
+						}
+						bool cando = true;
+						if (tmpdisciplineInfos[disIndex].requiresSkill_p[tmpinternInfos[i].ProgramID])
+						{
+							cando = true;
+							for (int dd = 0; dd < tmpGeneral.Disciplines && cando; dd++)
 							{
-								bool thereIsWard = false;
-								for (int w = 0; w < tmpGeneral.HospitalWard; w++)
+								if (tmpdisciplineInfos[disIndex].Skill4D_dp[dd][tmpinternInfos[i].ProgramID])
 								{
-									if (tmphospitalInfos[Hindex].Hospital_dw[disIndex][w] && hospital_ih[i][Hindex] < tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp)
+									if (!discipline_id[i][dd])
 									{
-										thereIsWard = true;
-									}
-								}
-								// if he can be in the hospital
-								if (hospital_ih[i][Hindex] >= tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp)
-								{
-									thereIsWard = false;
-								}
-								if (thereIsWard)
-								{
-									break;
-								}
-								else
-								{
-									Hindex = random.Next(0, tmpGeneral.Hospitals);
-									infinityLoop++;
-									if (infinityLoop == tmpGeneral.Hospitals)
-									{
-										break;
-									}
-								}
-							}
-							if (infinityLoop == tmpGeneral.Hospitals)
-							{
-								continue;
-							}
-							for (int w = 0; w < tmpGeneral.HospitalWard; w++)
-							{
-								if (tmphospitalInfos[Hindex].Hospital_dw[disIndex][w])
-								{
-
-									if (timelineHospMax_twh[t][w][Hindex] > 0)
-									{
-										bool theInternIsFree = true;
-										if (t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID] > tmpGeneral.TimePriods - 1)
-										{
-											theInternIsFree = false;
-										}
-										for (int tt = t; tt < t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID] && theInternIsFree; tt++)
-										{
-											if (timelineHospMax_twh[tt][w][Hindex] <= 0 || timeline_it[i][tt])
-											{
-												theInternIsFree = false;
-											}
-										}
-										// check the skills
-										if (theInternIsFree)
-										{
-											for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
-											{
-												if (tmpdisciplineInfos[disIndex].Skill4D_dp[dd][tmpinternInfos[i].ProgramID])
-												{
-													if (!discipline_id[i][dd])
-													{
-														theInternIsFree = false;
-													}
-												}
-											}
-
-										}
-										if (theInternIsFree)
-										{
-											for (int tt = t; tt < t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID]; tt++)
-											{
-												timelineHospMax_twh[tt][w][Hindex]--;
-												timeline_it[i][tt] = true;
-
-											}
-											X_itdh[i][t][disIndex][Hindex] = true;
-											hospital_ih[i][Hindex]++;
-											t += tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID];
-											discipline_id[i][disIndex] = true;
-											if (hospital_ih[i][Hindex] > tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp)
-											{
-												Console.WriteLine();
-											}
-										}
+										disIndex = dd;
+										cando = false;
 									}
 								}
 							}
 						}
 						
+						int Hindex = random.Next(0, tmpGeneral.Hospitals);
+						// check if there is a ward for this discipline in this hospital
+						infinityLoop = 0;
+						while (true)
+						{
+							bool thereIsWard = false;
+							int theW = -1;
+							for (int w = 0; w < tmpGeneral.HospitalWard; w++)
+							{
+								if (tmphospitalInfos[Hindex].Hospital_dw[disIndex][w] && hospital_ih[i][Hindex] < tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp)
+								{
+									thereIsWard = true;
+									theW = w;
+									break;
+								}
+							}
+							// if he can be in the hospital
+							if (thereIsWard && (hospital_ih[i][Hindex] >= tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp || timelineHospMax_twh[t][theW][Hindex] == 0))
+							{
+								thereIsWard = false;
+							}
+							if (thereIsWard)
+							{
+								break;
+							}
+							else
+							{
+								Hindex = random.Next(0, tmpGeneral.Hospitals);
+								infinityLoop++;
+								if (infinityLoop == tmpGeneral.Hospitals)
+								{
+									break;
+								}
+							}
+						}
+						if (infinityLoop == tmpGeneral.Hospitals)
+						{
+							continue;
+						}
+						for (int w = 0; w < tmpGeneral.HospitalWard; w++)
+						{
+							if (tmphospitalInfos[Hindex].Hospital_dw[disIndex][w])
+							{
+
+								if (timelineHospMax_twh[t][w][Hindex] > 0)
+								{
+									bool theInternIsFree = true;
+									if (t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID] > tmpGeneral.TimePriods - 1)
+									{
+										theInternIsFree = false;
+									}
+									for (int tt = t; tt < t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID] && theInternIsFree; tt++)
+									{
+										if (timelineHospMax_twh[tt][w][Hindex] <= 0 || timeline_it[i][tt])
+										{
+											theInternIsFree = false;
+										}
+									}
+									// check the skills
+									if (theInternIsFree)
+									{
+										for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+										{
+											if (tmpdisciplineInfos[disIndex].Skill4D_dp[dd][tmpinternInfos[i].ProgramID])
+											{
+												if (!discipline_id[i][dd])
+												{
+													theInternIsFree = false;
+												}
+											}
+										}
+
+									}
+									if (theInternIsFree)
+									{
+										for (int tt = t; tt < t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID]; tt++)
+										{
+											timelineHospMax_twh[tt][w][Hindex]--;
+											timeline_it[i][tt] = true;
+
+										}
+										X_itdh[i][t][disIndex][Hindex] = true;
+										hospital_ih[i][Hindex]++;
+										t += tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID];
+										discipline_id[i][disIndex] = true;
+										if (hospital_ih[i][Hindex] > tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp)
+										{
+											Console.WriteLine();
+										}
+									}
+								}
+								else
+								{
+									Console.WriteLine();
+								}
+							}
+						}
 					}
 				}
 
@@ -1137,9 +1160,20 @@ namespace DataLayer
 				}
 				
 				int theD = random.Next(0, tmpGeneral.Disciplines);
+				int counter = 0;
 				while (!discipline_id[theI][theD])
 				{
+					counter++;
 					theD = random.Next(0, tmpGeneral.Disciplines);
+					if (counter == tmpGeneral.Disciplines)
+					{
+						break;
+					}
+				}
+				if (counter == tmpGeneral.Disciplines)
+				{
+					p--;
+					continue;
 				}
 				theD_R[p] = theD;
 			}
