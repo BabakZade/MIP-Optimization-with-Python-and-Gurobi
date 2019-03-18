@@ -21,13 +21,5 @@ namespace DataLayer
 			allPath = new SetAllPathForResult(Expriment, Methodology, InsGroup);
 		}
 
-		public AllData internData(AllData inputData, int theI, bool[][][][] X_itdh)
-		{
-			AllData allData = new AllData();
-
-
-
-			return allData;
-		}
 	}
 }
