@@ -36,6 +36,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		public bool x_wait;
 		public int x_Disc;
 		public int x_Hosp;
+		public int x_group;
 		public int[] x_K_g;
 		public int x_K;
 		public bool isRoot;
@@ -94,17 +95,20 @@ namespace NestedDynamicProgrammingAlgorithm
 
 					x_Disc = stateInput.x_Disc;
 					x_Hosp = stateInput.x_Hosp;
+					x_group = stateInput.x_group;
 				}
 				else
 				{
 					x_Disc = -1;
 					x_Hosp = -1;
+					x_group = -1;
 				}
 			}
 			else
 			{
 				x_Disc = xInput.x_Disc;
 				x_Hosp = xInput.x_Hosp;
+				x_group = xInput.x_group;
 				x_wait = false;
 				activeDisc[x_Disc] = true;
 				if (x_Hosp < data.General.Hospitals)
@@ -252,7 +256,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 			duplicated.x_K = copyable.x_K -1;
 			duplicated.isRoot = copyable.isRoot;
-
+			duplicated.x_group = theG;
 			for (int d = 0; d < data.General.Disciplines; d++)
 			{
 				duplicated.activeDisc[d] = copyable.activeDisc[d];

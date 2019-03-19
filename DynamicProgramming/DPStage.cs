@@ -23,14 +23,14 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][][] EmrDem_twh;
 		bool flagRes;
 		bool flagEmr;
-		public DPStage(ref StateStage finalSchedule,  AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, bool incombentExist)
+		public DPStage(ref StateStage finalSchedule, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, bool incombentExist)
 		{
 			this.incombentExist = incombentExist;
 			this.MaxDem_twh = MaxDem_twh;
 			this.MinDem_twh = MinDem_twh;
 			this.ResDem_twh = ResDem_twh;
 			this.EmrDem_twh = EmrDem_twh;
-		    data = alldata;
+			data = alldata;
 			theIntern = theI;
 			stageTime = theTime;
 			Initial(alldata);
@@ -40,7 +40,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				FutureActiveState = parent.FutureActiveState;
 			}
 			if (isRoot)
-			{				
+			{
 				rootStage = true;
 			}
 			else
@@ -49,12 +49,12 @@ namespace NestedDynamicProgrammingAlgorithm
 				parentNode = parent;
 			}
 			DPStageProcedure(ref finalSchedule);
-			
+
 		}
 
 		public void Initial(AllData alldata)
 		{
-			
+
 
 		}
 		public void setStateStage(ref StateStage finalSchedule)
@@ -68,7 +68,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				// add dummy state
 				StateStage tmpdummy = new StateStage(data);
 				activeStatesValue[0].Add(tmpdummy);
-				
+
 
 				// rest of the values
 				for (int d = 0; d < data.General.Disciplines; d++)
@@ -77,7 +77,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						for (int w = 0; w < data.General.HospitalWard; w++)
 						{
-							
+
 							if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
 								&& checkDiscipline(d, h, new StateStage(data) { }))
 							{
@@ -90,7 +90,7 @@ namespace NestedDynamicProgrammingAlgorithm
 								activeStatesValue[0].Add(tmp);
 							}
 
-							
+
 						}
 					}
 				}
@@ -124,7 +124,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline != -1)
 					{
 						FutureActiveState.Add((StateStage)parentNode.FutureActiveState[c]);
-						((StateStage)FutureActiveState[FutureActiveState.Count-1]).tStage++;						
+						((StateStage)FutureActiveState[FutureActiveState.Count - 1]).tStage++;
 						continue;
 					}
 					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0)
@@ -133,8 +133,8 @@ namespace NestedDynamicProgrammingAlgorithm
 						activeStatesValue[counter] = new ArrayList();
 						//first add itself 
 						activeStatesValue[counter].Add(parentNode.FutureActiveState[c]);
-						
-						
+
+						// if you have to change every time choose the best one each time
 						for (int d = 0; d < data.General.Disciplines; d++)
 						{
 							if (!((StateStage)parentNode.FutureActiveState[c]).activeDisc[d])
@@ -185,21 +185,94 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void setFutureState()
 		{
-			//Console.WriteLine("====== Stage "+ stageTime + " ======");
+			Console.WriteLine("====== Stage " + stageTime + " ======");
 			for (int c = 0; c < ActiveStatesCount; c++)
 			{
-				//Console.WriteLine("*** " +((StateStage)activeStatesValue[c][0]).x_Hosp + " "+ ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+				Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
 				// 0 is the current state
 				for (int i = 1; i < activeStatesValue[c].Count; i++)
 				{
-					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime ,rootStage);
+					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime, rootStage);
 					foreach (StateStage item in tmp.possibleStates)
 					{
-						//Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " +item.x_K + " " + item.x_wait + " " + item.Fx);
-						FutureActiveState.Add(item);
-					}					
+						Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+						int index = 0;
+						foreach (StateStage futur in FutureActiveState)
+						{
+							if (futur.Fx > item.Fx)
+							{
+								index++;
+							}
+							else
+							{
+								break;
+							}
+						}
+						FutureActiveState.Insert(index, item);
+					}
 				}
 			}
+			cleanTheActiveState();
+
+
+		}
+
+		public void cleanTheActiveState()
+		{
+			chooseBestHospIfChangeIsNecessary();
+			limittedFutureList();
+		}
+		//Necessary 
+		public void chooseBestHospIfChangeIsNecessary()
+		{
+			// if you have to change it every time choose the best every time for each discipline
+			if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp == 1)
+			{
+				ArrayList futurelist = new ArrayList();
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int g = 0; g < data.General.DisciplineGr; g++)
+					{
+						double x = -data.AlgSettings.BigM;
+						int maxIndex = -1;
+						for (int c = 0; c < FutureActiveState.Count; c++)
+						{
+							if (d == ((StateStage)FutureActiveState[c]).x_Disc && g == ((StateStage)FutureActiveState[c]).x_group)
+							{
+								if (x < ((StateStage)FutureActiveState[c]).Fx)
+								{
+									x = ((StateStage)FutureActiveState[c]).Fx;
+									if (maxIndex >= 0)
+									{
+										FutureActiveState.RemoveAt(maxIndex);
+										c--;
+									}
+									maxIndex = c;
+								}
+								else
+								{
+									FutureActiveState.RemoveAt(c);
+									c--;
+								}
+							}
+						}
+
+
+					}
+
+				}
+			}
+		}
+
+		//remove more than a number
+		public void limittedFutureList()
+		{
+			int limit = data.General.Disciplines * data.General.Hospitals;
+			if (FutureActiveState.Count > limit)
+			{
+				FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
+			}
+			
 		}
 
 		public void DPStageProcedure(ref StateStage finalSchedule)
@@ -420,6 +493,10 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				result = differentConsecutiveHospital(theDisc, theH, theState);
 			}
+			if (result)
+			{
+				result = bestHospitalForThisDiscipline(theDisc, theH, theState);
+			}
 			return result;
 		}
 
@@ -579,6 +656,39 @@ namespace NestedDynamicProgrammingAlgorithm
 						}
 					}
 					if (preH )
+					{
+						result = false;
+					}
+				}
+			}
+
+			return result;
+		}
+
+		public bool bestHospitalForThisDiscipline(int theDisc, int theH, StateStage theState)
+		{
+			bool result = true;
+			int hIndex = -1;
+			int maxPrf = 0;
+			for (int h = 0; h < data.General.Hospitals; h++)
+			{
+				if (data.Intern[theIntern].Prf_h[h] > maxPrf)
+				{
+					hIndex = h;
+					maxPrf = data.Intern[theIntern].Prf_h[h];
+				}
+			}
+			if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp == 1)
+			{
+				result = false;
+			}
+
+			// if he was in hospital and you wanna assign a discipline assign it to previous one (which you already considered a state for that no need to consider this)
+			if (result)
+			{
+				for (int t = 0; t < stageTime && result; t++)
+				{
+					if (data.Intern[theIntern].Prf_h[theState.theSchedule_t[t].theHospital] >= maxPrf)
 					{
 						result = false;
 					}

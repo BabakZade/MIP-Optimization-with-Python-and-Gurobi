@@ -14,36 +14,36 @@ namespace MedicalTraineeScheduling
 			InstanceSize = 5;
 			DataLayer.InstanceSetting inssetting = new InstanceSetting();
 			int groupCounter = 0;
-			foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
-			{
-				groupCounter++;
-				for (int i = 0; i < InstanceSize; i++)
-				{
-					SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("Complexity", "", "G_" + groupCounter);
-					WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "G_" + groupCounter + "\\", "Instance_" + i);
-					using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
-					{
-						string xx = String.Join(" \t ", TMPinstance.FeasibleSolution.MinDis);
-						file.WriteLine(i + "\t" + TMPinstance.FeasibleSolution.Obj + "\t" + TMPinstance.FeasibleSolution.AveDes + "\t" + xx
-							+ "\t" + TMPinstance.FeasibleSolution.EmrDemand + "\t" + TMPinstance.FeasibleSolution.ResDemand
-							+ "\t" + TMPinstance.FeasibleSolution.SlackDem + "\t" + TMPinstance.FeasibleSolution.NotUsedAccTotal);
-					}
+			//foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
+			//{
+			//	groupCounter++;
+			//	for (int i = 0; i < InstanceSize; i++)
+			//	{
+			//		SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("Complexity", "", "G_" + groupCounter);
+			//		WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "G_" + groupCounter + "\\", "Instance_" + i);
+			//		using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
+			//		{
+			//			string xx = String.Join(" \t ", TMPinstance.FeasibleSolution.MinDis);
+			//			file.WriteLine(i + "\t" + TMPinstance.FeasibleSolution.Obj + "\t" + TMPinstance.FeasibleSolution.AveDes + "\t" + xx
+			//				+ "\t" + TMPinstance.FeasibleSolution.EmrDemand + "\t" + TMPinstance.FeasibleSolution.ResDemand
+			//				+ "\t" + TMPinstance.FeasibleSolution.SlackDem + "\t" + TMPinstance.FeasibleSolution.NotUsedAccTotal);
+			//		}
 
-				}
-			}
-			SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "MIP", "");
-			for (int g = 0; g < 9; g++)
+			//	}
+			//}
+			SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Size", "NHA", "");
+			for (int g = 0; g < 4; g++)
 			{
 				for (int i = 0; i < InstanceSize; i++)
 				{
-					if (g < 8)
+					if (g<1 || i<1)
 					{
 						continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "MIP", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Size", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					Stopwatch stopwatch = new Stopwatch();
 					stopwatch.Start();
-					GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
+					//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
 					NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
 					stopwatch.Stop();
 					int time = (int)stopwatch.ElapsedMilliseconds / 1000;
