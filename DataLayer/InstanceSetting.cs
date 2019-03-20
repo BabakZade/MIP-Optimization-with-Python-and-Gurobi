@@ -145,7 +145,7 @@ namespace DataLayer
 
 			// ratio of required skills between total relationship
 			double[] R_Trel = new double[3] { 0, 0.1, 0.25 };
-			R_Trel = new double[3] { 0, 0.1, 0.25 };
+			R_Trel = new double[] { 0 };
 
 			// total number of intern
 			int[] Totalintern = new int[2] { 20, 40 };
@@ -173,7 +173,7 @@ namespace DataLayer
 
 			// ratio of mutual discipline in training program
 			double[] R_muDp = new double[3] { 0, 0.1, 0.25 };
-			R_muDp = new double[1] {0};
+			R_muDp = new double[3] { 0, 0.1, 0.25 };
 
 			// ratio of mutual discipline in discipline groups
 			double[] R_muDg = new double[3] { 0, 0.1, 0.25 };
@@ -190,7 +190,7 @@ namespace DataLayer
 
 			// oversea hospital
 			double[] overseaHosp = new double[3] { 0, 0.1, 0.25 };
-			overseaHosp = new double[3] { 0, 0.1, 0.25 };
+			overseaHosp = new double[1] { 0 };
 
 			// fulfilled %
 			double[] fulfilled = new double[1] { 0.1 };
@@ -213,7 +213,7 @@ namespace DataLayer
 			// 0.6 => training program 1
 			// 0.4 => training program 2
 			double[][] DisciplineDistribution_p = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
-			DisciplineDistribution_p = new double[1][] { new double[2] { 0.5, 0.5 } };
+			DisciplineDistribution_p  = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
 			// discipline distribution per group (from all assigned discipline to the training program) 
 			// sum per row => 1
 			// 0.2 0.8 

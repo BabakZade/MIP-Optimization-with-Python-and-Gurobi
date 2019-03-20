@@ -19,7 +19,7 @@ namespace MedicalTraineeScheduling
 			//	groupCounter++;
 			//	for (int i = 0; i < InstanceSize; i++)
 			//	{
-			//		SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("Complexity", "", "G_" + groupCounter);
+			//		SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("Integration", "", "G_" + groupCounter);
 			//		WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "G_" + groupCounter + "\\", "Instance_" + i);
 			//		using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
 			//		{
@@ -31,19 +31,16 @@ namespace MedicalTraineeScheduling
 
 			//	}
 			//}
-			SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Size", "NHA", "");
-			for (int g = 0; g < 4; g++)
+			SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "NHA", "");
+			for (int g = 0; g < 9; g++)
 			{
 				for (int i = 0; i < InstanceSize; i++)
 				{
-					if (g<1 || i<1)
-					{
-						continue;
-					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Size", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "MIP", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					Stopwatch stopwatch = new Stopwatch();
 					stopwatch.Start();
-					//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
+					MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
+					GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
 					NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
 					stopwatch.Stop();
 					int time = (int)stopwatch.ElapsedMilliseconds / 1000;

@@ -10,6 +10,7 @@
     <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
     <ProjectReference Include="..\DynamicProgramming\NestedDynamicProgrammingAlgorithm.csproj" />
     <ProjectReference Include="..\GeneralMIPAlgorithm\GeneralMIPAlgorithm.csproj" />
+    <ProjectReference Include="..\MultiLevelSolutionMethodology\MultiLevelSolutionMethodology.csproj" />
     <ProjectReference Include="..\NestedHungarianAlgorithm\NestedHungarianAlgorithm.csproj" />
   </ItemGroup>
 

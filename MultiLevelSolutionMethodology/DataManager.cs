@@ -8,19 +8,22 @@ namespace MultiLevelSolutionMethodology
 	public class DataManager
 	{
 		public AllData[] data_p;
+		
 
 		public DataManager(AllData allData)
 		{
-
+			setData(allData);
 		}
 		public void setData(AllData allData)
-
 		{
 			data_p = new AllData[allData.General.TrainingPr];
 			for (int p = 0; p < allData.General.TrainingPr; p++)
 			{
 				data_p[p] = new AllData();
-
+				data_p[p].allPath = allData.allPath;
+			}
+			for (int p = 0; p < allData.General.TrainingPr; p++)
+			{
 				// general Info
 				data_p[p].General = new GeneralInfo();
 
@@ -101,6 +104,9 @@ namespace MultiLevelSolutionMethodology
 				for (int d = 0; d < data_p[p].General.Disciplines; d++)
 				{
 					data_p[p].Discipline[d] = new DisciplineInfo(data_p[p].General.Disciplines, data_p[p].General.TrainingPr);
+				}
+				for (int d = 0; d < data_p[p].General.Disciplines; d++)
+				{
 					data_p[p].Discipline[d].Name = d.ToString();
 					for (int pp = 0; pp < data_p[p].General.TrainingPr; pp++)
 					{
@@ -108,8 +114,8 @@ namespace MultiLevelSolutionMethodology
 						for (int dd = 0; dd < data_p[p].General.Disciplines; dd++)
 						{
 							data_p[p].Discipline[d].Skill4D_dp[dd][pp] = allData.Discipline[d].Skill4D_dp[dd][p];
-							data_p[p].Discipline[d].requiresSkill_p[pp] = allData.Discipline[d].Skill4D_dp[dd][p];
-							data_p[p].Discipline[dd].requiredLater_p[pp] = allData.Discipline[d].Skill4D_dp[dd][p];
+							data_p[p].Discipline[d].requiresSkill_p[pp] = allData.Discipline[d].requiresSkill_p[p];
+							data_p[p].Discipline[dd].requiredLater_p[pp] = allData.Discipline[dd].requiredLater_p[p];
 						}
 					}
 				}
@@ -119,7 +125,7 @@ namespace MultiLevelSolutionMethodology
 				int totalInternforP = 0;
 				for (int i = 0; i < data_p[p].General.Interns; i++)
 				{
-					xIntern[i] = new InternInfo(data_p[p].General.Hospitals, data_p[p].General.Disciplines, data_p[p].General.TimePriods, data_p[p].General.DisciplineGr, data_p[p].General.TrainingPr, data_p[p].General.Region);
+					xIntern[i] = new InternInfo(data_p[p].General.Hospitals, data_p[p].General.Disciplines, data_p[p].General.TimePriods, data_p[p].General.DisciplineGr, allData.General.TrainingPr, data_p[p].General.Region);
 					xIntern[i].ProgramID = allData.Intern[i].ProgramID;
 					if (xIntern[i].ProgramID == p)
 					{
@@ -145,6 +151,9 @@ namespace MultiLevelSolutionMethodology
 							for (int g = 0; g < data_p[p].General.DisciplineGr; g++)
 							{
 								xIntern[i].DisciplineList_dg[d][g] = allData.Intern[i].DisciplineList_dg[d][g];
+								xIntern[i].K_AllDiscipline = allData.Intern[i].K_AllDiscipline;
+								xIntern[i].ShouldattendInGr_g[g] = allData.Intern[i].ShouldattendInGr_g[g];
+								
 							}
 						}
 						xIntern[i].Prf_d[d] = allData.Intern[i].Prf_d[d];
@@ -171,8 +180,7 @@ namespace MultiLevelSolutionMethodology
 				data_p[p].Intern = new InternInfo[data_p[p].General.Interns];
 				totalInternforP = -1;
 				for (int i = 0; i < xIntern.Length; i++)
-				{
-					
+				{					
 					if (xIntern[i].ProgramID == p)
 					{
 						totalInternforP++;
@@ -181,7 +189,7 @@ namespace MultiLevelSolutionMethodology
 					{
 						continue;
 					}
-					data_p[p].Intern[totalInternforP] = new InternInfo(data_p[p].General.Hospitals, data_p[p].General.Disciplines, data_p[p].General.TimePriods, data_p[p].General.DisciplineGr, data_p[p].General.TrainingPr, data_p[p].General.Region);
+					data_p[p].Intern[totalInternforP] = new InternInfo(data_p[p].General.Hospitals, data_p[p].General.Disciplines, data_p[p].General.TimePriods, data_p[p].General.DisciplineGr, allData.General.TrainingPr, data_p[p].General.Region);
 					data_p[p].Intern[totalInternforP].ProgramID = xIntern[i].ProgramID;
 					
 					data_p[p].Intern[totalInternforP].isProspective = xIntern[i].isProspective;
@@ -204,6 +212,8 @@ namespace MultiLevelSolutionMethodology
 							for (int g = 0; g < data_p[p].General.DisciplineGr; g++)
 							{
 								data_p[p].Intern[totalInternforP].DisciplineList_dg[d][g] = xIntern[i].DisciplineList_dg[d][g];
+								data_p[p].Intern[totalInternforP].K_AllDiscipline = xIntern[i].K_AllDiscipline;
+								data_p[p].Intern[totalInternforP].ShouldattendInGr_g[g] = xIntern[i].ShouldattendInGr_g[g];
 							}
 						}
 						data_p[p].Intern[totalInternforP].Prf_d[d] = xIntern[i].Prf_d[d];
@@ -241,7 +251,7 @@ namespace MultiLevelSolutionMethodology
 				data_p[p].AlgSettings = new AlgorithmSettings();
 				data_p[p].AlgSettings.BPTime = allData.AlgSettings.BPTime;
 				data_p[p].AlgSettings.MasterTime = allData.AlgSettings.MasterTime;
-				data_p[p].AlgSettings.MIPTime = allData.AlgSettings.MIPTime;
+				data_p[p].AlgSettings.MIPTime = allData.AlgSettings.MIPTime/allData.General.TrainingPr;
 				data_p[p].AlgSettings.RCepsi = allData.AlgSettings.RCepsi;
 				data_p[p].AlgSettings.RHSepsi = allData.AlgSettings.RHSepsi;
 				data_p[p].AlgSettings.SubTime = allData.AlgSettings.SubTime;
@@ -252,8 +262,7 @@ namespace MultiLevelSolutionMethodology
 				data_p[p].AlgSettings.internBasedImpPercentage = allData.AlgSettings.internBasedImpPercentage;
 			}
 
-
-
+			
 		}
 	}
 }

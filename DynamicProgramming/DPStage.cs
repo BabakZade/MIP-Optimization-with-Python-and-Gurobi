@@ -185,17 +185,17 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void setFutureState()
 		{
-			Console.WriteLine("====== Stage " + stageTime + " ======");
+			// Console.WriteLine("====== Stage " + stageTime + " ======");
 			for (int c = 0; c < ActiveStatesCount; c++)
 			{
-				Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+				// Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
 				// 0 is the current state
 				for (int i = 1; i < activeStatesValue[c].Count; i++)
 				{
 					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime, rootStage);
 					foreach (StateStage item in tmp.possibleStates)
 					{
-						Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+						// Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
 						int index = 0;
 						foreach (StateStage futur in FutureActiveState)
 						{
@@ -220,7 +220,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void cleanTheActiveState()
 		{
 			chooseBestHospIfChangeIsNecessary();
-			limittedFutureList();
+			//limittedFutureList();
 		}
 		//Necessary 
 		public void chooseBestHospIfChangeIsNecessary()
@@ -688,7 +688,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				for (int t = 0; t < stageTime && result; t++)
 				{
-					if (data.Intern[theIntern].Prf_h[theState.theSchedule_t[t].theHospital] >= maxPrf)
+					if (theState.theSchedule_t[t].theHospital >=0 && data.Intern[theIntern].Prf_h[theState.theSchedule_t[t].theHospital] >= maxPrf)
 					{
 						result = false;
 					}

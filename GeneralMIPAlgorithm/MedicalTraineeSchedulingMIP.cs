@@ -929,12 +929,10 @@ namespace GeneralMIPAlgorithm
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									fhRequirement.AddTerm(t, s_idth[i][dd][t][h]);
-								}
-								
+									fhRequirement.AddTerm(-t, s_idth[i][dd][t][h]);
+								}								
 							}
 						}
-
 						MIPModel.AddGe(fhRequirement, 0, "FHrequirementIdD_" + i + "_" + d + "_" + dd);
 					}
 				}
@@ -944,36 +942,35 @@ namespace GeneralMIPAlgorithm
 			// skill
 			for (int i = 0; i < Interns; i++)
 			{
-				for (int t = 0; t < Timepriods; t++)
+				for (int d = 1; d < Disciplins; d++)
 				{
-					for (int d = 1; d < Disciplins; d++)
+					for (int dd = 1; dd < Disciplins; dd++)
 					{
-						for (int dd = 1; dd < Disciplins; dd++)
+						bool fulfilled = false;
+						for (int h = 0; h < Hospitals - 1; h++)
 						{
-							bool fulfilled = false;
-							for (int h = 0; h < Hospitals - 1; h++)
+							if (data.Intern[i].Fulfilled_dhp[d - 1][h][data.Intern[i].ProgramID])
 							{
-								if (data.Intern[i].Fulfilled_dhp[d-1][h][data.Intern[i].ProgramID])
-								{
-									fulfilled = true;
-								}
+								fulfilled = true;
 							}
-							int trPr = data.Intern[i].ProgramID;
-							if (data.Discipline[d - 1].Skill4D_dp[dd - 1][trPr]	&& !fulfilled)
-							{
-								ILinearNumExpr skill = MIPModel.LinearNumExpr();
-
-								for (int h = 0; h < Hospitals; h++)
-								{
-									skill.AddTerm(s_idth[i][d][t][h], t);
-
-									skill.AddTerm(s_idth[i][dd][t][h], -t);
-								}
-								MIPModel.AddGe(skill, 0, "SkillITD_" + i + "_" + t + "_" + d);
-							}
-
 						}
+						int trPr = data.Intern[i].ProgramID;
+						if (data.Discipline[d - 1].Skill4D_dp[dd - 1][trPr] && !fulfilled)
+						{
+							ILinearNumExpr skill = MIPModel.LinearNumExpr();
 
+							for (int h = 0; h < Hospitals; h++)
+							{
+								for (int tt = 0; tt < Timepriods; tt++)
+								{
+									skill.AddTerm(s_idth[i][d][tt][h], tt);
+									skill.AddTerm(s_idth[i][dd][tt][h], -tt);
+									skill.AddTerm(s_idth[i][d][tt][h], -Timepriods);
+
+								}
+							}
+							MIPModel.AddGe(skill, -Timepriods, "SkillIDd_" + i + "_" + d + "_" + dd);
+						}
 					}
 				}
 			}
