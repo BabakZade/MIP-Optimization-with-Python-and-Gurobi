@@ -4,6 +4,7 @@ using System.Text;
 using DataLayer;
 using GeneralMIPAlgorithm;
 using NestedHungarianAlgorithm;
+using System.Diagnostics;
 
 
 namespace MultiLevelSolutionMethodology
@@ -12,6 +13,8 @@ namespace MultiLevelSolutionMethodology
 	{
 		public DataManager dataManager;
 		public OptimalSolution[] finalSol_p;
+		public OptimalSolution finalSol;
+		public int[] ElappesedTime_p;
 		public double objFunction;
 		int[] TrPrOrder;
 		public SequentialMethodology(AllData data, string InsName)
@@ -23,12 +26,14 @@ namespace MultiLevelSolutionMethodology
 		public void Initial(AllData data)
 		{
 			dataManager = new DataManager(data);
+			ElappesedTime_p = new int[data.General.TrainingPr];
 			TrPrOrder = new int[data.General.TrainingPr];
 			finalSol_p = new OptimalSolution[data.General.TrainingPr];
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				finalSol_p[p] = new OptimalSolution(dataManager.data_p[p]);
 				TrPrOrder[p] = p;
+				ElappesedTime_p[p] = 0;
 			}
 			objFunction = 0;
 		}
@@ -47,7 +52,11 @@ namespace MultiLevelSolutionMethodology
 		
 		public void setMIPMethodology(AllData data_p, int theP, string InsName)
 		{
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
 			MedicalTraineeSchedulingMIP mip = new MedicalTraineeSchedulingMIP(data_p, InsName + "PrTr_" + theP);
+			stopwatch.Stop();
+			ElappesedTime_p[theP] = (int)stopwatch.ElapsedMilliseconds / 1000;
 			finalSol_p[theP].copyRosters(mip.mipOpt.Intern_itdh);
 			finalSol_p[theP].WriteSolution(data_p.allPath.OutPutLocation, "PrTr_" + theP);
 			objFunction += finalSol_p[theP].Obj;

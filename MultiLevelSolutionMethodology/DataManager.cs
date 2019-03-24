@@ -190,7 +190,7 @@ namespace MultiLevelSolutionMethodology
 						continue;
 					}
 					data_p[p].Intern[totalInternforP] = new InternInfo(data_p[p].General.Hospitals, data_p[p].General.Disciplines, data_p[p].General.TimePriods, data_p[p].General.DisciplineGr, allData.General.TrainingPr, data_p[p].General.Region);
-					data_p[p].Intern[totalInternforP].ProgramID = xIntern[i].ProgramID;
+					data_p[p].Intern[totalInternforP].ProgramID = 0;
 					
 					data_p[p].Intern[totalInternforP].isProspective = xIntern[i].isProspective;
 					// hand out group and discipline
