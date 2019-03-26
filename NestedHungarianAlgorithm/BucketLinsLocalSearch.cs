@@ -47,6 +47,8 @@ namespace NestedHungarianAlgorithm
 		public bool[][][][] bucketArray_itdh;
 		public int theTimeOfImprove;
 		public bool[][] NotRequiredSkill_id;
+		int BLcounter;
+		int BLLimit;
 		public BucketLinsLocalSearch(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList, string Name)
 		{
 			data = alldata;
@@ -58,6 +60,13 @@ namespace NestedHungarianAlgorithm
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{
+			BLLimit = 0;
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				BLLimit += data.Intern[i].K_AllDiscipline;
+			}
+			BLLimit = (int)Math.Ceiling(BLLimit * data.AlgSettings.bucketBasedImpPercentage);
+			BLcounter = 0;
 			
 			Disciplins = data.General.Disciplines;
 			Hospitals = data.General.Hospitals;
@@ -73,13 +82,6 @@ namespace NestedHungarianAlgorithm
 		public void InitialBucketChange(double neighbourhoodSize, OptimalSolution incumbentSol)
 		{
 			bucketlist = new ArrayList();
-			int AssignmentCounter = 0;
-			for (int i = 0; i < data.General.Interns; i++)
-			{
-				AssignmentCounter += data.Intern[i].K_AllDiscipline;
-			}
-
-			AssignmentCounter = (int)Math.Ceiling(AssignmentCounter * neighbourhoodSize);
 			for (int i = 0; i < Interns; i++)
 			{
 				bool redundantCh = true;
@@ -88,7 +90,7 @@ namespace NestedHungarianAlgorithm
 				{
 					redundantCh = false;
 				}
-				if (bucketlist.Count >= AssignmentCounter)
+				if (BLcounter >= BLLimit)
 				{
 					break;
 				}
@@ -126,6 +128,7 @@ namespace NestedHungarianAlgorithm
 										redundantCh = true;
 										// we only need the time it is changed to insert the discipline there
 										bucketArray_itdh[i][thet1][d][h] = true;
+										BLcounter++;
 										bucketlist.Add(new Bucket(i, thet1, d, h) { });
 									}
 								}
@@ -140,14 +143,17 @@ namespace NestedHungarianAlgorithm
 		public void InitialBucketSkill(OptimalSolution incumbentSol)
 		{
 			for (int i = 0; i < Interns; i++)
-			{
-				
+			{				
 				for (int t = 0; t < Timepriods; t++)
 				{
 					for (int d = 0; d < Disciplins ; d++)
 					{
 						for (int h = 0; h < Hospitals ; h++)
 						{
+							if (BLcounter >= BLLimit)
+							{
+								break;
+							}
 							if (incumbentSol.Intern_itdh[i][t][d][h] && data.Discipline[d].requiredLater_p[data.Intern[i].ProgramID])
 							{
 								bool redundantSkill = true;
@@ -166,6 +172,7 @@ namespace NestedHungarianAlgorithm
 								}
 								if (redundantSkill)
 								{
+									BLcounter++;
 									NotRequiredSkill_id[i][d] = true;
 									if (theTimeOfImprove > t)
 									{
