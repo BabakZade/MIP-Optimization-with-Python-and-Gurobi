@@ -88,23 +88,23 @@ namespace DataLayer
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].CoeffObj_SumDesi = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].CoeffObj_SumDesi = double.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].CoeffObj_MinDesi = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].CoeffObj_MinDesi = double.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].CoeffObj_ResCap = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].CoeffObj_ResCap = double.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].CoeffObj_EmrCap = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].CoeffObj_EmrCap = double.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.TrainingPr[p].CoeffObj_NotUsedAcc = int.Parse(line.Substring(0, indexN));
+				data.TrainingPr[p].CoeffObj_NotUsedAcc = double.Parse(line.Substring(0, indexN));
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 

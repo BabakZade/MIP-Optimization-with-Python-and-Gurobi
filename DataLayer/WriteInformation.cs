@@ -27,6 +27,7 @@ namespace DataLayer
 			CreateInstances();
 			WriteInstance(location, name);
 			WriteFeasibleSol(location, "Feasible" + name);
+			ChangeDesCoeff(location, name);
 		}
 
 
@@ -1255,6 +1256,106 @@ namespace DataLayer
 			}
 
 			FeasibleSolution.WriteSolution(location, name);
+		}
+
+		public void ChangeObjCoeff(string location, string name)
+		{
+			string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
+			string[] level = new string[4] { "00","01","05","10" };
+			double[][] weight = new double[24][]{new double[6] { 0.00, 0.20, 0.20, 0.20, 0.20, 0.20 },
+												 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+												 new double[6] { 0.50, 0.10, 0.10, 0.10, 0.10, 0.10 },
+												 new double[6] { 0.67, 0.07, 0.07, 0.07, 0.07, 0.07 },
+												 new double[6] { 0.20, 0.00, 0.20, 0.20, 0.20, 0.20 },
+												 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+												 new double[6] { 0.10, 0.50, 0.10, 0.10, 0.10, 0.10 },
+												 new double[6] { 0.07, 0.67, 0.07, 0.07, 0.07, 0.07 },
+												 new double[6] { 0.20, 0.20, 0.00, 0.20, 0.20, 0.20 },
+												 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+												 new double[6] { 0.10, 0.10, 0.50, 0.10, 0.10, 0.10 },
+												 new double[6] { 0.07, 0.07, 0.67, 0.07, 0.07, 0.07 },
+												 new double[6] { 0.20, 0.20, 0.20, 0.00, 0.20, 0.20 },
+												 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+												 new double[6] { 0.10, 0.10, 0.10, 0.50, 0.10, 0.10 },
+												 new double[6] { 0.07, 0.07, 0.07, 0.67, 0.07, 0.07 },
+												 new double[6] { 0.20, 0.20, 0.20, 0.20, 0.00, 0.20 },
+												 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+												 new double[6] { 0.10, 0.10, 0.10, 0.10, 0.50, 0.10 },
+												 new double[6] { 0.07, 0.07, 0.07, 0.07, 0.67, 0.07 },
+												 new double[6] { 0.20, 0.20, 0.20, 0.20, 0.20, 0.00 },
+												 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+												 new double[6] { 0.10, 0.10, 0.10, 0.10, 0.10, 0.50 },
+												 new double[6] { 0.07, 0.07, 0.07, 0.07, 0.07, 0.67 }};
+			for (int i = 0; i < nameCoeff.Count(); i++)
+			{
+				for (int l = 0; l < level.Count(); l++)
+				{
+					for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+					{
+						tmpTrainingPr[p].CoeffObj_SumDesi = weight[i* level.Count() + l][0];
+						tmpTrainingPr[p].CoeffObj_MinDesi = weight[i * level.Count() + l][1];
+						tmpTrainingPr[p].CoeffObj_ResCap = weight[i * level.Count() + l][2];
+						tmpTrainingPr[p].CoeffObj_EmrCap = weight[i * level.Count() + l][3];
+						tmpTrainingPr[p].CoeffObj_NotUsedAcc = weight[i * level.Count() + l][4];
+						tmpTrainingPr[p].CoeffObj_MINDem = weight[i * level.Count() + l][5];
+					}
+					string NewLoc = location + nameCoeff[i] + level[l] + "\\";
+					if (!Directory.Exists(NewLoc))
+					{
+						Directory.CreateDirectory(NewLoc);
+					}
+					WriteInstance(NewLoc, name);
+				}
+			}
+		}
+
+		public void ChangeDesCoeff(string location, string name)
+		{
+			string[] nameCoeff = new string[] { "W_h", "W_d", "W_p", "W_c", "W_w" };
+			string[] level = new string[4] { "00", "01", "05", "10" };
+			int[][] weight = new int[20][]{new int[]{0 , 1 , 1 , 1 , 1 },
+										   new int[]{1 , 1 , 1 , 1 , 1 },
+										   new int[]{5 , 1 , 1 , 1 , 1 },
+										   new int[]{10 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 0 , 1 , 1 , 1 },
+										   new int[]{1 , 1 , 1 , 1 , 1 },
+										   new int[]{1 , 5 , 1 , 1 , 1 },
+										   new int[]{1 , 10 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 0 , 1 , 1 },
+										   new int[]{1 , 1 , 1 , 1 , 1 },
+										   new int[]{1 , 1 , 5 , 1 , 1 },
+										   new int[]{1 , 1 , 10 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 0 , 1 },
+										   new int[]{1 , 1 , 1 , 1 , 1 },
+										   new int[]{1 , 1 , 1 , 5 , 1 },
+										   new int[]{1 , 1 , 1 , 10 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 0 },
+										   new int[]{1 , 1 , 1 , 1 , 1 },
+										   new int[]{1 , 1 , 1 , 1 , 5 },
+										   new int[]{1 , 1 , 1 , 1 , 10}};
+			for (int i = 0; i < nameCoeff.Count(); i++)
+			{
+				for (int l = 0; l < level.Count(); l++)
+				{
+					for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+					{
+						tmpTrainingPr[p].weight_p = weight[i * level.Count() + l][2];
+					}
+					for (int ii = 0; ii < tmpGeneral.Interns; ii++)
+					{
+						tmpinternInfos[ii].wieght_h= weight[i * level.Count() + l][0];
+						tmpinternInfos[ii].wieght_d = weight[i * level.Count() + l][1];
+						tmpinternInfos[ii].wieght_ch = -weight[i * level.Count() + l][3];
+						tmpinternInfos[ii].wieght_w = -weight[i * level.Count() + l][4];
+					}
+					string NewLoc = location + nameCoeff[i] + level[l] + "\\";
+					if (!Directory.Exists(NewLoc))
+					{
+						Directory.CreateDirectory(NewLoc);
+					}
+					WriteInstance(NewLoc, name);
+				}
+			}
 		}
 	}
 }

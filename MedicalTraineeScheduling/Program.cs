@@ -14,23 +14,23 @@ namespace MedicalTraineeScheduling
 			InstanceSize = 5;
 			DataLayer.InstanceSetting inssetting = new InstanceSetting();
 			int groupCounter = 0;
-			//foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
-			//{
-			//	groupCounter++;
-			//	for (int i = 0; i < InstanceSize; i++)
-			//	{
-			//		SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("Integration", "", "G_" + groupCounter);
-			//		WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "G_" + groupCounter + "\\", "Instance_" + i);
-			//		using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
-			//		{
-			//			string xx = String.Join(" \t ", TMPinstance.FeasibleSolution.MinDis);
-			//			file.WriteLine(i + "\t" + TMPinstance.FeasibleSolution.Obj + "\t" + TMPinstance.FeasibleSolution.AveDes + "\t" + xx
-			//				+ "\t" + TMPinstance.FeasibleSolution.EmrDemand + "\t" + TMPinstance.FeasibleSolution.ResDemand
-			//				+ "\t" + TMPinstance.FeasibleSolution.SlackDem + "\t" + TMPinstance.FeasibleSolution.NotUsedAccTotal);
-			//		}
+			foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
+			{
+				groupCounter++;
+				for (int i = 0; i < InstanceSize; i++)
+				{
+					SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("DesCoeff", "", "");
+					WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "\\", "Instance_" + i);
+					using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
+					{
+						string xx = String.Join(" \t ", TMPinstance.FeasibleSolution.MinDis);
+						file.WriteLine(i + "\t" + TMPinstance.FeasibleSolution.Obj + "\t" + TMPinstance.FeasibleSolution.AveDes + "\t" + xx
+							+ "\t" + TMPinstance.FeasibleSolution.EmrDemand + "\t" + TMPinstance.FeasibleSolution.ResDemand
+							+ "\t" + TMPinstance.FeasibleSolution.SlackDem + "\t" + TMPinstance.FeasibleSolution.NotUsedAccTotal);
+					}
 
-			//	}
-			//}
+				}
+			}
 			SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "NHA", "");
 			double[] minpercent = new double[] { 0, 0.1, 0.25, 0.5, 1 };
 			for (int mm = 0; mm < minpercent.Length; mm++)
