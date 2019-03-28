@@ -30,6 +30,11 @@ namespace DataLayer
 		public double NotUsedAccTotal;
 		public double Obj;
 		public double[] Obj_i;
+		public double wieghterSumInDisPrf;
+		public double wieghterSumPrDisPrf;
+		public double wieghterSumInHosPrf;
+		public double wieghterSumInChnPrf;
+		public double wieghterSumInWaiPrf;
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -92,6 +97,11 @@ namespace DataLayer
 
 		public void WriteSolution(string Path, string Name)
 		{
+			wieghterSumInDisPrf = 0;
+			wieghterSumPrDisPrf = 0;
+			wieghterSumInHosPrf = 0;
+			wieghterSumInChnPrf = 0;
+			wieghterSumInWaiPrf = 0;
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 			tw.WriteLine("PP | II | GG | DD | TT | HH | PrD | PrH | PrP | K_G | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
@@ -113,6 +123,11 @@ namespace DataLayer
 										{
 											if (Intern_itdh[i][t][d][h])
 											{
+												wieghterSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
+												wieghterSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+												wieghterSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
+												wieghterSumInChnPrf = 0;
+												wieghterSumInWaiPrf = 0;
 												if (data.Intern[i].OverSea_dt[d][t])
 												{
 													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
@@ -339,6 +354,8 @@ namespace DataLayer
 						 + data.Intern[i].wieght_d * PrDisp_i[i]
 						 + data.Intern[i].wieght_h * PrHosp_i[i]
 						 + data.TrainingPr[data.Intern[i].ProgramID].weight_p * TrPrPrf[i];
+				wieghterSumInChnPrf += data.Intern[i].wieght_ch * PrChang_i[i];
+				wieghterSumInWaiPrf += data.Intern[i].wieght_w * PrWait_i[i];
 				AveDes += Des_i[i];
 				if (MinDis[data.Intern[i].ProgramID] == data.AlgSettings.BigM)
 				{
