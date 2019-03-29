@@ -347,11 +347,12 @@ namespace NestedHungarianAlgorithm
 						}
 						else
 						{
+							double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi + data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
 							if (Change_ih[i][((PositionMap)MappingTable[j]).HIndex] > 0)
 							{
 								// if the person can be assigned to this hospital
 								// it is based on total changes
-								CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
+								CostMatrix_i_whDem[i][j] -=  coeff * data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
 							}
 							else
 							{
@@ -359,9 +360,9 @@ namespace NestedHungarianAlgorithm
 							}
 							
 							// discipline prf
-							CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+							CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
 							// Training Program prf
-							CostMatrix_i_whDem[i][j] -= (double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+							CostMatrix_i_whDem[i][j] -= coeff * data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
 
 							// motivationList
 							if (MotivationList_itdh[i][TimeID][discIn][((PositionMap)MappingTable[j]).HIndex])
@@ -375,7 +376,7 @@ namespace NestedHungarianAlgorithm
 								int prHosp = parentNode.LastPosition_i[i].HIndex;
 								if (prHosp != ((PositionMap)MappingTable[j]).HIndex)
 								{
-									CostMatrix_i_whDem[i][j] -= data.Intern[i].wieght_ch;
+									CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_ch;
 								}
 							}
 							
@@ -457,14 +458,19 @@ namespace NestedHungarianAlgorithm
 			{
 				for (int j = 0; j < TotalAvailablePosition; j++)
 				{
-					if (((PositionMap)MappingTable[j]).ResDem )
-					{
-						CostMatrix_i_whDem[i][j] += data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_ResCap;
+					// like MIP
+					for (int p = 0; p < data.General.TrainingPr; p++)
+					{						
+						if (((PositionMap)MappingTable[j]).ResDem)
+						{
+							CostMatrix_i_whDem[i][j] += data.TrainingPr[p].CoeffObj_ResCap;
+						}
+						if (((PositionMap)MappingTable[j]).EmrDem)
+						{
+							CostMatrix_i_whDem[i][j] += data.TrainingPr[p].CoeffObj_EmrCap;
+						}
 					}
-					if (((PositionMap)MappingTable[j]).EmrDem)
-					{
-						CostMatrix_i_whDem[i][j] += data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_EmrCap;
-					}
+					
 				}
 			}
 

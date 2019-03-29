@@ -89,7 +89,7 @@ namespace NestedHungarianAlgorithm
 			{
 				if (!InternStatus[i])
 				{
-					double tmpObj = incumbentSol.Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+					double tmpObj = incumbentSol.Des_i[i];
 					if (tmpObj < MinObj)
 					{
 						MinObj = tmpObj;

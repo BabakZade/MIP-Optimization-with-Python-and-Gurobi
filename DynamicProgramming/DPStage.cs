@@ -220,7 +220,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void cleanTheActiveState()
 		{
 			chooseBestHospIfChangeIsNecessary();
-			//limittedFutureList();
+			limittedFutureList();
 		}
 		//Necessary 
 		public void chooseBestHospIfChangeIsNecessary()
@@ -267,7 +267,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		//remove more than a number
 		public void limittedFutureList()
 		{
-			int limit = 50 * data.General.Disciplines * data.General.Hospitals;
+			int limit = 200 * data.General.Disciplines * data.General.Hospitals;
 			
 			if (FutureActiveState.Count > limit)
 			{

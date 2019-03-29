@@ -69,6 +69,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			tStage = theStage;
 			Initial(data);
 			activeDisc = new bool[alldata.General.Disciplines];
+			double coeff = data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_SumDesi + data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_MinDesi;
 			if (isRoot)
 			{
 				this.isRoot = true;
@@ -79,7 +80,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				x_wait = true;
 				if (stateInput.x_K>0)
 				{
-					Fx = data.Intern[theI].wieght_w;
+					Fx = coeff * data.Intern[theI].wieght_w;
 					// otherwise the solution is complete
 				}
 				
@@ -113,14 +114,14 @@ namespace NestedDynamicProgrammingAlgorithm
 				activeDisc[x_Disc] = true;
 				if (x_Hosp < data.General.Hospitals)
 				{
-					Fx = data.Intern[theI].Prf_d[x_Disc] * data.Intern[theI].wieght_d
+					Fx = coeff * (data.Intern[theI].Prf_d[x_Disc] * data.Intern[theI].wieght_d
 					+ data.Intern[theI].Prf_h[x_Hosp] * data.Intern[theI].wieght_h
-					+ data.TrainingPr[data.Intern[theI].ProgramID].weight_p * data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[x_Disc];
+					+ data.TrainingPr[data.Intern[theI].ProgramID].weight_p * data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[x_Disc]);
 				}
 				else // oversea
 				{
-					Fx = data.Intern[theI].Prf_d[x_Disc] * data.Intern[theI].wieght_d					
-					+ data.TrainingPr[data.Intern[theI].ProgramID].weight_p * data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[x_Disc];
+					Fx = coeff * (data.Intern[theI].Prf_d[x_Disc] * data.Intern[theI].wieght_d					
+					+ data.TrainingPr[data.Intern[theI].ProgramID].weight_p * data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[x_Disc]);
 				}
 				
 			
@@ -132,19 +133,25 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					if (stateInput.x_Hosp != xInput.x_Hosp && stateInput.x_Hosp != -1)
 					{
-						Fx += data.Intern[theI].wieght_ch;
+						Fx += coeff * data.Intern[theI].wieght_ch;
 
 					}
 				}				
 			}
-			if (flagEmrD)
+			// like MIP
+			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
-				Fx -= (int)data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_EmrCap;
+				if (flagEmrD)
+				{
+
+					Fx -= (int)data.TrainingPr[p].CoeffObj_EmrCap;
+				}
+				if (flagResD)
+				{
+					Fx -= (int)data.TrainingPr[p].CoeffObj_ResCap;
+				}
 			}
-			if (flagResD)
-			{
-				Fx -= (int)data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_ResCap;
-			}
+			
 			possibleStates = new ArrayList();
 			
 			setNextStates(stateInput, theI);
