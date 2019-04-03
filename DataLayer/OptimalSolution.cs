@@ -37,12 +37,12 @@ namespace DataLayer
 		public double wieghterSumInWaiPrf;
 
 		// in-feasibility signs 
-		public bool infeasibilityK_Assigned;
-		public bool[] infeasibilityK_Assigned_g;
-		public bool infeasibilityChangesInHospital;
-		public bool infeasibilityOverseaAbilityAve;
-		public bool infeasibilitySkill;
- 
+		bool infeasibilityK_Assigned;
+		bool[] infeasibilityK_Assigned_g;
+		bool infeasibilityChangesInHospital;
+		bool infeasibilityOverseaAbilityAve;
+		bool infeasibilitySkill;
+		public bool IsFeasible;
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -622,6 +622,7 @@ namespace DataLayer
 			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.WriteLine(setInfSetting());
+			IsFeasible = infeasibilityChangesInHospital && infeasibilityK_Assigned && infeasibilityOverseaAbilityAve && infeasibilitySkill;
 			tw.Close();
 		}
 	}

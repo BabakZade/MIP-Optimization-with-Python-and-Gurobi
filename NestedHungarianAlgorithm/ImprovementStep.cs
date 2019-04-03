@@ -20,8 +20,10 @@ namespace NestedHungarianAlgorithm
 		public int Region;
 		public int TimeForbucketListImp;
 		public int TimeForInternBaseImp;
+		public int TimeForResEmrImp;
 		public BucketLinsLocalSearch bucketLinsLocal;
 		public InternBasedLocalSearch internBasedLocalSearch;
+		public DemandBaseLocalSearch demandBaseLocalSearch;
 		public ImprovementStep(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList, string Name)
 		{
 			data = alldata;
@@ -33,7 +35,12 @@ namespace NestedHungarianAlgorithm
 			TimeForbucketListImp = (int)stopwatch.ElapsedMilliseconds / 1000;
 			stopwatch.Reset();
 			stopwatch.Restart();
-			internBasedLocalSearch = new InternBasedLocalSearch(data, bucketLinsLocal.improvedSolution , Name);
+			demandBaseLocalSearch = new DemandBaseLocalSearch(data, bucketLinsLocal.improvedSolution, Name);
+			stopwatch.Stop();
+			TimeForResEmrImp = (int)stopwatch.ElapsedMilliseconds / 1000;
+			stopwatch.Reset();
+			stopwatch.Restart();
+			internBasedLocalSearch = new InternBasedLocalSearch(data, demandBaseLocalSearch.finalSol , Name);
 			stopwatch.Stop();
 			TimeForInternBaseImp = (int)stopwatch.ElapsedMilliseconds / 1000;
 

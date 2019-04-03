@@ -36,6 +36,7 @@ namespace MultiLevelSolutionMethodology
 				ElappesedTime_p[p] = 0;
 			}
 			objFunction = 0;
+			finalSol = new OptimalSolution(data);
 		}
 
 		public void Methodology(int[] trProgram, string InsName)
@@ -49,6 +50,7 @@ namespace MultiLevelSolutionMethodology
 					setData(trProgram[p], trProgram[p + 1]);
 				}
 			}
+			finalSol.WriteSolution(dataManager.data_p[0].allPath.OutPutLocation, InsName + "SeqFinal");
 		}
 		
 		public void setMIPMethodology(AllData data_p, int theP, string InsName)
@@ -60,6 +62,7 @@ namespace MultiLevelSolutionMethodology
 			ElappesedTime_p[theP] = (int)stopwatch.ElapsedMilliseconds / 1000;
 			finalSol_p[theP].copyRosters(mip.mipOpt.Intern_itdh);
 			finalSol_p[theP].WriteSolution(data_p.allPath.OutPutLocation, InsName + "PrTr_" + theP);
+			finalSol.addRosters(mip.mipOpt.Intern_itdh);
 			objFunction += finalSol_p[theP].Obj;
 		}
 

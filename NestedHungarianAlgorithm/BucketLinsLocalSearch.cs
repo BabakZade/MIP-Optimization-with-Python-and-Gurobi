@@ -250,7 +250,7 @@ namespace NestedHungarianAlgorithm
 			}
 
 		}
-
+		
 		public void ImproveTheSchedule(ArrayList HungarianActiveList)
 		{
 
