@@ -35,6 +35,14 @@ namespace DataLayer
 		public double wieghterSumInHosPrf;
 		public double wieghterSumInChnPrf;
 		public double wieghterSumInWaiPrf;
+
+		// in-feasibility signs 
+		public bool infeasibilityK_Assigned;
+		public bool[] infeasibilityK_Assigned_g;
+		public bool infeasibilityChangesInHospital;
+		public bool infeasibilityOverseaAbilityAve;
+		public bool infeasibilitySkill;
+ 
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -70,6 +78,27 @@ namespace DataLayer
 				}
 			}
 		}
+
+		public void addRosters(bool[][][][] Copy_itdh)
+		{
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						for (int h = 0; h < data.General.Hospitals; h++)
+						{
+							if (Copy_itdh[i][t][d][h])
+							{
+								Intern_itdh[i][t][d][h] = Copy_itdh[i][t][d][h];
+							}							
+						}
+					}
+				}
+			}
+		}
+
 		public void Initial(AllData data)
 		{
 			new ArrayInitializer().CreateArray(ref Intern_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals + 1, false); // one for oversea hospital
@@ -93,6 +122,186 @@ namespace DataLayer
 			NotUsedAccTotal = 0;
 			Obj = 0;
 			SlackDem = 0;
+
+			infeasibilityK_Assigned = false;
+			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
+			infeasibilityChangesInHospital = false;
+			infeasibilityOverseaAbilityAve = false;
+			infeasibilitySkill = false;
+		}
+
+		public string setInfSetting()
+		{
+			string  Result = "";
+
+
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				int totalK = 0;
+				int[] totalK_g = new int[data.General.DisciplineGr];
+				for (int g = 0; g < data.General.DisciplineGr; g++)
+				{
+					totalK_g[g] = 0;
+				}
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					bool CheckedDis = false;
+					for (int t = 0; t < data.General.TimePriods && !CheckedDis; t++)
+					{
+						for (int g = 0; g < data.General.DisciplineGr && !CheckedDis; g++)
+						{
+
+							if (data.Intern[i].DisciplineList_dg[d][g])
+							{
+								for (int h = 0; h < data.General.Hospitals + 1 && !CheckedDis; h++)
+								{
+									if (Intern_itdh[i][t][d][h])
+									{
+										totalK++;
+										totalK_g[g]++;
+										wieghterSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
+										wieghterSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+										wieghterSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
+										wieghterSumInChnPrf = 0;
+										wieghterSumInWaiPrf = 0;
+										if (data.Intern[i].OverSea_dt[d][t] && h != data.General.Hospitals)
+										{
+											infeasibilityOverseaAbilityAve = true;
+											Result += "The intern " + i + " requested oversea at time " + t + " for discipline " + d + " but (s)he didnot get it \n";
+											if (data.Intern[i].Abi_dh[d][h])
+											{
+												infeasibilityOverseaAbilityAve = true;
+												Result += "The intern " + i + " does not has ability for hospital " + h + " for discipline " + d + " \n";
+											}
+											if (!data.Intern[i].Ave_t[t])
+											{
+												infeasibilityOverseaAbilityAve = true;
+												Result += "The intern " + i + " is not available at time " + t + " \n";
+											}
+										}
+										if (data.Intern[i].OverSea_dt[d][t] && h == data.General.Hospitals)
+										{
+											for (int dd = 0; dd < data.General.Disciplines; dd++)
+											{
+												if (data.Intern[i].FHRequirment_d[dd])
+												{
+													bool thereis = false;
+													for (int tt = 0; tt < t && !thereis; tt++)
+													{
+														for (int hh = 0; hh < data.General.Hospitals && !thereis; hh++)
+														{
+															if (Intern_itdh[i][tt][dd][hh])
+															{
+																thereis = true;
+															}
+														}
+													}
+													if (!thereis)
+													{
+														infeasibilitySkill = true;
+														Result += "The intern " + i + " must fulfill discipline  " + dd + " before going abroad for discipline " + d + " \n";
+													}
+												}
+
+											}
+										}
+										if (data.Discipline[d].requiresSkill_p[data.Intern[i].ProgramID])
+										{
+											for (int dd = 0; dd < data.General.Disciplines; dd++)
+											{
+												if (data.Discipline[d].Skill4D_dp[dd][data.Intern[i].ProgramID])
+												{
+													bool thereis = false;
+													for (int tt = 0; tt < t && !thereis; tt++)
+													{
+														for (int hh = 0; hh < data.General.Hospitals && !thereis; hh++)
+														{
+															if (Intern_itdh[i][tt][dd][hh])
+															{
+																thereis = true;
+															}
+														}
+													}
+													if (!thereis)
+													{
+														infeasibilitySkill = true;
+														Result += "The intern " + i + " must fulfill discipline  " + dd + " before discipline " + d + " \n";
+													}
+												}
+
+											}
+										}
+
+										CheckedDis = true;
+									}
+								}
+							}
+						}
+
+
+					}
+
+
+				}
+				if (totalK != data.Intern[i].K_AllDiscipline)
+				{
+					Result += "The intern " + i + " should fulfill " + data.Intern[i].K_AllDiscipline + " but (s)he did  " + totalK + " \n";
+					infeasibilityK_Assigned = true;
+				}
+				for (int g = 0; g < data.General.DisciplineGr; g++)
+				{
+					if (totalK_g[g] != data.Intern[i].ShouldattendInGr_g[g])
+					{
+						Result += "The intern " + i + " should fulfill " + data.Intern[i].ShouldattendInGr_g[g] + " but (s)he did  " + totalK_g[g] + "in Group " + g + " \n";
+					}
+
+				}
+			}
+
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				int IndH1 = -1;
+				int IndH2 = -1;
+				PrChang_i[i] = 0;
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					for (int d = 0; d < data.General.Disciplines; d++)
+					{
+						for (int h = 0; h < data.General.Hospitals + 1; h++)
+						{
+							if (Intern_itdh[i][t][d][h])
+							{
+								if (IndH1 < 0)
+								{
+									IndH1 = h;
+								}
+								else
+								{
+									IndH2 = h;
+									if (IndH1 != IndH2)
+									{
+										PrChang_i[i]++;
+									}
+									IndH1 = IndH2;
+									IndH2 = -1;
+								}
+							}
+						}
+					}
+				}
+				if (PrChang_i[i] > data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp)
+				{
+					infeasibilityChangesInHospital = true;
+				}
+
+			}
+
+
+			if (Result == "")
+			{
+				Result += "The solution is feasible";
+			}
+			return Result;
 		}
 
 		public void WriteSolution(string Path, string Name)
@@ -412,6 +621,7 @@ namespace DataLayer
 			tw.WriteLine("Acc: " + NotUsedAccTotal.ToString("000.0"));
 			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
+			tw.WriteLine(setInfSetting());
 			tw.Close();
 		}
 	}

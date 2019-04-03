@@ -13,6 +13,7 @@ namespace NestedHungarianAlgorithm
 		public int DemandIndex;
 		public bool EmrDem;
 		public bool ResDem;
+		public bool Mindemand;
 		public double positionDesire;
 		public PositionMap(int x)
 		{
@@ -23,6 +24,7 @@ namespace NestedHungarianAlgorithm
 			EmrDem = false;
 			ResDem = false;
 			positionDesire = 0;
+			Mindemand = false;
 		}
 		public void CopyPosition(PositionMap copyable)
 		{
@@ -33,6 +35,7 @@ namespace NestedHungarianAlgorithm
 			EmrDem = copyable.EmrDem;
 			ResDem = copyable.ResDem;
 			positionDesire = copyable.positionDesire;
+			Mindemand = copyable.Mindemand;
 		}
 	}
 	public class HungarianNode
@@ -46,6 +49,7 @@ namespace NestedHungarianAlgorithm
 		public bool[][][] Schedule_idh;
 		public HungarianNode parentNode;
 		public int[][] TimeLine_it;
+		public int[] requiredTimeForRemainedDisc;
 		public int[][][] DemMax_wth;
 		public int[][][] DemMin_wth;
 		public int[][][] Disc_iwh;
@@ -201,6 +205,7 @@ namespace NestedHungarianAlgorithm
 				for (int h = 0; h < Hospitals; h++)
 				{
 					TotalAvailablePosition += DemMax_wth[w][TimeID][h];
+					int totalMinDem = data.Hospital[h].HospitalMinDem_tw[TimeID][w];
 					for (int dd = 0; dd < DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]); dd++)
 					{
 						MappingTable.Add(new PositionMap()
@@ -210,7 +215,9 @@ namespace NestedHungarianAlgorithm
 							HIndex = h,
 							ResDem = false,
 							EmrDem = false,
+							Mindemand = totalMinDem > 0 ? true : false,
 						});
+						totalMinDem--;
 					}
 					int start = DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]);
 					for (int dd = start; dd < DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w]; dd++)
@@ -297,7 +304,20 @@ namespace NestedHungarianAlgorithm
 					LastPosition_i[i].CopyPosition(parentNode.LastPosition_i[i]);
 				}
 			}
-			
+
+			requiredTimeForRemainedDisc = new int[Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				if (isRoot)
+				{
+					requiredTimeForRemainedDisc[i] = (int)data.Intern[i].requieredTimeForRemianed[data.Intern[i].K_AllDiscipline - 1];
+				}
+				else
+				{
+					requiredTimeForRemainedDisc[i] = parentNode.requiredTimeForRemainedDisc[i];
+				}
+				
+			}
 		}
 		public void setCostMatrix(bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
 		{
@@ -402,9 +422,17 @@ namespace NestedHungarianAlgorithm
 							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
 						}						
 					}
-					else // if the intern wants to wait(weight_w<0)
+					else 
 					{
-						CostMatrix_i_whDem[i][j] -= (double)data.Intern[i].wieght_w;
+						if (requiredTimeForRemainedDisc[i] >= data.General.TimePriods - TimeID) // if interns must take a course 
+						{
+							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+						}
+						else // if the intern wants to wait(weight_w<0)
+						{
+							CostMatrix_i_whDem[i][j] -= data.Intern[i].wieght_w;
+						}
+						
 					}
 				}
 			}
@@ -460,7 +488,7 @@ namespace NestedHungarianAlgorithm
 				{
 					// like MIP
 					for (int p = 0; p < data.General.TrainingPr; p++)
-					{						
+					{
 						if (((PositionMap)MappingTable[j]).ResDem)
 						{
 							CostMatrix_i_whDem[i][j] += data.TrainingPr[p].CoeffObj_ResCap;
@@ -469,8 +497,31 @@ namespace NestedHungarianAlgorithm
 						{
 							CostMatrix_i_whDem[i][j] += data.TrainingPr[p].CoeffObj_EmrCap;
 						}
+
 					}
-					
+
+				}
+			}
+
+		}
+
+
+		public void setMinDemMotivationCost()
+		{
+			// this function considers if at the timeID the intern assigned to emergency or reserved capacity 
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int j = 0; j < TotalAvailablePosition; j++)
+				{
+					// like MIP
+					for (int p = 0; p < data.General.TrainingPr; p++)
+					{
+						if (((PositionMap)MappingTable[j]).Mindemand && data.Intern[i].isProspective)
+						{
+							CostMatrix_i_whDem[i][j] -= data.TrainingPr[p].CoeffObj_MINDem;
+						}
+					}
+
 				}
 			}
 
@@ -704,7 +755,9 @@ namespace NestedHungarianAlgorithm
 									WIndex = ((PositionMap)MappingTable[Index]).WIndex,
 									HIndex = Hospitals,
 								};
+
 							}
+							requiredTimeForRemainedDisc[i] -= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
 						}
 					}
 					

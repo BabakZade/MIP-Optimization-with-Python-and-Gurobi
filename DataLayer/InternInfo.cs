@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 
@@ -33,6 +33,9 @@ namespace DataLayer
 		public int[] ShouldattendInGr_g;
 		public bool isProspective;
 		public int K_AllDiscipline;
+		public double AveDur;
+
+		public double[] requieredTimeForRemianed;
 		public InternInfo(int Hospitals, int Disciplines, int TimePeriods, int DisciplineGr, int TrainingPr, int Region)
 		{
 			Name = "";
@@ -116,6 +119,67 @@ namespace DataLayer
 			{
 				K_AllDiscipline += this.ShouldattendInGr_g[g];
 			}
+		}
+
+		public void setAveInfo(AllData allData)
+		{
+			int counter = 0;
+			AveDur = 0;
+			ArrayList sequence = new ArrayList();
+			for (int d = 0; d < allData.General.Disciplines; d++)
+			{
+				for (int g = 0; g < allData.General.DisciplineGr; g++)
+				{
+					if (DisciplineList_dg[d][g])
+					{
+						sequence.Add(allData.Discipline[d].Duration_p[ProgramID]);
+						counter++;
+						break;
+					}
+				}
+			}
+			double[] seq = new double[sequence.Count];
+			for (int s = 0; s < sequence.Count; s++)
+			{
+				// to sort increasing 
+				seq[s] = -((int)sequence[s]);
+			}
+
+			AveDur = Percentile(seq, 0.5);
+		}
+
+		public double Percentile(double[] sequence, double excelPercentile)
+		{
+			Array.Sort(sequence);
+
+			//first set this data
+			requieredTimeForRemianed = new double[K_AllDiscipline];
+			
+			for (int i = 0; i < K_AllDiscipline; i++)
+			{
+				for (int j = i; j < K_AllDiscipline; j++)
+				{
+					requieredTimeForRemianed[i] += (-sequence[j]);
+				}
+			}
+			Array.Sort(requieredTimeForRemianed);
+			double sum = 0;
+			int N = sequence.Length;
+			double n = (N - 1) * excelPercentile + 1;
+			// Another method: double n = (N + 1) * excelPercentile;
+			for (int i = 0; i < n && i < sequence.Count(); i++)
+			{
+				sum += sequence[i];
+			}
+			if (n > 1)
+			{
+				n = (int)n;
+			}
+			else
+			{
+				n = 1;
+			}
+			return -sum/n;
 		}
 	}
 }

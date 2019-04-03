@@ -27,7 +27,7 @@ namespace DataLayer
 			CreateInstances();
 			WriteInstance(location, name);
 			WriteFeasibleSol(location, "Feasible" + name);
-			ChangeDesCoeff(location, name);
+			//ChangeDesCoeff(location, name);
 		}
 
 

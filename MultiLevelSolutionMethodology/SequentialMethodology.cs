@@ -40,6 +40,7 @@ namespace MultiLevelSolutionMethodology
 
 		public void Methodology(int[] trProgram, string InsName)
 		{
+			
 			for (int p = 0; p < trProgram.Length; p++)
 			{
 				setMIPMethodology(dataManager.data_p[trProgram[p]], trProgram[p], InsName);
@@ -58,7 +59,7 @@ namespace MultiLevelSolutionMethodology
 			stopwatch.Stop();
 			ElappesedTime_p[theP] = (int)stopwatch.ElapsedMilliseconds / 1000;
 			finalSol_p[theP].copyRosters(mip.mipOpt.Intern_itdh);
-			finalSol_p[theP].WriteSolution(data_p.allPath.OutPutLocation, "PrTr_" + theP);
+			finalSol_p[theP].WriteSolution(data_p.allPath.OutPutLocation, InsName + "PrTr_" + theP);
 			objFunction += finalSol_p[theP].Obj;
 		}
 

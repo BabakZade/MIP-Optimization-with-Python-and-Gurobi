@@ -86,10 +86,10 @@ namespace MultiLevelSolutionMethodology
 						}
 						for (int t = 0; t < data_p[p].General.TimePriods; t++)
 						{
-							data_p[p].Hospital[h].HospitalMinDem_tw[t][w] = allData.Hospital[h].HospitalMinDem_tw[t][w];
-							data_p[p].Hospital[h].HospitalMaxDem_tw[t][w] = allData.Hospital[h].HospitalMaxDem_tw[t][w];
-							data_p[p].Hospital[h].EmergencyCap_tw[t][w] = allData.Hospital[h].EmergencyCap_tw[t][w];
-							data_p[p].Hospital[h].ReservedCap_tw[t][w] = allData.Hospital[h].ReservedCap_tw[t][w];
+							data_p[p].Hospital[h].HospitalMinDem_tw[t][w] = 0;
+							data_p[p].Hospital[h].HospitalMaxDem_tw[t][w] = 0;
+							data_p[p].Hospital[h].EmergencyCap_tw[t][w] = 0;
+							data_p[p].Hospital[h].ReservedCap_tw[t][w] = 0;
 						}
 					}
 					// if the hospital is in the region
@@ -200,6 +200,7 @@ namespace MultiLevelSolutionMethodology
 					{
 						for (int h = 0; h < data_p[p].General.Hospitals; h++)
 						{
+
 							data_p[p].Intern[totalInternforP].Abi_dh[d][h] = xIntern[i].Abi_dh[d][h];
 							data_p[p].Intern[totalInternforP].Fulfilled_dhp[d][h][p] = xIntern[i].Fulfilled_dhp[d][h][p];
 							data_p[p].Intern[totalInternforP].FHRequirment_d[d] = xIntern[i].FHRequirment_d[d];
@@ -214,6 +215,46 @@ namespace MultiLevelSolutionMethodology
 								data_p[p].Intern[totalInternforP].DisciplineList_dg[d][g] = xIntern[i].DisciplineList_dg[d][g];
 								data_p[p].Intern[totalInternforP].K_AllDiscipline = xIntern[i].K_AllDiscipline;
 								data_p[p].Intern[totalInternforP].ShouldattendInGr_g[g] = xIntern[i].ShouldattendInGr_g[g];
+							}
+
+							// demand correction
+							bool onceChecked = false;
+							for (int w = 0; w < allData.General.HospitalWard && !onceChecked; w++)
+							{
+								for (int g = 0; g < data_p[p].General.DisciplineGr && !onceChecked; g++)
+								{
+									if (!allData.Hospital[h].Hospital_dw[d][w])
+									{
+										continue;
+									}
+									if (!data_p[p].Intern[totalInternforP].DisciplineList_dg[d][g])
+									{
+										for (int t = 0; t < data_p[p].General.TimePriods; t++)
+										{
+											if (data_p[p].Hospital[h].HospitalMaxDem_tw[t][w] > 0)
+											{
+												onceChecked = true;
+												break;
+											}
+											data_p[p].Hospital[h].HospitalMinDem_tw[t][w] = 0;
+											data_p[p].Hospital[h].HospitalMaxDem_tw[t][w] = 0;
+											data_p[p].Hospital[h].EmergencyCap_tw[t][w] = 0;
+											data_p[p].Hospital[h].ReservedCap_tw[t][w] = 0;
+										}
+									}
+									else
+									{
+										for (int t = 0; t < data_p[p].General.TimePriods; t++)
+										{
+											onceChecked = true;
+											data_p[p].Hospital[h].HospitalMinDem_tw[t][w] = allData.Hospital[h].HospitalMinDem_tw[t][w];
+											data_p[p].Hospital[h].HospitalMaxDem_tw[t][w] = allData.Hospital[h].HospitalMaxDem_tw[t][w];
+											data_p[p].Hospital[h].EmergencyCap_tw[t][w] = allData.Hospital[h].EmergencyCap_tw[t][w];
+											data_p[p].Hospital[h].ReservedCap_tw[t][w] = allData.Hospital[h].ReservedCap_tw[t][w];
+										}
+									}
+								}
+
 							}
 						}
 						data_p[p].Intern[totalInternforP].Prf_d[d] = xIntern[i].Prf_d[d];

@@ -160,7 +160,7 @@ namespace NestedDynamicProgrammingAlgorithm
 							}
 						}
 						// if there was no future state add wait and intern is available
-						if (activeStatesValue[counter].Count == 1)
+						if (activeStatesValue[counter].Count == 1 && data.Intern[theIntern].AveDur * ((StateStage)activeStatesValue[counter][0]).x_K < data.General.TimePriods - stageTime)
 						{
 							// the wait 
 							StateStage tmpwait = new StateStage(data);
@@ -173,7 +173,7 @@ namespace NestedDynamicProgrammingAlgorithm
 						// it is a complete  solution 
 						// we need the best one 						
 
-						if (((StateStage)parentNode.FutureActiveState[c]).Fx > finalSchedule.Fx)
+						if (((StateStage)parentNode.FutureActiveState[c]).Fx > finalSchedule.Fx )
 						{
 							finalSchedule = (StateStage)parentNode.FutureActiveState[c];
 						}

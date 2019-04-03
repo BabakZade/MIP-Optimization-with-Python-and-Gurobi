@@ -109,6 +109,10 @@ namespace DataLayer
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 				data.TrainingPr[p].DiscChangeInOneHosp = int.Parse(line.Substring(0, indexN));
+				line = line.Substring(indexN + 1);
+				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+
+				data.TrainingPr[p].CoeffObj_MINDem = double.Parse(line.Substring(0, indexN));
 			}
 			line = tw.ReadLine();
 
@@ -595,6 +599,7 @@ namespace DataLayer
 			{
 				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines, data.General.DisciplineGr, data.General.HospitalWard, data);
 				data.Intern[i].setKAllDiscipline(data);
+				data.Intern[i].setAveInfo(data);
 			}
 
 		}
