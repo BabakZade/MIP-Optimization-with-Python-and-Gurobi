@@ -40,7 +40,7 @@ namespace NestedHungarianAlgorithm
 			TimeForResEmrImp = (int)stopwatch.ElapsedMilliseconds / 1000;
 			stopwatch.Reset();
 			stopwatch.Restart();
-			internBasedLocalSearch = new InternBasedLocalSearch(data, demandBaseLocalSearch.finalSol , Name);
+			internBasedLocalSearch = new InternBasedLocalSearch(data, demandBaseLocalSearch.Global , Name);
 			stopwatch.Stop();
 			TimeForInternBaseImp = (int)stopwatch.ElapsedMilliseconds / 1000;
 

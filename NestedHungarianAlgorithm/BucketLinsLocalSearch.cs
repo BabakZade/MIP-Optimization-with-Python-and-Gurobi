@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections;
 using System.Text;
 using DataLayer;
+using System.Linq;
 
 namespace NestedHungarianAlgorithm
 {
@@ -26,11 +28,14 @@ namespace NestedHungarianAlgorithm
 			theTime = copyable.theTime;
 		}
 	}
+	
 	public class BucketLinsLocalSearch
 	{
 		
 
 		ArrayList bucketlist;
+		ArrayList[][][] CandidateForReOrder_twh;
+		
 		public int Interns;
 		public int Disciplins;
 		public int Hospitals;
@@ -47,13 +52,15 @@ namespace NestedHungarianAlgorithm
 		public bool[][][][] bucketArray_itdh;
 		public int theTimeOfImprove;
 		public bool[][] NotRequiredSkill_id;
+		
 		int BLcounter;
 		int BLLimit;
 		public BucketLinsLocalSearch(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList, string Name)
 		{
 			data = alldata;
 			Initial(incumbentSol);
-			InitialBucketChange(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
+			InitialBucketChangeHospital(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
+			InitialBucketChangeOrder(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
 			InitialBucketSkill(incumbentSol);
 			ImproveTheSchedule(HungarianActiveList);
 			setSolution(HungarianActiveList, Name);
@@ -79,7 +86,7 @@ namespace NestedHungarianAlgorithm
 			new ArrayInitializer().CreateArray(ref bucketArray_itdh, Interns, Timepriods, Disciplins, Hospitals, false);
 			new ArrayInitializer().CreateArray(ref NotRequiredSkill_id, Interns, Disciplins, false);
 		}
-		public void InitialBucketChange(double neighbourhoodSize, OptimalSolution incumbentSol)
+		public void InitialBucketChangeHospital(double neighbourhoodSize, OptimalSolution incumbentSol)
 		{
 			bucketlist = new ArrayList();
 			for (int i = 0; i < Interns; i++)
@@ -110,26 +117,32 @@ namespace NestedHungarianAlgorithm
 									if (theh1 < 0)
 									{
 										theh1 = h;
-
 									}
 									else if (theh2 < 0 && h != theh1)
 									{
 										theh2 = h;
 										// the time that h1 is changed
 										thet1 = t;
-										
-									}
-									if (theh1 >= 0 && theh2 >= 0 && h == theh1)
-									{
-										if (theTimeOfImprove > thet1)
+										for (int ct = t; ct < Timepriods; ct++)
 										{
-											theTimeOfImprove = thet1;
+											for (int dd = 0; dd < Disciplins; dd++)
+											{
+												// if again it goes back to the same hospital
+												if (incumbentSol.Intern_itdh[i][ct][dd][theh1])
+												{
+													if (theTimeOfImprove > thet1)
+													{
+														theTimeOfImprove = thet1;
+													}
+													redundantCh = true;
+													// we only need the time it is changed to insert the discipline there
+													bucketArray_itdh[i][thet1][d][h] = true;
+													BLcounter++;
+													bucketlist.Add(new Bucket(i, thet1, d, h) { });
+												}
+											}
 										}
-										redundantCh = true;
-										// we only need the time it is changed to insert the discipline there
-										bucketArray_itdh[i][thet1][d][h] = true;
-										BLcounter++;
-										bucketlist.Add(new Bucket(i, thet1, d, h) { });
+										
 									}
 								}
 							}
@@ -139,6 +152,81 @@ namespace NestedHungarianAlgorithm
 
 			}
 
+		}
+		public void InitialBucketChangeOrder(double neighbourhoodSize, OptimalSolution incumbentSol)
+		{
+			InitialDemand(incumbentSol);
+			bool[] internChanged = new bool[Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				internChanged[i] = false;
+			}
+			for (int t = 0; t < Timepriods; t++)
+			{
+				for (int w = 0; w < Wards; w++)
+				{
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (BLcounter >= BLLimit)
+						{
+							break;
+						}
+						if (CandidateForReOrder_twh[t][w][h].Count > 0)
+						{
+							int[] iStatus = new int[CandidateForReOrder_twh[t][w][h].Count];
+							for (int i = 0; i < CandidateForReOrder_twh[t][w][h].Count; i++)
+							{
+								iStatus[i] = (int)CandidateForReOrder_twh[t][w][h][i];
+							}
+							Random rnd = new Random();
+							int[] random_sort = iStatus.OrderBy(x => rnd.Next()).ToArray();
+
+							int[] randomDisc = new int[Disciplins];
+							for (int d = 0; d < Disciplins; d++)
+							{
+								randomDisc[d] = d;
+							}
+							randomDisc = randomDisc.OrderBy(x => rnd.Next()).ToArray();
+							int bound = data.Hospital[h].ReservedCap_tw[t][w] - ResDem_twh[t][w][h] + data.Hospital[h].EmergencyCap_tw[t][w]- EmrDem_twh[t][w][h];
+							for (int x = 0; x < bound; x++)
+							{
+								int i = random_sort[x];
+								if (internChanged[i])
+								{
+									continue;
+								}
+								// find a isolated discipline
+								bool notFound = true;
+								for (int dd = 0; dd < Disciplins && notFound; dd++)
+								{
+									int d = randomDisc[dd];
+									for (int tt = 0; tt < Timepriods && notFound; tt++)
+									{
+										for (int hh = 0; hh < Hospitals && notFound; hh++)
+										{
+											if (incumbentSol.Intern_itdh[i][tt][d][hh] && tt != t && tt!=0)
+											{
+												// check Skill
+												if (!data.Discipline[d].requiresSkill_p[data.Intern[i].ProgramID])
+												{
+													bucketArray_itdh[i][0][d][hh] = true;
+													BLcounter++;
+													bucketlist.Add(new Bucket(i, 0, d, hh) { });
+													notFound = false;
+													internChanged[i] = true;
+												}
+											}
+										}
+
+									}
+
+								}
+							}
+							
+						}
+					}
+				}
+			}
 		}
 		public void InitialBucketSkill(OptimalSolution incumbentSol)
 		{
@@ -210,36 +298,49 @@ namespace NestedHungarianAlgorithm
 
 			// use incumbent solution
 			bool improved = false;
+			CandidateForReOrder_twh = new ArrayList[Timepriods][][];
+			for (int t = 0; t < Timepriods; t++)
+			{
+				CandidateForReOrder_twh[t] = new ArrayList[Wards][];
+				for (int w = 0; w < Wards; w++)
+				{
+					CandidateForReOrder_twh[t][w] = new ArrayList[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						CandidateForReOrder_twh[t][w][h] = new ArrayList();
+					}
+				}
+			}
+			
 			for (int i = 0; i < data.General.Interns; i++)
 			{
-				if (i != 0)
+				for (int d = 0; d < data.General.Disciplines; d++)
 				{
-					for (int d = 0; d < data.General.Disciplines; d++)
+					for (int h = 0; h < data.General.Hospitals; h++)
 					{
-						for (int h = 0; h < data.General.Hospitals; h++)
+						for (int t = 0; t < data.General.TimePriods; t++)
 						{
-							for (int t = 0; t < data.General.TimePriods; t++)
+							if (incumbentSol.Intern_itdh[i][t][d][h])
 							{
-								if (incumbentSol.Intern_itdh[i][t][d][h])
+								for (int w = 0; w < data.General.HospitalWard; w++)
 								{
-									for (int w = 0; w < data.General.HospitalWard; w++)
+									if (data.Hospital[h].Hospital_dw[d][w])
 									{
-										if (data.Hospital[h].Hospital_dw[d][w])
+										CandidateForReOrder_twh[t][w][h].Add(i);
+										if (MaxDem_twh[t][w][h] > 0)
 										{
-											if (MaxDem_twh[t][w][h] > 0)
-											{
-												MaxDem_twh[t][w][h]--;
-												MinDem_twh[t][w][h]--;
-												improved = true;
-											}
-											else if (ResDem_twh[t][w][h] > 0)
-											{
-												ResDem_twh[t][w][h]--;
-											}
-											else if (EmrDem_twh[t][w][h] > 0)
-											{
-												EmrDem_twh[t][w][h]--;
-											}
+											MaxDem_twh[t][w][h]--;
+											MinDem_twh[t][w][h]--;
+
+											improved = true;
+										}
+										else if (ResDem_twh[t][w][h] > 0)
+										{
+											ResDem_twh[t][w][h]--;
+										}
+										else if (EmrDem_twh[t][w][h] > 0)
+										{
+											EmrDem_twh[t][w][h]--;
 										}
 									}
 								}
@@ -249,6 +350,20 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 
+
+			for (int t = 0; t < Timepriods; t++)
+			{
+				for (int w = 0; w < Wards; w++)
+				{
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (ResDem_twh[t][w][h] == data.Hospital[h].ReservedCap_tw[t][w])
+						{
+							CandidateForReOrder_twh[t][w][h]= new ArrayList();
+						}
+					}
+				}
+			}
 		}
 		
 		public void ImproveTheSchedule(ArrayList HungarianActiveList)

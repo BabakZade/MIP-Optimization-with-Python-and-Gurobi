@@ -33,70 +33,75 @@ namespace MedicalTraineeScheduling
 			//}
 			SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "NHA", "");
 
-			string[] nameCoeff = new string[] { "W_h", "W_d", "W_p", "W_c", "W_w" };
-			string[] level = new string[4] { "00", "01", "05", "10" };
-			for (int g = 0; g < 5; g++)
-			{
-				for (int l = 0; l < 4; l++)
-				{
+			//string[] nameCoeff = new string[] { "W_h", "W_d", "W_p", "W_c", "W_w" };
+			//string[] level = new string[4] { "00", "01", "05", "10" };
+			//for (int g = 0; g < 5; g++)
+			//{
+			//	for (int l = 0; l < 1; l++)
+			//	{
 
-					for (int i = 0; i < InstanceSize; i++)
-					{
-						groupCounter++;
-						if (groupCounter < 78)
-						{
-							continue;
-						}
+			//		for (int i = 0; i < InstanceSize; i++)
+			//		{
+			//			groupCounter++;
+			//			if (groupCounter < 15)
+			//			{
+			//				continue;
+			//			}
 
-						ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "DesCoeff", "NHA", nameCoeff[g] + level[l], "Instance_" + i + ".txt");
-						Stopwatch stopwatch = new Stopwatch();
-						read.data.AlgSettings.internBasedImpPercentage = 0.2;
-						//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
-						stopwatch.Start();
-						NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
-						stopwatch.Stop();
-						int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+			//			ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ResourcePool", "NHA", nameCoeff[g] + level[l], "Instance_" + i + ".txt");
+			//			Stopwatch stopwatch = new Stopwatch();
+			//			read.data.AlgSettings.internBasedImpPercentage = 0.2;
+			//			//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
+			//			stopwatch.Start();
+			//			NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
+			//			stopwatch.Stop();
+			//			int time = (int)stopwatch.ElapsedMilliseconds / 1000;
 						
-						using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
-						{
-							file.WriteLine(i + "\t" + time
-								// NHA first Sol
-								+ "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
-								+ "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
-								+ "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
-								+ "\t" + nha.nhaResult.wieghterSumInHosPrf + "\t" + nha.nhaResult.wieghterSumInDisPrf
-								 + "\t" + nha.nhaResult.wieghterSumPrDisPrf + "\t" + nha.nhaResult.wieghterSumInChnPrf
-								 + "\t" + nha.nhaResult.wieghterSumInWaiPrf
+			//			using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+			//			{
+			//				file.WriteLine(i + "\t" + time
+			//					// NHA first Sol
+			//					+ "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
+			//					+ "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
+			//					+ "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
+			//					+ "\t" + nha.nhaResult.wieghterSumInHosPrf + "\t" + nha.nhaResult.wieghterSumInDisPrf
+			//					 + "\t" + nha.nhaResult.wieghterSumPrDisPrf + "\t" + nha.nhaResult.wieghterSumInChnPrf
+			//					 + "\t" + nha.nhaResult.wieghterSumInWaiPrf
 
-								// NHA bucket list improvement
-								+ "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.Obj + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.bucketLinsLocal.improvedSolution.MinDis)
-								+ "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.EmrDemand + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.ResDemand
-								+ "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.SlackDem + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.NotUsedAccTotal
-								+ "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInHosPrf + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInDisPrf
-								 + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumPrDisPrf + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInChnPrf
-								 + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInWaiPrf
+			//					// NHA bucket list improvement
+			//					+ "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.Obj + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.bucketLinsLocal.improvedSolution.MinDis)
+			//					+ "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.EmrDemand + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.ResDemand
+			//					+ "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.SlackDem + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.NotUsedAccTotal
+			//					+ "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInHosPrf + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInDisPrf
+			//					 + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumPrDisPrf + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInChnPrf
+			//					 + "\t" + nha.improvementStep.bucketLinsLocal.improvedSolution.wieghterSumInWaiPrf
 
-								// NHA intern based improvement 
-								+ "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
-								+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
-								+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
-								+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInHosPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInDisPrf
-								 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumPrDisPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInChnPrf
-								 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInWaiPrf
+			//					// NHA intern based improvement 
+			//					+ "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
+			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
+			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
+			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInHosPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInDisPrf
+			//					 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumPrDisPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInChnPrf
+			//					 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghterSumInWaiPrf
 
-								);
-						}
-					}
-				}
+			//					);
+			//			}
+			//		}
+			//	}
 
 
-			}
+			//}
 
 			for (int g = 0; g < 9; g++)
 				{
 					for (int i = 0; i < InstanceSize; i++)
 					{
-						ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHAScBL\\Scenario_" , "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					groupCounter++;
+					if (groupCounter< 13)
+					{
+						continue;
+					}
+						ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ResourcePool", "NHA" , "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 						
 						Stopwatch stopwatch = new Stopwatch();
 						stopwatch.Start();
