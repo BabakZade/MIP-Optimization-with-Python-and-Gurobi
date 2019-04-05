@@ -334,7 +334,7 @@ namespace DataLayer
 											{
 												wieghterSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
 												wieghterSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
-												wieghterSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
+												
 												wieghterSumInChnPrf = 0;
 												wieghterSumInWaiPrf = 0;
 												if (data.Intern[i].OverSea_dt[d][t])
@@ -343,6 +343,7 @@ namespace DataLayer
 												}
 												else
 												{
+													wieghterSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
 													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
 													for (int r = 0; r < data.General.Region; r++)
 													{

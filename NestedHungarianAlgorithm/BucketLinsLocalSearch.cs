@@ -209,6 +209,7 @@ namespace NestedHungarianAlgorithm
 												// check Skill
 												if (!data.Discipline[d].requiresSkill_p[data.Intern[i].ProgramID])
 												{
+													theTimeOfImprove = 0;
 													bucketArray_itdh[i][0][d][hh] = true;
 													BLcounter++;
 													bucketlist.Add(new Bucket(i, 0, d, hh) { });
