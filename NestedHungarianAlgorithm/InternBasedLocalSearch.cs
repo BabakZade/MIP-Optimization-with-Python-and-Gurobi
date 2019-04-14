@@ -56,7 +56,7 @@ namespace NestedHungarianAlgorithm
 				solI = new OptimalSolution(data);
 				solI.copyRosters(finalSol.Intern_itdh);
 				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + i + Name);
-				if (solI.Obj > finalSol.Obj)
+				if (solI.Obj > finalSol.Obj && solI.IsFeasible)
 				{
 					finalSol = new OptimalSolution(data);
 					finalSol.copyRosters(solI.Intern_itdh);

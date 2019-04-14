@@ -309,7 +309,7 @@ namespace NestedHungarianAlgorithm
 													}
 												}
 												else if (ResEmrDemand_tdh[secontTime][d][SecondHospital] < 0
-												&& ResEmrDemand_tdh[t][dd][t] < 0)
+												&& ResEmrDemand_tdh[t][dd][SecondHospital] < 0)
 												{
 													// 
 													MinImpObj += allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_SumDesi * (allData.Intern[i].wieght_h * allData.Intern[i].Prf_h[SecondHospital]);

@@ -629,6 +629,7 @@ namespace DataLayer
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.WriteLine(setInfSetting());
 			IsFeasible = infeasibilityChangesInHospital && infeasibilityK_Assigned && infeasibilityOverseaAbilityAve && infeasibilitySkill;
+			Obj = -data.AlgSettings.BigM;
 			tw.Close();
 		}
 	}

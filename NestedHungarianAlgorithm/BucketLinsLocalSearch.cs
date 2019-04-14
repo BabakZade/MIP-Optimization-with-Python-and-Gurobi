@@ -60,7 +60,8 @@ namespace NestedHungarianAlgorithm
 			data = alldata;
 			Initial(incumbentSol);
 			InitialBucketChangeHospital(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
-			InitialBucketChangeOrder(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
+			InitialBucketChangeOrderResEmr(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
+			InitialBucketChangeOrderMinDem(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
 			InitialBucketSkill(incumbentSol);
 			ImproveTheSchedule(HungarianActiveList);
 			setSolution(HungarianActiveList, Name);
@@ -86,6 +87,7 @@ namespace NestedHungarianAlgorithm
 			new ArrayInitializer().CreateArray(ref bucketArray_itdh, Interns, Timepriods, Disciplins, Hospitals, false);
 			new ArrayInitializer().CreateArray(ref NotRequiredSkill_id, Interns, Disciplins, false);
 		}
+
 		public void InitialBucketChangeHospital(double neighbourhoodSize, OptimalSolution incumbentSol)
 		{
 			bucketlist = new ArrayList();
@@ -153,7 +155,8 @@ namespace NestedHungarianAlgorithm
 			}
 
 		}
-		public void InitialBucketChangeOrder(double neighbourhoodSize, OptimalSolution incumbentSol)
+
+		public void InitialBucketChangeOrderResEmr(double neighbourhoodSize, OptimalSolution incumbentSol)
 		{
 			InitialDemand(incumbentSol);
 			bool[] internChanged = new bool[Interns];
@@ -229,6 +232,210 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 		}
+
+		public void InitialBucketChangeOrderMinDem(double neighbourhoodSize, OptimalSolution incumbentSol)
+		{
+			bool[] internChanged = new bool[Interns];
+			for (int i = 0; i < Interns; i++)
+			{
+				internChanged[i] = false;
+			}
+			for (int t = 0; t < Timepriods; t++)
+			{
+				for (int w = 0; w < Wards; w++)
+				{
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (BLcounter >= BLLimit)
+						{
+							break;
+						}
+						if (MinDem_twh[t][w][h] > 0)
+						{
+							// find the discipline 
+							int theDisc = -1;
+							Random rnd = new Random();
+							int[] randomDisc = new int[Disciplins];
+							for (int d = 0; d < Disciplins; d++)
+							{
+								randomDisc[d] = d;
+							}
+							randomDisc = randomDisc.OrderBy(x => rnd.Next()).ToArray();
+
+							int[] iStatus = new int[Interns];
+							for (int i = 0; i < Interns; i++)
+							{
+								iStatus[i] = i;
+							}
+
+							int[] random_sort = iStatus.OrderBy(x => rnd.Next()).ToArray();
+
+							for (int tt = 0; tt < Timepriods; tt++)
+							{
+								int bound = -MinDem_twh[tt][w][h];
+
+								if (bound <= 0)
+								{
+									continue;
+								}
+								// at t we have shortage
+								// at tt we assigned more demand we want to move some of them
+								// find one who has discipline theD at tt, and something else at t
+								for (int i = 0; i < Interns; i++)
+								{
+									int theI = iStatus[i];
+									for (int d = 0; d < Disciplins; d++)
+									{
+										if (data.Hospital[h].Hospital_dw[d][w]
+										&& incumbentSol.Intern_itdh[theI][tt][d][h]
+										&& !internChanged[theI])
+										{
+											// we find the extra intern at tt
+											// now find what was that he is assigned at time t
+											int Dist = -1;
+											int Distt = d;
+											int theH = -1;
+											for (int dd = 0; dd < Disciplins; dd++)
+											{
+												for (int hh = 0; hh < Hospitals; hh++)
+												{
+													if (incumbentSol.Intern_itdh[theI][t][dd][hh])
+													{
+														Dist = dd;
+														theH = hh;
+													}
+												}
+											}
+											if (Dist >=0 && Distt >=0)
+											{
+												
+												if (t > tt)
+												{
+													// we have to change the disc in tt send discipline at t to tt
+													// check Skill
+													if (data.Discipline[Dist].requiresSkill_p[data.Intern[theI].ProgramID])
+													{
+														bool canMove = true;
+														for (int ddd = 0; ddd < Disciplins; ddd++)
+														{
+															bool skillThere = false;
+															if (data.Discipline[Dist].Skill4D_dp[ddd][data.Intern[theI].ProgramID])
+															{
+																for (int ttt = 0; ttt < tt && !skillThere; ttt++)
+																{
+																	for (int hh = 0; hh < Hospitals && !skillThere; hh++)
+																	{
+																		if (incumbentSol.Intern_itdh[theI][ttt][ddd][hh])
+																		{
+																			skillThere = true;
+																			
+																		}
+																	}
+																}
+															}
+															if (!skillThere)
+															{
+																canMove = false;
+															}
+														}
+														if (canMove)
+														{
+
+															theTimeOfImprove = 0;
+															bucketArray_itdh[theI][tt][Dist][theH] = true;
+															BLcounter++;
+															bucketlist.Add(new Bucket(theI, 0, Dist, theH) { });
+
+															internChanged[theI] = true;
+															bound--;
+															MinDem_twh[t][w][h]--;
+															MinDem_twh[tt][w][h]++;
+														}
+													}
+													else // does not matter if it comes eariler
+													{
+														theTimeOfImprove = 0;
+														bucketArray_itdh[theI][tt][Dist][theH] = true;
+														BLcounter++;
+														bucketlist.Add(new Bucket(theI, 0, Dist, theH) { });
+
+														internChanged[theI] = true;
+														bound--;
+														MinDem_twh[t][w][h]--;
+														MinDem_twh[tt][w][h]++;
+													}
+
+												}
+												else // if t < tt
+
+												{
+													// send the disc at tt to t
+													// check Skill
+													if (data.Discipline[Distt].requiresSkill_p[data.Intern[theI].ProgramID])
+													{
+														bool canMove = true;
+														for (int ddd = 0; ddd < Disciplins; ddd++)
+														{
+															bool skillThere = false;
+															if (data.Discipline[Distt].Skill4D_dp[ddd][data.Intern[theI].ProgramID])
+															{
+																for (int ttt = 0; ttt < t && !skillThere; ttt++)
+																{
+																	for (int hh = 0; hh < Hospitals && !skillThere; hh++)
+																	{
+																		if (incumbentSol.Intern_itdh[theI][ttt][ddd][hh])
+																		{
+																			skillThere = true;
+
+																		}
+																	}
+																}
+															}
+															if (!skillThere)
+															{
+																canMove = false;
+															}
+														}
+														if (canMove)
+														{
+
+															theTimeOfImprove = 0;
+															bucketArray_itdh[theI][tt][Distt][theH] = true;
+															BLcounter++;
+															bucketlist.Add(new Bucket(theI, 0, d, theH) { });
+
+															internChanged[theI] = true;
+															bound--;
+															MinDem_twh[t][w][h]--;
+															MinDem_twh[tt][w][h]++;
+														}
+													}
+													else // does not matter if it comes eariler
+													{
+														theTimeOfImprove = 0;
+														bucketArray_itdh[theI][tt][Distt][theH] = true;
+														BLcounter++;
+														bucketlist.Add(new Bucket(theI, 0, d, theH) { });
+
+														internChanged[theI] = true;
+														bound--;
+														MinDem_twh[t][w][h]--;
+												MinDem_twh[tt][w][h]++;
+													}
+
+												}
+											}
+										}
+									}
+
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		public void InitialBucketSkill(OptimalSolution incumbentSol)
 		{
 			for (int i = 0; i < Interns; i++)
@@ -277,6 +484,7 @@ namespace NestedHungarianAlgorithm
 			}
 
 		}
+
 		public void InitialDemand(OptimalSolution incumbentSol)
 		{
 			new ArrayInitializer().CreateArray(ref MaxDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
