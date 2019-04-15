@@ -110,6 +110,45 @@ namespace NestedDynamicProgrammingAlgorithm
 				}
 
 			}
+
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				if (i == theIntern)
+				{
+					for (int h = 0; h < data.General.Hospitals; h++)
+					{
+						for (int t = 0; t < data.General.TimePriods; t++)
+						{
+							for (int w = 0; w < data.General.HospitalWard; w++)
+							{
+								bool heGot = false;
+								for (int d = 0; d < data.General.Disciplines; d++)
+								{
+									if (incumbentSol.Intern_itdh[i][t][d][h])
+									{
+
+										if (data.Hospital[h].Hospital_dw[d][w])
+										{
+											heGot = true;
+										}
+									}
+								}
+								if (heGot)
+								{
+									//nothing
+								}
+								else
+								{
+									ResDem_twh[t][w][h] = 0;
+									EmrDem_twh[t][w][h] = 0;
+								}
+							}
+						}
+					}
+				}
+
+			}
+
 			//for (int w = 0; w < data.General.HospitalWard; w++)
 			//{
 			//	Console.WriteLine("Resource TimeLine for ward " + w);

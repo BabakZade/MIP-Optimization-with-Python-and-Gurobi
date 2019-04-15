@@ -55,8 +55,8 @@ namespace NestedHungarianAlgorithm
 				finalSol.copyRosters(solI.Intern_itdh);
 				solI = new OptimalSolution(data);
 				solI.copyRosters(finalSol.Intern_itdh);
-				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + i + Name);
-				if (solI.Obj > finalSol.Obj && solI.IsFeasible)
+				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + theI + "_" + Name);
+				if (solI.Obj >= finalSol.Obj && solI.IsFeasible)
 				{
 					finalSol = new OptimalSolution(data);
 					finalSol.copyRosters(solI.Intern_itdh);
@@ -83,16 +83,17 @@ namespace NestedHungarianAlgorithm
 		public int findCandidateForDP(OptimalSolution incumbentSol)
 		{
 			int candidate = -1;
-			double MinObj = data.AlgSettings.BigM;
+			double MaxDif = -data.AlgSettings.BigM;
 
 			for (int i = 0; i < Interns; i++)
 			{
+				
 				if (!InternStatus[i])
 				{
-					double tmpObj = incumbentSol.Des_i[i];
-					if (tmpObj < MinObj)
+					double tmpObj = data.Intern[i].MaxPrf - incumbentSol.Des_i[i];
+					if (tmpObj > MaxDif)
 					{
-						MinObj = tmpObj;
+						MaxDif = tmpObj;
 						candidate = i;
 					}
 				}
@@ -100,6 +101,7 @@ namespace NestedHungarianAlgorithm
 			if (candidate >= 0)
 			{
 				InternStatus[candidate] = true;
+				Console.WriteLine("Intern " + candidate + " MaxPrf: "+ data.Intern[candidate].MaxPrf + " Recieved Prf: " + incumbentSol.Des_i[candidate]);
 			}
 			return candidate;
 		}

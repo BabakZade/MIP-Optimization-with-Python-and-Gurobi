@@ -5,6 +5,24 @@ using System.Text;
 
 namespace DataLayer
 {
+	public struct DesirePos
+	{
+		public int theD;
+		public int theH;
+		public double Desire;
+		DesirePos(int theD, int theH, double Desire)
+		{
+			this.theD = theD;
+			this.theH = theH;
+			this.Desire = Desire;
+		}
+		public void Copy(DesirePos copyable)
+		{
+			theD = copyable.theD;
+			theH = copyable.theH;
+			Desire = copyable.Desire;
+		}
+	}
 	public class InternInfo
 	{
 		public string Name;
@@ -29,10 +47,13 @@ namespace DataLayer
 		//public int MaxDesireHos;
 		//public int MaxDesireDis;
 		//public double MaxDesir;
+		public ArrayList sortedPrf;
+		public double MaxPrf;
 		public bool[][] DisciplineList_dg;
 		public int[] ShouldattendInGr_g;
 		public bool isProspective;
 		public int K_AllDiscipline;
+		public double[] takingDiscPercentage;
 		public double AveDur;
 
 		public double[] requieredTimeForRemianed;
@@ -53,7 +74,8 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref DisciplineList_dg, Disciplines, DisciplineGr, false);
 			new ArrayInitializer().CreateArray(ref OverSea_dt, Disciplines, TimePeriods, false);
 			new ArrayInitializer().CreateArray(ref AllDes_dh,Disciplines, Hospitals, -1);
-			
+			new ArrayInitializer().CreateArray(ref takingDiscPercentage, Disciplines, 0);
+
 			wieght_d = 0;
 			wieght_h = 0;
 			wieght_w = 0;
@@ -69,49 +91,58 @@ namespace DataLayer
 
 		public void sortPrf(int Hospitals, int Disciplines, int DisciplineGr , int HospitalWard, AllData allData)
 		{
-			for (int h = 0; h < Hospitals; h++)
+			sortedPrf = new ArrayList();
+			
+			K_AllDiscipline = 0;
+			for (int g = 0; g < DisciplineGr; g++)
 			{
-				SortedPrfH_pos[h] = h;
+				K_AllDiscipline += ShouldattendInGr_g[g];
 			}
-
-			for (int d = 0; d < Disciplines; d++)
-			{
-				SortedPrfD_pos[d] = d;
-			}
-
-			for (int h = 0; h < Hospitals; h++)
-			{
-				for (int hh = h + 1; hh < Hospitals; hh++)
-				{
-					if (Prf_h[SortedPrfH_pos[hh]] > Prf_h[SortedPrfH_pos[h]])
-					{
-						int x = SortedPrfH_pos[hh];
-						SortedPrfH_pos[hh] = SortedPrfH_pos[h];
-						SortedPrfH_pos[h] = x;
-					}
-				}
-			}
-
-			for (int d = 0; d < Disciplines; d++)
-			{
-				for (int dd = 0; dd < Disciplines; dd++)
-				{
-					if (Prf_d[SortedPrfD_pos[dd]] < Prf_d[SortedPrfD_pos[d]])
-					{
-						int x = SortedPrfD_pos[dd];
-						SortedPrfD_pos[dd] = SortedPrfD_pos[d];
-						SortedPrfD_pos[d] = x;
-					}
-				}
-			}
-
-			for (int d = 0; d < Disciplines; d++)
+			for (int d = 0; d < Disciplines ; d++)
 			{
 				for (int h = 0; h < Hospitals; h++)
 				{
-					AllDes_dh[d][h] = Prf_d[d] * wieght_d + Prf_h[h] * wieght_h + allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d];
+					
+					int MaxDesire = -1;
+					for (int w = 0; w < HospitalWard ; w++)
+					{
+						if (allData.Hospital[h].Hospital_dw[d][w])
+						{
+							MaxDesire = Prf_d[d] * wieght_d 
+										+ Prf_h[h] * wieght_h 
+										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d];
+						}
+					}
+					if (MaxDesire!=-1)
+					{
+						int counter = 0;
+						foreach (DesirePos item in sortedPrf)
+						{
+							if (item.Desire > MaxDesire)
+							{
+								counter++;
+							}
+							else
+							{
+								break;
+							}
+						}
+						sortedPrf.Insert(counter, new DesirePos() {
+							theD = d,
+							theH = h,
+							Desire = MaxDesire
+						});
+					}
+					
 				}
 			}
+
+			MaxPrf = 0;
+			for (int c = 0; c < K_AllDiscipline; c++)
+			{
+				MaxPrf += ((DesirePos)sortedPrf[c]).Desire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+			}
+			K_AllDiscipline = 0;
 		}
 		public void setKAllDiscipline(AllData allData)
 		{
@@ -180,6 +211,46 @@ namespace DataLayer
 				n = 1;
 			}
 			return -sum/n;
+		}
+
+		public void setThePercetage(AllData allData)
+		{
+			int totalDiscList = 0;
+			for (int d = 0; d < allData.General.Disciplines; d++)
+			{
+				for (int g = 0; g < allData.General.DisciplineGr; g++)
+				{
+					if (DisciplineList_dg[d][g])
+					{
+						totalDiscList++;
+						break; // no mutual discipline
+					}
+				}
+			}
+
+			for (int d = 0; d < allData.General.Disciplines; d++)
+			{
+				takingDiscPercentage[d] = K_AllDiscipline / totalDiscList;
+			}
+
+			for (int g = 0; g < allData.General.DisciplineGr; g++)
+			{
+				int totalGr = 0;
+				for (int d = 0; d < allData.General.Disciplines; d++)
+				{
+					if (DisciplineList_dg[d][g])
+					{
+						totalGr++;
+					}
+				}
+				for (int d = 0; d < allData.General.Disciplines; d++)
+				{
+					if (DisciplineList_dg[d][g])
+					{
+						takingDiscPercentage[d] = ShouldattendInGr_g[g] / totalGr;
+					}
+				}
+			}
 		}
 	}
 }

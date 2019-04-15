@@ -69,7 +69,10 @@ namespace NestedHungarianAlgorithm
 		public int DisciplineGr;
 		public int[][] discGrCounter_ig;
 		public int[][] Change_ih;
+
 		public bool[][] sHeOccupies_ir;
+
+		public double[] discAvailbilityHosp_d;
 		public void Initial()
 		{
 			Disciplins = data.General.Disciplines;
@@ -81,6 +84,28 @@ namespace NestedHungarianAlgorithm
 			Region = data.General.Region;
 			DisciplineGr = data.General.DisciplineGr;
 			TimeLine_it = new int[Interns][];
+			discAvailbilityHosp_d = new double[Disciplins];
+			for (int d = 0; d < Disciplins; d++)
+			{
+				discAvailbilityHosp_d[d] = 0;
+			}
+			for (int h = 0; h < Hospitals; h++)
+			{
+				for (int w = 0; w < Wards; w++)
+				{
+					for (int d = 0; d < Disciplins; d++)
+					{
+						if (data.Hospital[h].Hospital_dw[d][w])
+						{
+							discAvailbilityHosp_d[d]++;
+						}
+					}
+				}
+			}
+			for (int d = 0; d < Disciplins; d++)
+			{
+				discAvailbilityHosp_d[d] /= Hospitals;
+			}
 			for (int i = 0; i < Interns; i++)
 			{
 				TimeLine_it[i] = new int[Timepriods];
@@ -326,7 +351,7 @@ namespace NestedHungarianAlgorithm
 			{
 				// total available position 
 				// intern = if we want to assign oversea
-				// intern = if intern wants to wait
+				// intern = if intern wants to wait		
 
 				CostMatrix_i_whDem[i] = new double[TotalAvailablePosition + Interns + Interns];
 				for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
@@ -346,6 +371,10 @@ namespace NestedHungarianAlgorithm
 			setUnaccupiedAccCost();
 			// set motivation to get oversea
 			setOverseaReq();
+			// set motivation for demand min
+			setMinDemMotivationCost();
+			// set motivation for rare discipline and vital
+			setTakingPercentageMotivation();
 			// set motivation for need skill in the future
 			setSkillbasedCost(NotRequiredSkill_id);
 		}
@@ -424,7 +453,7 @@ namespace NestedHungarianAlgorithm
 					}
 					else 
 					{
-						if (requiredTimeForRemainedDisc[i] >= data.General.TimePriods - TimeID) // if interns must take a course 
+						if (requiredTimeForRemainedDisc[i] > data.General.TimePriods - TimeID ) // if interns must take a course 
 						{
 							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
 						}
@@ -445,15 +474,23 @@ namespace NestedHungarianAlgorithm
 				// if it is not available j must be less than TotalAvailablePosition
 				for (int j = 0; j < TotalAvailablePosition; j++)
 				{
-					// if intern is not available or engaged with other disciplines
-					if (!data.Intern[i].Ave_t[TimeID])
+					if (j < TotalAvailablePosition + Interns)
 					{
-						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
-					} // if intern is engaged with other disciplines
-					else if (!isRoot && parentNode.TimeLine_it[i][TimeID] > 0)
-					{
-						CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+						// if intern is not available or engaged with other disciplines
+						if (!data.Intern[i].Ave_t[TimeID])
+						{
+							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+						} // if intern is engaged with other disciplines
+						else if (!isRoot && parentNode.TimeLine_it[i][TimeID] > 0)
+						{
+							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+						}
 					}
+					else
+					{
+						// anyway he has to wait :D
+					}
+					
 				}
 			}
 		}
@@ -523,6 +560,43 @@ namespace NestedHungarianAlgorithm
 					}
 
 				}
+			}
+
+		}
+
+		public void setTakingPercentageMotivation()
+		{
+			// we need to motivate the intern to take the discipline which is not in all the hospitals
+			// i.e. intern must take disc 1, but the only hospital he can go is hospital 1 which does not have disc1
+			// therefore we motivate the intern to take disc 1 at the time that he can go all the hospital
+			// this can happen to the interns that must change the hospital for each discpline 
+			for (int i = 0; i < Interns; i++)
+			{
+				if (data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp < 3) // we consider 1, and 2 we do not test 2
+				{
+					for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
+					{
+						// just desire 
+						if (j < TotalAvailablePosition)
+						{
+							int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+							// if the intern is already assigned to this discipline
+							// the chance that the intern takes this discipline must be above 70% then we motivate him
+							// the discpline must be in less than 50% of the hospital
+							if (discIn >= 0 && data.Intern[i].takingDiscPercentage[discIn] > 0.7 && discAvailbilityHosp_d[discIn] < 0.5) 
+							{
+								// see if there is an hospital that has not have this discpline
+								double motivation = 1 + (data.Intern[i].takingDiscPercentage[discIn] + (1 - discAvailbilityHosp_d[discIn]));
+								if (data.Hospital[((PositionMap)MappingTable[j]).HIndex].Hospital_dw[discIn][((PositionMap)MappingTable[j]).WIndex])
+								{
+									CostMatrix_i_whDem[i][j] *= motivation;
+								}
+
+							}
+						}
+					}
+				}
+				
 			}
 
 		}
@@ -669,6 +743,7 @@ namespace NestedHungarianAlgorithm
 
 		public void updateTimeLine()
 		{
+
 			for (int i = 0; i < Interns; i++)
 			{
 				for (int d = 0; d < Disciplins; d++)
@@ -734,6 +809,8 @@ namespace NestedHungarianAlgorithm
 							break;
 						}
 					}
+
+					requiredTimeForRemainedDisc[i] -= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
 				}
 				else if(BestSchedule[i] < TotalAvailablePosition + Interns) // oversea
 				{
@@ -761,7 +838,8 @@ namespace NestedHungarianAlgorithm
 						}
 					}
 					
-				}				
+				}
+				
 			}
 		}
 

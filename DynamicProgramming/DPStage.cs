@@ -219,7 +219,7 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void cleanTheActiveState()
 		{
-			chooseBestHospIfChangeIsNecessary();
+			//chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital
 			limittedFutureList();
 		}
 		//Necessary 
@@ -271,6 +271,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			
 			if (FutureActiveState.Count > limit)
 			{
+				Console.WriteLine("Total active: " + FutureActiveState.Count + " Limit: " + limit + "Cleaning space");
 				FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
 			}
 			
@@ -494,7 +495,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				result = differentConsecutiveHospital(theDisc, theH, theState);
 			}
-			if (result)
+			if (result && false) // it is not working if you have a limited resources 
 			{
 				result = bestHospitalForThisDiscipline(theDisc, theH, theState);
 			}

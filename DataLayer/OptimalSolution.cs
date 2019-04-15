@@ -266,6 +266,7 @@ namespace DataLayer
 				int IndH1 = -1;
 				int IndH2 = -1;
 				PrChang_i[i] = 0;
+				int totalDis = 0;
 				for (int t = 0; t < data.General.TimePriods; t++)
 				{
 					for (int d = 0; d < data.General.Disciplines; d++)
@@ -274,6 +275,7 @@ namespace DataLayer
 						{
 							if (Intern_itdh[i][t][d][h])
 							{
+								totalDis++;
 								if (IndH1 < 0)
 								{
 									IndH1 = h;
@@ -287,12 +289,13 @@ namespace DataLayer
 									}
 									IndH1 = IndH2;
 									IndH2 = -1;
+									
 								}
 							}
 						}
 					}
 				}
-				if (PrChang_i[i] > data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp)
+				if (PrChang_i[i] > data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp * totalDis)
 				{
 					infeasibilityChangesInHospital = true;
 				}
@@ -315,7 +318,7 @@ namespace DataLayer
 			wieghterSumInChnPrf = 0;
 			wieghterSumInWaiPrf = 0;
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
-			tw.WriteLine("PP | II | GG | DD | TT | HH | PrD | PrH | PrP | K_G | FH (Schedule)");
+			tw.WriteLine("PP | II | GG | DD | TT | Du | HH | PrD | PrH | PrP | K_G | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				for (int i = 0; i < data.General.Interns; i++)
@@ -345,11 +348,11 @@ namespace DataLayer
 												wieghterSumInWaiPrf = 0;
 												if (data.Intern[i].OverSea_dt[d][t])
 												{
-													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
 												}
 												else
 												{													
-													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
 													for (int r = 0; r < data.General.Region; r++)
 													{
 														if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
@@ -471,6 +474,7 @@ namespace DataLayer
 						}
 
 						PrWait_i[i] = indext + lastJob - sum;
+						
 					}
 				}
 
@@ -606,14 +610,15 @@ namespace DataLayer
 					+ " " + Des_i[i].ToString("0.000") + " " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
 			}
 
-			tw.WriteLine("III DesI DesP");
+			tw.WriteLine("III DesI DesP MaxP");
 			for (int i = 0; i < data.General.Interns; i++)
 			{
 				Obj += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
 				Obj_i[i] += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
 				tw.WriteLine(i.ToString("000") + " " + Des_i[i].ToString("000")
-				 + " " + MinDis[data.Intern[i].ProgramID].ToString("000"));
-			}
+				 + " " + MinDis[data.Intern[i].ProgramID].ToString("000")
+				 + " " + data.Intern[i].MaxPrf.ToString("000"));
+		}
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				Obj += MinDis[p] * data.TrainingPr[p].CoeffObj_MinDesi;
@@ -628,8 +633,12 @@ namespace DataLayer
 			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.WriteLine(setInfSetting());
-			IsFeasible = infeasibilityChangesInHospital && infeasibilityK_Assigned && infeasibilityOverseaAbilityAve && infeasibilitySkill;
-			Obj = -data.AlgSettings.BigM;
+			IsFeasible = !infeasibilityChangesInHospital && !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve && !infeasibilitySkill;
+			if (!IsFeasible)
+			{
+				Obj = -data.AlgSettings.BigM;
+			}
+			
 			tw.Close();
 		}
 	}
