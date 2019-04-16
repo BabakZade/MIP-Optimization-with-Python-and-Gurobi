@@ -735,37 +735,41 @@ namespace GeneralMIPAlgorithm
 			// dummy discipline 
 			for (int i = 0; i < Interns; i++)
 			{
-				ILinearNumExpr dummy = MIPModel.LinearNumExpr();
-				for (int d = 1; d < Disciplins; d++)
+				if (data.Intern[i].K_AllDiscipline > 0)
 				{
-					bool dexist = false;
-					for (int g = 0; g < DisciplineGr; g++)
+					ILinearNumExpr dummy = MIPModel.LinearNumExpr();
+					for (int d = 1; d < Disciplins; d++)
 					{
-						if (data.Intern[i].DisciplineList_dg[d-1][g])
+						bool dexist = false;
+						for (int g = 0; g < DisciplineGr; g++)
 						{
-							dexist = true;
-						}
-					}
-					bool hexist = false;
-					for (int h = 0; h < Hospitals  && dexist; h++)
-					{
-						
-						for (int w = 0; w < Wards && h < Hospitals - 1 ; w++)
-						{
-							if (data.Hospital[h].Hospital_dw[d-1][w])
+							if (data.Intern[i].DisciplineList_dg[d - 1][g])
 							{
-								hexist = true;
+								dexist = true;
 							}
 						}
-						if (hexist || h == Hospitals - 1)
+						bool hexist = false;
+						for (int h = 0; h < Hospitals && dexist; h++)
 						{
-							dummy.AddTerm(y_idDh[i][0][d][h], 1);
-						}
-						
-					}
-				}
 
-				MIPModel.AddEq(dummy, 1, "dummyI_" + i);
+							for (int w = 0; w < Wards && h < Hospitals - 1; w++)
+							{
+								if (data.Hospital[h].Hospital_dw[d - 1][w])
+								{
+									hexist = true;
+								}
+							}
+							if (hexist || h == Hospitals - 1)
+							{
+								dummy.AddTerm(y_idDh[i][0][d][h], 1);
+							}
+
+						}
+					}
+
+					MIPModel.AddEq(dummy, 1, "dummyI_" + i);
+				}
+				
 			}
 
 

@@ -17,6 +17,7 @@ namespace MultiLevelSolutionMethodology
 		public int[] ElappesedTime_p;
 		public double objFunction;
 		int[] TrPrOrder;
+		bool[] setTheTrPR;
 		public SequentialMethodology(AllData data, string InsName)
 		{
 			Initial(data);
@@ -29,11 +30,13 @@ namespace MultiLevelSolutionMethodology
 			ElappesedTime_p = new int[data.General.TrainingPr];
 			TrPrOrder = new int[data.General.TrainingPr];
 			finalSol_p = new OptimalSolution[data.General.TrainingPr];
+			setTheTrPR = new bool[data.General.TrainingPr];
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
-				finalSol_p[p] = new OptimalSolution(dataManager.data_p[p]);
+				finalSol_p[p] = new OptimalSolution(data);
 				TrPrOrder[p] = p;
 				ElappesedTime_p[p] = 0;
+				setTheTrPR[p] = false;
 			}
 			objFunction = 0;
 			finalSol = new OptimalSolution(data);
@@ -41,16 +44,19 @@ namespace MultiLevelSolutionMethodology
 
 		public void Methodology(int[] trProgram, string InsName)
 		{
-			
+		
 			for (int p = 0; p < trProgram.Length; p++)
 			{
-				setMIPMethodology(dataManager.data_p[trProgram[p]], trProgram[p], InsName);
+				setTheTrPR[trProgram[p]] = true;
+				dataManager.SetDataPrTr(setTheTrPR);
+				setMIPMethodology(dataManager.localData, trProgram[p], InsName);
 				if (p < trProgram.Length - 1)
 				{
-					setData(trProgram[p], trProgram[p + 1]);
+					setData(trProgram[p]);
 				}
+				setTheTrPR[trProgram[p]] = false;
 			}
-			finalSol.WriteSolution(dataManager.data_p[0].allPath.OutPutLocation, InsName + "SeqFinal");
+			finalSol.WriteSolution(dataManager.localData.allPath.OutPutLocation, InsName + "SeqFinal");
 		}
 		
 		public void setMIPMethodology(AllData data_p, int theP, string InsName)
@@ -66,51 +72,51 @@ namespace MultiLevelSolutionMethodology
 			objFunction += finalSol_p[theP].Obj;
 		}
 
-		public void setData(int ExP, int FuP)
+		public void setData(int ExP)
 		{
-			for (int i = 0; i < dataManager.data_p[ExP].General.Interns; i++)
+			for (int i = 0; i < dataManager.localData.General.Interns; i++)
 			{
-				for (int t = 0; t < dataManager.data_p[ExP].General.TimePriods; t++)
+				for (int t = 0; t < dataManager.localData.General.TimePriods; t++)
 				{
-					for (int d = 0; d < dataManager.data_p[ExP].General.Disciplines; d++)
+					for (int d = 0; d < dataManager.localData.General.Disciplines; d++)
 					{
-						for (int h = 0; h < dataManager.data_p[ExP].General.Hospitals; h++)
+						for (int h = 0; h < dataManager.localData.General.Hospitals; h++)
 						{
 							if (finalSol_p[ExP].Intern_itdh[i][t][d][h])
 							{
-								for (int w = 0; w < dataManager.data_p[ExP].General.HospitalWard ; w++)
+								for (int w = 0; w < dataManager.localData.General.HospitalWard ; w++)
 								{
-									if (dataManager.data_p[ExP].Hospital[h].Hospital_dw[d][w])
+									if (dataManager.localData.Hospital[h].Hospital_dw[d][w])
 									{
 										// demand	
-										if (dataManager.data_p[FuP].Hospital[h].HospitalMaxDem_tw[t][w] > 0)
+										if (dataManager.localData.Hospital[h].HospitalMaxDem_tw[t][w] > 0)
 										{
-											dataManager.data_p[FuP].Hospital[h].HospitalMaxDem_tw[t][w]--;
-											if (dataManager.data_p[FuP].Hospital[h].HospitalMinDem_tw[t][w] > 0)
+											dataManager.localData.Hospital[h].HospitalMaxDem_tw[t][w]--;
+											if (dataManager.localData.Hospital[h].HospitalMinDem_tw[t][w] > 0)
 											{
-												dataManager.data_p[FuP].Hospital[h].ReservedCap_tw[t][w]--;
+												dataManager.localData.Hospital[h].ReservedCap_tw[t][w]--;
 											}
 										}
 										else
 										{
-											if (dataManager.data_p[FuP].Hospital[h].ReservedCap_tw[t][w] > 0)
+											if (dataManager.localData.Hospital[h].ReservedCap_tw[t][w] > 0)
 											{
-												dataManager.data_p[FuP].Hospital[h].ReservedCap_tw[t][w]--;
+												dataManager.localData.Hospital[h].ReservedCap_tw[t][w]--;
 											}
-											else if (dataManager.data_p[FuP].Hospital[h].EmergencyCap_tw[t][w] > 0)
+											else if (dataManager.localData.Hospital[h].EmergencyCap_tw[t][w] > 0)
 											{
-												dataManager.data_p[FuP].Hospital[h].EmergencyCap_tw[t][w]--;
+												dataManager.localData.Hospital[h].EmergencyCap_tw[t][w]--;
 											}
 										}
 									}
 								}
-								for (int r = 0; r < dataManager.data_p[ExP].General.Region ; r++)
+								for (int r = 0; r < dataManager.localData.General.Region ; r++)
 								{
-									if (dataManager.data_p[ExP].Hospital[h].InToRegion_r[r] && dataManager.data_p[ExP].Intern[i].TransferredTo_r[r])
+									if (dataManager.localData.Hospital[h].InToRegion_r[r] && dataManager.localData.Intern[i].TransferredTo_r[r])
 									{
-										if (dataManager.data_p[FuP].Region[r].AvaAcc_t[t] > 0)
+										if (dataManager.localData.Region[r].AvaAcc_t[t] > 0)
 										{
-											dataManager.data_p[FuP].Region[r].AvaAcc_t[t]--;
+											dataManager.localData.Region[r].AvaAcc_t[t]--;
 										}
 									}
 								}
