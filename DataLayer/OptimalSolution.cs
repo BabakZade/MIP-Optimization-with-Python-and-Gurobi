@@ -43,6 +43,7 @@ namespace DataLayer
 		bool infeasibilityOverseaAbilityAve;
 		bool infeasibilitySkill;
 		public bool IsFeasible;
+		public bool[] infeasibleIntern_i;
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -70,7 +71,7 @@ namespace DataLayer
 				{
 					for (int d = 0; d < data.General.Disciplines; d++)
 					{
-						for (int h = 0; h < data.General.Hospitals; h++)
+						for (int h = 0; h < data.General.Hospitals+1; h++)
 						{
 							Intern_itdh[i][t][d][h] = Copy_itdh[i][t][d][h];
 						}
@@ -87,7 +88,7 @@ namespace DataLayer
 				{
 					for (int d = 0; d < data.General.Disciplines; d++)
 					{
-						for (int h = 0; h < data.General.Hospitals; h++)
+						for (int h = 0; h < data.General.Hospitals +1; h++)
 						{
 							if (Copy_itdh[i][t][d][h])
 							{
@@ -134,9 +135,11 @@ namespace DataLayer
 		{
 			string  Result = "";
 
+			infeasibleIntern_i = new bool[data.General.Interns];
 
 			for (int i = 0; i < data.General.Interns; i++)
 			{
+				infeasibleIntern_i[i] = false;
 				int totalK = 0;
 				int[] totalK_g = new int[data.General.DisciplineGr];
 				for (int g = 0; g < data.General.DisciplineGr; g++)
@@ -217,7 +220,7 @@ namespace DataLayer
 													bool thereis = false;
 													for (int tt = 0; tt < t && !thereis; tt++)
 													{
-														for (int hh = 0; hh < data.General.Hospitals && !thereis; hh++)
+														for (int hh = 0; hh < data.General.Hospitals + 1 && !thereis; hh++)
 														{
 															if (Intern_itdh[i][tt][dd][hh])
 															{
@@ -229,6 +232,7 @@ namespace DataLayer
 													{
 														infeasibilitySkill = true;
 														Result += "The intern " + i + " must fulfill discipline  " + dd + " before discipline " + d + " \n";
+														infeasibleIntern_i[i] = true;
 													}
 												}
 
@@ -250,12 +254,14 @@ namespace DataLayer
 				{
 					Result += "The intern " + i + " should fulfill " + data.Intern[i].K_AllDiscipline + " but (s)he did  " + totalK + " \n";
 					infeasibilityK_Assigned = true;
+					infeasibleIntern_i[i] = true;
 				}
 				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{
 					if (totalK_g[g] != data.Intern[i].ShouldattendInGr_g[g])
 					{
-						Result += "The intern " + i + " should fulfill " + data.Intern[i].ShouldattendInGr_g[g] + " but (s)he did  " + totalK_g[g] + "in Group " + g + " \n";
+						Result += "The intern " + i + " should fulfill " + data.Intern[i].ShouldattendInGr_g[g] + " but (s)he did  " + totalK_g[g] + " in Group " + g + " \n";
+
 					}
 
 				}
@@ -298,6 +304,7 @@ namespace DataLayer
 				if (PrChang_i[i] > data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp * totalDis)
 				{
 					infeasibilityChangesInHospital = true;
+					infeasibleIntern_i[i] = true;
 				}
 
 			}

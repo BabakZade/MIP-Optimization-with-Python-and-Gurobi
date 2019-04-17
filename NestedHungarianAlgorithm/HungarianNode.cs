@@ -428,7 +428,12 @@ namespace NestedHungarianAlgorithm
 									CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_ch;
 								}
 							}
-							
+							// if interns list is longer than availble time the we have to devide the preferences to duration of the discipline
+							if (requiredTimeForRemainedDisc[i] > data.General.TimePriods - TimeID) 
+							{
+								CostMatrix_i_whDem[i][j] /= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
+							}
+
 						}						
 					}
 					else if(j < TotalAvailablePosition + Interns) // oversea intern
@@ -455,7 +460,7 @@ namespace NestedHungarianAlgorithm
 					{
 						if (requiredTimeForRemainedDisc[i] > data.General.TimePriods - TimeID ) // if interns must take a course 
 						{
-							CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+							CostMatrix_i_whDem[i][j] += data.AlgSettings.MotivationBM;
 						}
 						else // if the intern wants to wait(weight_w<0)
 						{
@@ -572,7 +577,7 @@ namespace NestedHungarianAlgorithm
 			// this can happen to the interns that must change the hospital for each discpline 
 			for (int i = 0; i < Interns; i++)
 			{
-				if (data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp < 3) // we consider 1, and 2 we do not test 2
+				if (data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp < 2 || true) // we consider 1 // we cosnider all
 				{
 					for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
 					{
@@ -583,7 +588,7 @@ namespace NestedHungarianAlgorithm
 							// if the intern is already assigned to this discipline
 							// the chance that the intern takes this discipline must be above 70% then we motivate him
 							// the discpline must be in less than 50% of the hospital
-							if (discIn >= 0 && data.Intern[i].takingDiscPercentage[discIn] > 0.7 && discAvailbilityHosp_d[discIn] < 0.5) 
+							if (discIn >= 0 && ((data.Intern[i].takingDiscPercentage[discIn] > 0.7 && discAvailbilityHosp_d[discIn] < 0.5) || data.Intern[i].takingDiscPercentage[discIn] > 0.95)) 
 							{
 								// see if there is an hospital that has not have this discpline
 								double motivation = 1 + (data.Intern[i].takingDiscPercentage[discIn] + (1 - discAvailbilityHosp_d[discIn]));
@@ -748,13 +753,14 @@ namespace NestedHungarianAlgorithm
 			{
 				for (int d = 0; d < Disciplins; d++)
 				{
-					for (int h = 0; h < Hospitals; h++)
+					for (int h = 0; h < Hospitals + 1; h++)
 					{
 						if (Schedule_idh[i][d][h])
 						{
 							for (int t = TimeID; t < TimeID + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; t++)
 							{
 								TimeLine_it[i][t] = 1;
+								
 							}
 						}
 					}
@@ -834,6 +840,15 @@ namespace NestedHungarianAlgorithm
 								};
 
 							}
+							K_totalDiscipline[i]--;
+							for (int g = 0; g < DisciplineGr; g++)
+							{
+								if (data.Intern[i].DisciplineList_dg[discIn][g] && discGrCounter_ig[i][g] > 0)
+								{
+									discGrCounter_ig[i][g]--;
+									break;
+								}
+							}
 							requiredTimeForRemainedDisc[i] -= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
 						}
 					}
@@ -845,11 +860,14 @@ namespace NestedHungarianAlgorithm
 
 		public int get_DisciplineFromWard(int theI, int theW, int theH)
 		{
+			
+
 			int result = -1;			
 			int MaxObj = -1;
 			int discInd = -1;
 			for (int d = 0; d < Disciplins ; d++)
 			{
+				
 				if (data.Intern[theI].OverSea_dt[d][TimeID]) // if the interns must go oversea now
 				{
 					discInd = -1;
@@ -861,10 +879,6 @@ namespace NestedHungarianAlgorithm
 					if (data.Intern[theI].OverSea_dt[d][t]) // if the interns must go oversea later
 					{
 						overseaLater = true;
-						if (TimeID == 0)
-						{
-							K_totalDiscipline[theI]--;
-						}
 						break;
 					}
 				}
@@ -873,7 +887,7 @@ namespace NestedHungarianAlgorithm
 					continue;
 				}
 				// the duration of discipline
-				if (TimeID + data.Discipline[d].Duration_p[data.Intern[theI].ProgramID] >= Timepriods)
+				if (TimeID + data.Discipline[d].Duration_p[data.Intern[theI].ProgramID] > Timepriods)
 				{
 					continue;
 				}
@@ -899,7 +913,7 @@ namespace NestedHungarianAlgorithm
 					continue;
 				}
 
-				if (K_totalDiscipline[theI] < 0) // no more assignment 
+				if (K_totalDiscipline[theI] <= 0) // no more assignment 
 				{
 					discInd = -1;
 					break;

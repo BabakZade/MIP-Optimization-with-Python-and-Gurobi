@@ -103,14 +103,14 @@ namespace DataLayer
 				for (int h = 0; h < Hospitals; h++)
 				{
 					
-					int MaxDesire = -1;
+					double MaxDesire = -1;
 					for (int w = 0; w < HospitalWard ; w++)
 					{
 						if (allData.Hospital[h].Hospital_dw[d][w])
 						{
-							MaxDesire = Prf_d[d] * wieght_d 
+							MaxDesire = (Prf_d[d] * wieght_d 
 										+ Prf_h[h] * wieght_h 
-										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d];
+										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d]) * takingDiscPercentage[d] ;
 						}
 					}
 					if (MaxDesire!=-1)
@@ -142,7 +142,7 @@ namespace DataLayer
 			{
 				MaxPrf += ((DesirePos)sortedPrf[c]).Desire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 			}
-			K_AllDiscipline = 0;
+	
 		}
 		public void setKAllDiscipline(AllData allData)
 		{
@@ -248,6 +248,34 @@ namespace DataLayer
 					if (DisciplineList_dg[d][g])
 					{
 						takingDiscPercentage[d] = ShouldattendInGr_g[g] / totalGr;
+					}
+				}
+			}
+
+			for (int d = 0; d < allData.General.Disciplines; d++)
+			{
+				if (takingDiscPercentage[d] >= 0.95 && allData.Discipline[d].requiresSkill_p[ProgramID])
+				{
+					for (int dd = 0; dd < allData.General.Disciplines; dd++)
+					{
+						if (allData.Discipline[d].Skill4D_dp[dd][ProgramID])
+						{
+							takingDiscPercentage[dd] = 1;
+						}
+					}
+				}
+				for (int t = 0; t < allData.General.TimePriods; t++)
+				{
+					if (OverSea_dt[d][t])
+					{
+						takingDiscPercentage[d] = 1;
+						for (int dd = 0; dd < allData.General.Disciplines; dd++)
+						{
+							if (FHRequirment_d[dd])
+							{
+								takingDiscPercentage[dd] = 1;
+							}
+						}
 					}
 				}
 			}

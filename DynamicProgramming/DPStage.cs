@@ -73,13 +73,23 @@ namespace NestedDynamicProgrammingAlgorithm
 				// rest of the values
 				for (int d = 0; d < data.General.Disciplines; d++)
 				{
-					for (int h = 0; h < data.General.Hospitals; h++)
+					for (int h = 0; h < data.General.Hospitals + 1; h++)
 					{
 						for (int w = 0; w < data.General.HospitalWard; w++)
 						{
 
-							if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
+							if (h < data.General.Hospitals && data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
 								&& checkDiscipline(d, h, new StateStage(data) { }))
+							{
+								StateStage tmp = new StateStage(data);
+								tmp.isRoot = true;
+								tmp.x_Hosp = h;
+								tmp.x_Disc = d;
+								tmp.flagEmrD = flagEmr;
+								tmp.flagResD = flagRes;
+								activeStatesValue[0].Add(tmp);
+							}
+							if (h == data.General.Hospitals	&& checkDiscipline(d, h, new StateStage(data) { }))
 							{
 								StateStage tmp = new StateStage(data);
 								tmp.isRoot = true;
@@ -139,11 +149,11 @@ namespace NestedDynamicProgrammingAlgorithm
 						{
 							if (!((StateStage)parentNode.FutureActiveState[c]).activeDisc[d])
 							{
-								for (int h = 0; h < data.General.Hospitals; h++)
+								for (int h = 0; h < data.General.Hospitals + 1; h++)
 								{
 									for (int w = 0; w < data.General.HospitalWard; w++)
 									{
-										if (data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
+										if (h < data.General.Hospitals && data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
 											&& checkDiscipline(d, h, (StateStage)parentNode.FutureActiveState[c]))
 										{
 											StateStage tmp = new StateStage(data);
@@ -154,6 +164,18 @@ namespace NestedDynamicProgrammingAlgorithm
 											tmp.flagEmrD = flagEmr;
 											tmp.flagResD = flagRes;
 											activeStatesValue[counter].Add(tmp);
+										}
+										if (h == data.General.Hospitals && checkDiscipline(d, h, (StateStage)parentNode.FutureActiveState[c]))
+										{
+											StateStage tmp = new StateStage(data);
+											tmp.isRoot = false;
+											tmp.x_Hosp = h;
+											tmp.x_Disc = d;
+
+											tmp.flagEmrD = flagEmr;
+											tmp.flagResD = flagRes;
+											activeStatesValue[counter].Add(tmp);
+											break; // there is no ward checking 
 										}
 									}
 								}
@@ -267,11 +289,11 @@ namespace NestedDynamicProgrammingAlgorithm
 		//remove more than a number
 		public void limittedFutureList()
 		{
-			int limit = 200 * data.General.Disciplines * data.General.Hospitals;
+			int limit = 100 * data.General.Disciplines * data.General.Hospitals;
 			
 			if (FutureActiveState.Count > limit)
 			{
-				Console.WriteLine("Total active: " + FutureActiveState.Count + " Limit: " + limit + "Cleaning space");
+				Console.WriteLine("Total active: " + FutureActiveState.Count + " Limit: " + limit + " => Cleaning space");
 				FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
 			}
 			
@@ -283,8 +305,9 @@ namespace NestedDynamicProgrammingAlgorithm
 			setFutureState();
 		}
 
-		public bool checkDiscipline(int theDisc,int theH, StateStage theState)
+		public bool checkDiscipline(int theDisc, int theH, StateStage theState)
 		{
+			
 			flagEmr = false;
 			flagRes = false;
 			bool result = true;
@@ -307,8 +330,9 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
-			
+
 			// check oversea
+			bool overseaNotexist = true;
 			if (result)
 			{
 				for (int t = 0; t < data.General.TimePriods; t++)
@@ -322,6 +346,11 @@ namespace NestedDynamicProgrammingAlgorithm
 						}
 						else
 						{
+							if (theH != data.General.Hospitals)
+							{
+								result = false;
+								break;
+							}
 							for (int d = 0; d < data.General.Disciplines; d++)
 							{
 								if (data.Intern[theIntern].FHRequirment_d[d] && !theState.activeDisc[d])
@@ -330,8 +359,29 @@ namespace NestedDynamicProgrammingAlgorithm
 									break;
 								}
 							}
+							overseaNotexist = false;
+							
+						}
+						
+						for (int dd = 0; dd < data.General.Disciplines; dd++)
+						{
+							if (result && dd != theDisc
+								&& data.Intern[theIntern].OverSea_dt[dd][t] 
+								&& stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] > t)
+							{
+								result = false;
+								break;
+							}
 						}
 					}
+				}
+				if (overseaNotexist && theH == data.General.Hospitals)
+				{
+					return false;
+				}
+				else if (theH == data.General.Hospitals)
+				{
+					return result;
 				}
 			}
 			
@@ -615,6 +665,10 @@ namespace NestedDynamicProgrammingAlgorithm
 		{
 			bool result = true;
 			if (!rootStage && theState.theSchedule_t[stageTime - 1].theHospital<=0)
+			{
+				return result;
+			}
+			if ((stageTime>0 && theState.theSchedule_t[stageTime - 1].theHospital == data.General.Hospitals) || theH == data.General.Hospitals)
 			{
 				return result;
 			}

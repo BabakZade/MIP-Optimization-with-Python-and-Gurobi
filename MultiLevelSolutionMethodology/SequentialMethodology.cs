@@ -56,6 +56,7 @@ namespace MultiLevelSolutionMethodology
 				}
 				setTheTrPR[trProgram[p]] = false;
 			}
+			dataManager.ResetToDefaultData();
 			finalSol.WriteSolution(dataManager.localData.allPath.OutPutLocation, InsName + "SeqFinal");
 		}
 		

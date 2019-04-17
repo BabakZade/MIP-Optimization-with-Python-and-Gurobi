@@ -36,7 +36,7 @@ namespace NestedHungarianAlgorithm
 				OptimalSolution solI = new OptimalSolution(data);
 				solI.copyRosters(finalSol.Intern_itdh);
 				solI.WriteSolution(data.allPath.InsGroupLocation, "tmpImprovedSol" + Name);
-				int theI = findCandidateForDP(solI);
+				int theI = findCandidateForDP(ref i, solI);
 				if (theI < 0)
 				{
 					break;
@@ -80,16 +80,21 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public int findCandidateForDP(OptimalSolution incumbentSol)
+		public int findCandidateForDP(ref int Counter, OptimalSolution incumbentSol)
 		{
 			int candidate = -1;
 			double MaxDif = -data.AlgSettings.BigM;
 
 			for (int i = 0; i < Interns; i++)
-			{
-				
+			{				
 				if (!InternStatus[i])
 				{
+					if (incumbentSol.infeasibleIntern_i[i])
+					{
+						candidate = i;
+						Counter--;
+						break;
+					}
 					double tmpObj = data.Intern[i].MaxPrf - incumbentSol.Des_i[i];
 					if (tmpObj > MaxDif)
 					{

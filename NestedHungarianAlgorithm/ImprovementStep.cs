@@ -44,7 +44,7 @@ namespace NestedHungarianAlgorithm
 			demandBaseLocalSearch = new DemandBaseLocalSearch(data, internBasedLocalSearch.finalSol , Name);
 			stopwatch.Stop();
 			TimeForResEmrImp = (int)stopwatch.ElapsedMilliseconds / 1000;
-
+			TimeForbucketListImp += TimeForResEmrImp;
 
 		}
 		public void Initial()
