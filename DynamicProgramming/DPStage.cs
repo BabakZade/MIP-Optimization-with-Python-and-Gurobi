@@ -12,6 +12,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		public AllData data;
 		public int theIntern;
 		public bool rootStage;
+		public bool solutionFound;
 		public int stageTime;
 		public DPStage() { }
 		public ArrayList[] activeStatesValue;
@@ -59,6 +60,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		}
 		public void setStateStage(ref StateStage finalSchedule)
 		{
+			solutionFound = false;
 			if (rootStage)
 			{
 				// there are no state available 
@@ -194,10 +196,12 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						// it is a complete  solution 
 						// we need the best one 						
-
+						
 						if (((StateStage)parentNode.FutureActiveState[c]).Fx > finalSchedule.Fx )
 						{
 							finalSchedule = (StateStage)parentNode.FutureActiveState[c];
+							//solutionFound = true;
+							//break;
 						}
 					}
 
@@ -207,21 +211,22 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void setFutureState()
 		{
-			// Console.WriteLine("====== Stage " + stageTime + " ======");
+			//Console.WriteLine("====== Stage " + stageTime + " ======");
 			for (int c = 0; c < ActiveStatesCount; c++)
 			{
-				// Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+				//Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
 				// 0 is the current state
 				for (int i = 1; i < activeStatesValue[c].Count; i++)
 				{
 					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime, rootStage);
 					foreach (StateStage item in tmp.possibleStates)
 					{
-						// Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+						//Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
 						int index = 0;
 						foreach (StateStage futur in FutureActiveState)
 						{
-							if (futur.Fx > item.Fx)
+
+							if (futur.Fx / (data.Intern[theIntern].K_AllDiscipline - futur.x_K)  > item.Fx / (data.Intern[theIntern].K_AllDiscipline - item.x_K))
 							{
 								index++;
 							}
@@ -229,20 +234,30 @@ namespace NestedDynamicProgrammingAlgorithm
 							{
 								break;
 							}
-						}
+						} 
 						FutureActiveState.Insert(index, item);
+						
 					}
 				}
 			}
 			cleanTheActiveState();
-
-
 		}
 
 		public void cleanTheActiveState()
 		{
-			//chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital
+			//chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital	
+			Console.WriteLine("Before one disc: " + FutureActiveState.Count);
+			keepOneDisci();
+			Console.WriteLine("After one disc: " + FutureActiveState.Count);
+			Console.WriteLine("Before cleaning redundant node: "+FutureActiveState.Count);
+			cleanRedundantSequence();
+			Console.WriteLine("After cleaning redundant node: " + FutureActiveState.Count);
+			
+			Console.WriteLine();
+			Console.WriteLine();
+
 			limittedFutureList();
+			
 		}
 		//Necessary 
 		public void chooseBestHospIfChangeIsNecessary()
@@ -253,6 +268,10 @@ namespace NestedDynamicProgrammingAlgorithm
 				ArrayList futurelist = new ArrayList();
 				for (int d = 0; d < data.General.Disciplines; d++)
 				{
+					if (data.Discipline[d].isRare)
+					{
+						continue;
+					}
 					for (int g = 0; g < data.General.DisciplineGr; g++)
 					{
 						double x = -data.AlgSettings.BigM;
@@ -286,10 +305,216 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 		}
 
+		// redundant schedule d1h1 - d2h2 === d2h2 - d1h1
+		public void cleanRedundantSequence()
+		{
+			int counter = -1;
+			while (counter < FutureActiveState.Count-1)
+			{
+				counter++;
+				bool removeIT = false;
+				bool firstLoopUpdate = false;
+				StateStage current = (StateStage)FutureActiveState[counter];
+				int length = data.Intern[theIntern].K_AllDiscipline - current.x_K;
+				if (length < 2) 
+				{
+					continue;
+				}
+				for (int l = 2; l <= length; l++) 
+				{
+					int[] theH = new int[l];
+					int[] theD = new int[l];
+					int startTime = -1;
+					int lastoneStart = -1;
+					for (int ll = 0; ll < l; ll++)
+					{
+						theD[ll] = -1;
+						theH[ll] = -1;
+					}
+					int lengCounter = 0;
+					int nextT = 0;
+
+					for (int t = nextT; t <= stageTime; t++)
+					{
+						bool noSeq = false;
+						if (lengCounter == l)
+						{
+							break;
+						}
+						if (current.theSchedule_t[t].theHospital > -1)
+						{
+							if (theD[0] ==-1)
+							{
+								startTime = t;
+								lengCounter = 0;
+							}
+							
+							for (int ll = 0; ll < l; ll++)
+							{
+								if (current.theSchedule_t[t].theDiscipline == -1)
+								{
+									noSeq = true;
+									break;
+								}
+								if (theD[ll] == -1)
+								{
+									lengCounter++;
+									theD[ll] = current.theSchedule_t[t].theDiscipline;
+									theH[ll] = current.theSchedule_t[t].theHospital;
+									lastoneStart = t;
+									t += data.Discipline[current.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theIntern].ProgramID];
+									
+									
+								}
+							}
+						}
+						if (noSeq)
+						{
+							break;
+						}
+						if (lengCounter == l)
+						{
+							nextT += data.Discipline[theD[0]].Duration_p[data.Intern[theIntern].ProgramID];
+							t = nextT - 1 ;
+						}
+
+						// now check the sequence 
+						int removeCounter = counter - 1;
+						int maxCandidate = -1;
+						double maxVal = -data.AlgSettings.BigM;
+
+						while (removeCounter < FutureActiveState.Count - 1)
+						{
+							removeCounter++;
+							StateStage state = (StateStage)FutureActiveState[removeCounter];
+							// we need to fix last one and check the sequence before
+							int starttmp = startTime;
+							bool remove = false;
+							if (state.theSchedule_t[lastoneStart].theDiscipline == theD[l-1]  && state.theSchedule_t[lastoneStart].theHospital == theH[l - 1])
+							{
+								for (int ll = 0; ll < l - 1 ; ll++)
+								{
+									int theD1 = state.theSchedule_t[starttmp].theDiscipline;
+									int theH1 = state.theSchedule_t[starttmp].theHospital;
+									if (theD1 == -1)
+									{
+										break;
+									}
+									starttmp += data.Discipline[theD1].Duration_p[data.Intern[theIntern].ProgramID];
+									remove = false;
+									for (int lch = 0; lch < l - 1; lch++)
+									{
+										if (theD1 == theD[lch] && (theH1 == theH[lch] || data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp > 1)) // lets not check the hospital except the last h
+										{
+											remove = true;
+											break;
+										}
+									}
+									if (!remove)
+									{
+										break;
+									}
+								}
+							}
+							
+							if (remove)
+							{
+								if (state.Fx > maxVal)
+								{
+									maxVal = state.Fx;
+									// delete ex max candidate
+									if (maxCandidate >= 0)
+									{
+										FutureActiveState.RemoveAt(maxCandidate);
+										firstLoopUpdate = true;
+										//update max
+										maxCandidate = removeCounter - 1; // because one is removed
+										//update counter
+										removeCounter--;
+									}
+									else
+									{
+										maxCandidate = removeCounter;
+									}									
+									
+								}
+								else
+								{
+									FutureActiveState.RemoveAt(removeCounter);
+									removeCounter--;
+								}
+							}
+
+							
+						} 
+					}
+
+					if (firstLoopUpdate)
+					{
+						counter--;
+					}
+				}
+				
+			}
+		}
+
+		// keep only one discipline 
+		public void keepOneDisci()
+		{
+			if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp > 1)
+			{
+				return;
+			}
+			int counter = -1;
+			int p = data.Intern[theIntern].ProgramID;
+			bool[] discStatus = new bool[data.General.Disciplines];
+			for (int d = 0; d < data.General.Disciplines; d++)
+			{
+				discStatus[d] = false;
+			}
+			while (counter < FutureActiveState.Count - 1)
+			{
+				counter++;
+				StateStage state = (StateStage)FutureActiveState[counter];
+				int theD = state.theSchedule_t[stageTime].theDiscipline;
+				bool cango = false;
+				// oversea skill and availbility is already checked 
+				if (theD < 0 || discStatus[theD])
+				{
+					continue;
+				}
+				else 
+				{
+					discStatus[theD] = true;
+				}
+				if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.9)
+				{
+					continue;
+				}
+				
+				// remove all other discipline
+				int removeCounter = -1;
+				while (removeCounter < FutureActiveState.Count - 1)
+				{
+					
+					removeCounter++;
+					StateStage current = (StateStage)FutureActiveState[removeCounter];
+					int theDtmp = current.theSchedule_t[stageTime].theDiscipline;
+					
+					if (theDtmp >= 0 && theDtmp != theD && data.Discipline[theD].Duration_p[p] == data.Discipline[theDtmp].Duration_p[p])
+					{
+						FutureActiveState.RemoveAt(removeCounter);
+						removeCounter--;
+					}
+				}
+			}
+		}
+
+
 		//remove more than a number
 		public void limittedFutureList()
 		{
-			int limit = 100 * data.General.Disciplines * data.General.Hospitals;
+			int limit = (data.General.Disciplines - 1 ) * data.General.Disciplines * data.General.Hospitals;
 			
 			if (FutureActiveState.Count > limit)
 			{
@@ -302,6 +527,10 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void DPStageProcedure(ref StateStage finalSchedule)
 		{
 			setStateStage(ref finalSchedule);
+			if (solutionFound)
+			{
+				return;
+			}
 			setFutureState();
 		}
 
@@ -637,11 +866,11 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						if (theState.theSchedule_t[t].theDiscipline == theState.theSchedule_t[stageTime - 1].theDiscipline)
 						{
-							for (int tt = t; tt < stageTime; tt++)
+							for (int tt = t; tt < stageTime && isTherecapacity; tt++)
 							{
-								for (int w = 0; w < data.General.HospitalWard; w++)
+								for (int w = 0; w < data.General.HospitalWard && isTherecapacity; w++)
 								{
-									if (MaxDem_twh[tt][w][theH] == 0)
+									if (data.Hospital[theH].Hospital_dw[theDisc][w] && MaxDem_twh[tt][w][theH] == 0)
 									{
 										isTherecapacity = false;
 									}
@@ -736,7 +965,16 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 			if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp == 1)
 			{
-				result = false;
+
+				for (int t = 0; t < data.General.TimePriods; t++)
+				{
+					if (theState.theSchedule_t[t].theHospital == hIndex)
+					{
+						result = false;
+						break;
+					}
+				}
+				
 			}
 
 			// if he was in hospital and you wanna assign a discipline assign it to previous one (which you already considered a state for that no need to consider this)

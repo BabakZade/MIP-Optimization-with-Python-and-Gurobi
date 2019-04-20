@@ -50,12 +50,16 @@ namespace MultiLevelSolutionMethodology
 					counter++;
 					for (int i = 0; i < localData.General.Interns; i++)
 					{
-						localData.Intern[i].K_AllDiscipline = KallDisc_i[i];
-
-						for (int g = 0; g < localData.General.DisciplineGr; g++)
+						if (localData.Intern[i].ProgramID == p)
 						{
-							localData.Intern[i].ShouldattendInGr_g[g] = KgroupDisc_ig[i][g];
+							localData.Intern[i].K_AllDiscipline = KallDisc_i[i];
+
+							for (int g = 0; g < localData.General.DisciplineGr; g++)
+							{
+								localData.Intern[i].ShouldattendInGr_g[g] = KgroupDisc_ig[i][g];
+							}
 						}
+						
 					}
 				}
 			}

@@ -38,6 +38,7 @@ namespace MultiLevelSolutionMethodology
 				ElappesedTime_p[p] = 0;
 				setTheTrPR[p] = false;
 			}
+			TrPrOrder = new int[2] { 1, 0 };
 			objFunction = 0;
 			finalSol = new OptimalSolution(data);
 		}

@@ -8,12 +8,14 @@ namespace DataLayer
 	public class DisciplineInfo
 	{
 		public string Name;
+		public int ID;
 		public int SQLID;
 		public bool[][] Skill4D_dp;
 		public bool[] requiresSkill_p;
 		public bool[] requiredLater_p;
 		public int[] Duration_p;
-
+		public bool isRare;
+		public double howRare;
 		public DisciplineInfo(int Disciplines, int Programs)
 		{
 			Name = "";
@@ -24,6 +26,34 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref requiredLater_p, Programs, false);
 		}
 
-
+		public void setIsRare(AllData data)
+		{
+			isRare = false;
+			int couter = 0;
+			howRare = 0;
+			for (int h = 0; h < data.General.Hospitals; h++)
+			{
+				bool exist = false;
+				for (int w = 0; w < data.General.HospitalWard; w++)
+				{
+					if (data.Hospital[h].Hospital_dw[this.ID][w])
+					{
+						exist = true;
+						couter++;
+						break;
+					}
+				}
+				if (exist && !isRare)
+				{
+					isRare = false;
+				}
+				else
+				{
+					isRare = true;
+					
+				}
+			}
+			howRare = couter / data.General.Hospitals;
+		}
 	}
 }

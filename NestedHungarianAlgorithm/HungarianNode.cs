@@ -59,6 +59,7 @@ namespace NestedHungarianAlgorithm
 		public int TotalAvailablePosition;
 		public PositionMap[] LastPosition_i;
 		public int[] K_totalDiscipline;
+		public int[][] discGrCounter_ig;
 		public int Interns;
 		public int Disciplins;
 		public int Hospitals;
@@ -67,7 +68,7 @@ namespace NestedHungarianAlgorithm
 		public int Wards;
 		public int Region;
 		public int DisciplineGr;
-		public int[][] discGrCounter_ig;
+		
 		public int[][] Change_ih;
 
 		public bool[][] sHeOccupies_ir;

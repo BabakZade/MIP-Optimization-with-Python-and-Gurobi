@@ -15,7 +15,11 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][][] MinDem_twh;
 		public int[][][] ResDem_twh;
 		public int[][][] EmrDem_twh;
+		public bool[][][] activatedDisc_tdh; // from sol
+		public bool[] activeDisc_d;
 		public bool incombentExist;
+		public int K_totalDiscipline;
+		public int[] discGrCounter_g;
 		public DP(AllData alldata, int theI, OptimalSolution incumbentSol)
 		{
 			Initial(alldata, incumbentSol, theI);
@@ -49,6 +53,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			new ArrayInitializer().CreateArray(ref MinDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
 			new ArrayInitializer().CreateArray(ref ResDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
 			new ArrayInitializer().CreateArray(ref EmrDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref activatedDisc_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, false);
 			for (int t = 0; t < data.General.TimePriods; t++)
 			{
 				for (int w = 0; w < data.General.HospitalWard; w++)
@@ -82,6 +87,7 @@ namespace NestedDynamicProgrammingAlgorithm
 									{
 										if (data.Hospital[h].Hospital_dw[d][w])
 										{
+											activatedDisc_tdh[t][d][h] = true;
 											if (MaxDem_twh[t][w][h] > 0)
 											{
 												MaxDem_twh[t][w][h]--;
@@ -165,6 +171,18 @@ namespace NestedDynamicProgrammingAlgorithm
 			//	}
 			//	Console.WriteLine();
 			//}
+		}
+
+		public void FastScheduleEveryTimeChange(AllData data, OptimalSolution incumbentSol, int theIntern)
+		{
+			K_totalDiscipline = data.Intern[theIntern].K_AllDiscipline;
+			discGrCounter_g = new int[data.General.DisciplineGr];
+			for (int g = 0; g < data.General.DisciplineGr; g++)
+			{
+				discGrCounter_g[g] = data.Intern[theIntern].ShouldattendInGr_g[g];				
+			}
+			
+			
 		}
 	}
 }

@@ -260,6 +260,7 @@ namespace DataLayer
 			for (int d = 0; d < data.General.Disciplines; d++)
 			{
 				data.Discipline[d] = new DisciplineInfo(data.General.Disciplines, data.General.TrainingPr);
+				data.Discipline[d].ID = d;
 			}
 
 			
@@ -603,7 +604,10 @@ namespace DataLayer
 				data.Intern[i].setThePercetage(data);
 				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines, data.General.DisciplineGr, data.General.HospitalWard, data);
 			}
-
+			for (int d = 0; d < data.General.Disciplines; d++)
+			{
+				data.Discipline[d].setIsRare(data);
+			}
 		}
 	}
 }
