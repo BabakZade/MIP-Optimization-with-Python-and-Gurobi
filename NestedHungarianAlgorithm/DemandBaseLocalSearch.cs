@@ -515,7 +515,7 @@ namespace NestedHungarianAlgorithm
 			}
 			else
 			{
-				Initial(incumbentSol, Name);
+				Initial(Global, Name);
 
 			}
 		}

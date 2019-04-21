@@ -64,7 +64,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			activeDisc = new bool[alldata.General.Disciplines];
 		}
 		public StateStage(StateStage stateInput, StateStage xInput, int theI, AllData alldata, int theStage, bool isRoot)
-		{			
+		{
 			data = alldata;
 			tStage = theStage;
 			Initial(data);
@@ -74,16 +74,16 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				this.isRoot = true;
 			}
-			
+
 			if (xInput.x_wait)
 			{
 				x_wait = true;
-				if (stateInput.x_K>0)
+				if (stateInput.x_K > 0)
 				{
 					Fx = coeff * data.Intern[theI].wieght_w;
 					// otherwise the solution is complete
 				}
-				
+
 				if (!isRoot)
 				{
 					// if it haven't had discipline yet
@@ -92,7 +92,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					if (stateInput.x_Disc < 0)
 					{
 						isRoot = stateInput.isRoot;
-					}				
+					}
 
 					x_Disc = stateInput.x_Disc;
 					x_Hosp = stateInput.x_Hosp;
@@ -120,11 +120,11 @@ namespace NestedDynamicProgrammingAlgorithm
 				}
 				else // oversea
 				{
-					Fx = coeff * (data.Intern[theI].Prf_d[x_Disc] * data.Intern[theI].wieght_d					
+					Fx = coeff * (data.Intern[theI].Prf_d[x_Disc] * data.Intern[theI].wieght_d
 					+ data.TrainingPr[data.Intern[theI].ProgramID].weight_p * data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[x_Disc]);
 				}
-				
-			
+
+
 			}
 			if (!isRoot)
 			{
@@ -136,7 +136,7 @@ namespace NestedDynamicProgrammingAlgorithm
 						Fx += coeff * data.Intern[theI].wieght_ch;
 
 					}
-				}				
+				}
 			}
 			// like MIP
 			for (int p = 0; p < data.General.TrainingPr; p++)
@@ -151,16 +151,16 @@ namespace NestedDynamicProgrammingAlgorithm
 					Fx -= (int)data.TrainingPr[p].CoeffObj_ResCap;
 				}
 			}
-			
+
 			possibleStates = new ArrayList();
-			
+
 			setNextStates(stateInput, theI);
-			
-			
+
+
 		}
 		public void setNextStates(StateStage stateInput, int theI)
 		{
-			
+
 			x_K = 0;
 			x_K_g = new int[data.General.DisciplineGr];
 			for (int g = 0; g < data.General.DisciplineGr; g++)
@@ -168,7 +168,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				if (isRoot)
 				{
 					x_K_g[g] = data.Intern[theI].ShouldattendInGr_g[g];
-					x_K+= data.Intern[theI].ShouldattendInGr_g[g];
+					x_K += data.Intern[theI].ShouldattendInGr_g[g];
 				}
 				else
 				{
@@ -204,21 +204,21 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					activeDisc[d] = true;
 				}
-				
+
 			}
 			if (x_wait)
 			{
 				possibleStates.Add(this);
 			}
 			else
-			{				
+			{
 				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{
 					if (data.Intern[theI].DisciplineList_dg[x_Disc][g] && x_K_g[g] > 0)
 					{
-						for (int t = tStage; t < tStage+ data.Discipline[x_Disc].Duration_p[data.Intern[theI].ProgramID]; t++)
+						for (int t = tStage; t < tStage + data.Discipline[x_Disc].Duration_p[data.Intern[theI].ProgramID]; t++)
 						{
-							theSchedule_t[t] = new StateSchedule(x_Hosp,x_Disc);
+							theSchedule_t[t] = new StateSchedule(x_Hosp, x_Disc);
 						}
 						// insert at right place 
 						int counter = 0;
@@ -238,7 +238,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 				}
 			}
-			
+
 		}
 
 		// it is private function
@@ -246,7 +246,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		{
 			StateStage duplicated = new StateStage(data);
 			duplicated.Fx = copyable.Fx;
-			duplicated.xStar = copyable.xStar ;
+			duplicated.xStar = copyable.xStar;
 			duplicated.x_wait = copyable.x_wait;
 			duplicated.x_Disc = copyable.x_Disc;
 			duplicated.x_Hosp = copyable.x_Hosp;
@@ -261,7 +261,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					duplicated.x_K_g[g]--;
 				}
 			}
-			duplicated.x_K = copyable.x_K -1;
+			duplicated.x_K = copyable.x_K - 1;
 			duplicated.isRoot = copyable.isRoot;
 			duplicated.x_group = theG;
 			for (int d = 0; d < data.General.Disciplines; d++)
@@ -272,11 +272,24 @@ namespace NestedDynamicProgrammingAlgorithm
 			duplicated.theSchedule_t = new StateSchedule[data.General.TimePriods];
 			for (int t = 0; t < data.General.TimePriods; t++)
 			{
-				duplicated.theSchedule_t[t] =new StateSchedule( copyable.theSchedule_t[t]);
-				
+				duplicated.theSchedule_t[t] = new StateSchedule(copyable.theSchedule_t[t]);
+
 			}
 			return duplicated;
 		}
 
+		public string DisplayMe()
+		{
+			string result = "";
+			for (int t = 0; t < data.General.TimePriods; t++)
+			{
+				if (theSchedule_t[t].theDiscipline >= 0)
+				{
+					result += theSchedule_t[t].theDiscipline.ToString("00") + "*"+ theSchedule_t[t].theHospital.ToString("00") +"  ";
+				}
+				
+			}
+			return result;
+		}
 	}
 }

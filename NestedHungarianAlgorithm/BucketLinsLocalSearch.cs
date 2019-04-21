@@ -64,7 +64,7 @@ namespace NestedHungarianAlgorithm
 			InitialBucketChangeOrderMinDem(data.AlgSettings.bucketBasedImpPercentage, incumbentSol);
 			InitialBucketSkill(incumbentSol);
 			ImproveTheSchedule(HungarianActiveList);
-			setSolution(HungarianActiveList, Name);
+			setSolution(HungarianActiveList, incumbentSol, Name);
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{
@@ -593,7 +593,7 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
-		public void setSolution(ArrayList HungarianActiveList, string Name)
+		public void setSolution(ArrayList HungarianActiveList, OptimalSolution incumbentSol, string Name)
 		{
 			improvedSolution = new OptimalSolution(data);
 			for (int i = 0; i < Interns; i++)
@@ -617,6 +617,10 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 			improvedSolution.WriteSolution(data.allPath.InsGroupLocation, "BucketListImproved" + Name);
+			if (improvedSolution.Obj < incumbentSol.Obj)
+			{
+				improvedSolution = incumbentSol;
+			}
 		}
 	}
 }

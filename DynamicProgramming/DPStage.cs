@@ -324,6 +324,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					int[] theH = new int[l];
 					int[] theD = new int[l];
+					
 					int startTime = -1;
 					int lastoneStart = -1;
 					for (int ll = 0; ll < l; ll++)
@@ -387,6 +388,19 @@ namespace NestedDynamicProgrammingAlgorithm
 						{
 							removeCounter++;
 							StateStage state = (StateStage)FutureActiveState[removeCounter];
+							bool notSimmilar = false;
+							for (int g = 0; g < data.General.DisciplineGr; g++)
+							{
+								if (state.x_K_g[g] != current.x_K_g[g])
+								{
+									notSimmilar = true;
+									break;
+								}
+							}
+							if (notSimmilar)
+							{
+								continue;
+							}
 							// we need to fix last one and check the sequence before
 							int starttmp = startTime;
 							bool remove = false;
@@ -461,10 +475,10 @@ namespace NestedDynamicProgrammingAlgorithm
 		// keep only one discipline 
 		public void keepOneDisci()
 		{
-			if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp > 1)
-			{
-				return;
-			}
+			//if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp > 1)
+			//{
+			//	return;
+			//}
 			int counter = -1;
 			int p = data.Intern[theIntern].ProgramID;
 			bool[] discStatus = new bool[data.General.Disciplines];
@@ -518,10 +532,14 @@ namespace NestedDynamicProgrammingAlgorithm
 			
 			if (FutureActiveState.Count > limit)
 			{
-				Console.WriteLine("Total active: " + FutureActiveState.Count + " Limit: " + limit + " => Cleaning space");
-				FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
+				Console.WriteLine("Total active: " + FutureActiveState.Count + " Limit: " + limit + " => Warning");
+				foreach (StateStage item in FutureActiveState)
+				{
+					Console.WriteLine(item.DisplayMe());
+				}
+				//FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
 			}
-			
+
 		}
 
 		public void DPStageProcedure(ref StateStage finalSchedule)
@@ -765,18 +783,6 @@ namespace NestedDynamicProgrammingAlgorithm
 			if (result)
 			{
 				result = chronologicalConsecutiveDiscSameHospital(theDisc, theH, theState);
-			}
-
-			// if the consecutive disciplines happens in different hospital, the second hospital must worth it 
-			// 4- same hospital and consecutive time, the discipline should be chronological
-			// when we have incumbent solution it will not work 
-			if (result)
-			{
-				result = differentConsecutiveHospital(theDisc, theH, theState);
-			}
-			if (result && false) // it is not working if you have a limited resources 
-			{
-				result = bestHospitalForThisDiscipline(theDisc, theH, theState);
 			}
 			return result;
 		}

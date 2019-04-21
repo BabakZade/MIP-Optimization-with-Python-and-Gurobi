@@ -97,7 +97,7 @@ namespace MedicalTraineeScheduling
 				for (int i = 0; i < InstanceSize; i++)
 				{
 					groupCounter++;
-					
+
 					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Size", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 
 					Stopwatch stopwatch = new Stopwatch();
