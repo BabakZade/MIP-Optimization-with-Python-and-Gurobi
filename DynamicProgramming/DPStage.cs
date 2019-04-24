@@ -36,10 +36,10 @@ namespace NestedDynamicProgrammingAlgorithm
 			stageTime = theTime;
 			Initial(alldata);
 			FutureActiveState = new ArrayList();
-			if (!data.Intern[theI].Ave_t[theTime])
-			{
-				FutureActiveState = parent.FutureActiveState;
-			}
+			//if (!data.Intern[theI].Ave_t[theTime])
+			//{
+			//	FutureActiveState = parent.FutureActiveState;
+			//}
 			if (isRoot)
 			{
 				rootStage = true;
@@ -334,7 +334,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					}
 					int lengCounter = 0;
 					int nextT = 0;
-
+					
 					for (int t = nextT; t <= stageTime; t++)
 					{
 						bool noSeq = false;
@@ -354,8 +354,18 @@ namespace NestedDynamicProgrammingAlgorithm
 							{
 								if (current.theSchedule_t[t].theDiscipline == -1)
 								{
-									noSeq = true;
-									break;
+									t++;
+									ll--;
+									
+									if (t > stageTime)
+									{
+										noSeq = true;
+										break;
+									}
+									else
+									{
+										continue;
+									}
 								}
 								if (theD[ll] == -1)
 								{
@@ -363,11 +373,15 @@ namespace NestedDynamicProgrammingAlgorithm
 									theD[ll] = current.theSchedule_t[t].theDiscipline;
 									theH[ll] = current.theSchedule_t[t].theHospital;
 									lastoneStart = t;
-									t += data.Discipline[current.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theIntern].ProgramID];
-									
+									t += data.Discipline[current.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theIntern].ProgramID];						
 									
 								}
 							}
+						}
+						else
+						{
+							t++;
+							continue;
 						}
 						if (noSeq)
 						{
@@ -412,7 +426,16 @@ namespace NestedDynamicProgrammingAlgorithm
 									int theH1 = state.theSchedule_t[starttmp].theHospital;
 									if (theD1 == -1)
 									{
-										break;
+										starttmp++;
+										if (starttmp > stageTime)
+										{
+											break;
+										}
+										else
+										{
+											ll--;
+											continue;
+										}
 									}
 									starttmp += data.Discipline[theD1].Duration_p[data.Intern[theIntern].ProgramID];
 									remove = false;
@@ -529,14 +552,17 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void limittedFutureList()
 		{
 			int limit = (data.General.Disciplines - 1 ) * data.General.Disciplines * data.General.Hospitals;
-			
+			//foreach (StateStage item in FutureActiveState)
+			//{
+			//	Console.WriteLine(item.DisplayMe());
+			//}
 			if (FutureActiveState.Count > limit)
 			{
 				Console.WriteLine("Total active: " + FutureActiveState.Count + " Limit: " + limit + " => Warning");
-				foreach (StateStage item in FutureActiveState)
-				{
-					Console.WriteLine(item.DisplayMe());
-				}
+				//foreach (StateStage item in FutureActiveState)
+				//{
+				//	Console.WriteLine(item.DisplayMe());
+				//}
 				//FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
 			}
 

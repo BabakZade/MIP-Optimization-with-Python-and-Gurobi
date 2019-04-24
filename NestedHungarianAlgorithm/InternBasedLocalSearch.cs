@@ -52,10 +52,8 @@ namespace NestedHungarianAlgorithm
 					solI.Intern_itdh[theI][t][neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline][neighbourhoodSol.BestSol.theSchedule_t[t].theHospital] = true;
 					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theI].ProgramID] - 1;
 				}
-				solI = new OptimalSolution(data);
-				solI.copyRosters(finalSol.Intern_itdh);
 				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + theI + "_" + Name);
-				if (solI.Obj >= finalSol.Obj && solI.IsFeasible)
+				if (solI.Obj > finalSol.Obj || (!solI.infeasibleIntern_i[theI] && finalSol.infeasibleIntern_i[theI]))
 				{
 					finalSol = new OptimalSolution(data);
 					finalSol.copyRosters(solI.Intern_itdh);
