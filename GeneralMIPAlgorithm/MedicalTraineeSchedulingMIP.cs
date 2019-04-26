@@ -4,6 +4,7 @@ using System.Text;
 using DataLayer;
 using ILOG.Concert;
 using ILOG.CPLEX;
+using System.Diagnostics;
 
 namespace GeneralMIPAlgorithm
 {
@@ -12,7 +13,7 @@ namespace GeneralMIPAlgorithm
 		public bool SolutionFound;
 		public AllData data;
 		public OptimalSolution mipOpt;
-
+		public long ElapsedTime;
 		public Cplex MIPModel;
 		public IIntVar[][][][] y_idDh;
 		public IIntVar[][][][] s_idth;
@@ -51,12 +52,12 @@ namespace GeneralMIPAlgorithm
 		public int Wards;
 		public int Regions;
 		public int DisciplineGr;
-		public MedicalTraineeSchedulingMIP(AllData InputData, string InsName)
+		public MedicalTraineeSchedulingMIP(AllData InputData, string InsName, bool CPLEXFirstNode, int NewTimeLimit)
 		{
 			data = InputData;
-			MIPalgorithem(InsName);
+			MIPalgorithem(InsName, CPLEXFirstNode, NewTimeLimit);
 		}
-		public void MIPalgorithem( string InsName)
+		public void MIPalgorithem( string InsName, bool CPLEXFirstNode, int NewTimeLimit)
 		{
 			Initial();
 			InitialMIPVar();
@@ -64,7 +65,7 @@ namespace GeneralMIPAlgorithm
 			CreateModel();
 			setDemandConstraint();
 			//SetSol();
-			solve_MIPmodel(InsName);
+			solve_MIPmodel(InsName, CPLEXFirstNode, NewTimeLimit);
 		}
 		public void SetSol()
 		{
@@ -1192,22 +1193,40 @@ namespace GeneralMIPAlgorithm
 			}
 		}
 
-		public void solve_MIPmodel(string InsName)
+		public void solve_MIPmodel(string InsName, bool CPLEXFirstNode, int NewTimeLimit)
 		{
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
 			//*************set program
 			MIPModel.ExportModel(data.allPath.InsGroupLocation + InsName + "LP.lp");
 			MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
 			MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
 			MIPModel.SetParam(Cplex.IntParam.Threads, 3);
 			MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.MIPTime);
-			//MIPModel.SetParam(Cplex.DoubleParam.TiLim, 400);
 			MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
 			try
 			{
 				SolutionFound = true;
 				mipOpt = new OptimalSolution(data);
+				if (CPLEXFirstNode)
+				{
+					MIPModel.SetParam(Cplex.LongParam.IntSolLim, 1);
+				}
+				
 				if (MIPModel.Solve())
 				{
+					stopwatch.Stop();
+					ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+					stopwatch.Start();
+					if (ElapsedTime < NewTimeLimit && CPLEXFirstNode)
+					{
+						MIPModel.SetParam(Cplex.LongParam.IntSolLim, 9223372036800000000);
+						MIPModel.SetParam(Cplex.DoubleParam.TiLim, NewTimeLimit - ElapsedTime);
+						MIPModel.SetParam(Cplex.Param.Advance, 1); // keep the search tree and resuem
+						MIPModel.Solve();
+					}
+					stopwatch.Stop();
+					ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
 					for (int i = 0; i < Interns; i++)
 					{
 						for (int t = 0; t < Timepriods; t++)
@@ -1277,6 +1296,8 @@ namespace GeneralMIPAlgorithm
 			}
 			catch (ILOG.Concert.Exception e)
 			{
+				stopwatch.Stop();
+				ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
 				SolutionFound = false;
 				System.Console.WriteLine("Concert exception '" + e + "' caught");
 			}

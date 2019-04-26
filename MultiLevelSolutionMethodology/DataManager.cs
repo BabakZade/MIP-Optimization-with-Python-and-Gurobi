@@ -63,7 +63,7 @@ namespace MultiLevelSolutionMethodology
 					}
 				}
 			}
-			localData.AlgSettings.MIPTime = (timeWhole / localData.General.TrainingPr) * counter;
+			localData.AlgSettings.MIPTime = timeWhole ;
 		}
 
 		public void ResetToDefaultData()

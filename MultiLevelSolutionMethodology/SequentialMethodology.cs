@@ -18,6 +18,7 @@ namespace MultiLevelSolutionMethodology
 		public double objFunction;
 		int[] TrPrOrder;
 		bool[] setTheTrPR;
+		int P_timeLimit;
 		public SequentialMethodology(AllData data, string InsName)
 		{
 			Initial(data);
@@ -38,19 +39,24 @@ namespace MultiLevelSolutionMethodology
 				ElappesedTime_p[p] = 0;
 				setTheTrPR[p] = false;
 			}
-			TrPrOrder = new int[2] { 1, 0 };
+			//TrPrOrder = new int[2] { 0, 1 };
 			objFunction = 0;
 			finalSol = new OptimalSolution(data);
 		}
 
 		public void Methodology(int[] trProgram, string InsName)
 		{
-		
+			int timeLimit = dataManager.localData.AlgSettings.MIPTime / dataManager.localData.General.TrainingPr;
+			P_timeLimit = dataManager.localData.AlgSettings.MIPTime;
 			for (int p = 0; p < trProgram.Length; p++)
 			{
 				setTheTrPR[trProgram[p]] = true;
 				dataManager.SetDataPrTr(setTheTrPR);
-				setMIPMethodology(dataManager.localData, trProgram[p], InsName);
+				if (p == trProgram.Length - 1)
+				{
+					timeLimit = P_timeLimit;
+				}
+				setMIPMethodology(dataManager.localData, trProgram[p], InsName, timeLimit);
 				if (p < trProgram.Length - 1)
 				{
 					setData(trProgram[p]);
@@ -61,12 +67,18 @@ namespace MultiLevelSolutionMethodology
 			finalSol.WriteSolution(dataManager.localData.allPath.OutPutLocation, InsName + "SeqFinal");
 		}
 		
-		public void setMIPMethodology(AllData data_p, int theP, string InsName)
+		public void setMIPMethodology(AllData data_p, int theP, string InsName, int TimeLimit)
 		{
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
-			MedicalTraineeSchedulingMIP mip = new MedicalTraineeSchedulingMIP(data_p, InsName + "PrTr_" + theP);
+			data_p.AlgSettings.MIPTime = P_timeLimit;
+			MedicalTraineeSchedulingMIP mip = new MedicalTraineeSchedulingMIP(data_p, InsName + "PrTr_" + theP, true , TimeLimit);			
 			stopwatch.Stop();
+			//P_timeLimit -= (int)stopwatch.ElapsedMilliseconds / 1000; // if you want to reduece the time each time 
+			if (P_timeLimit < 0)
+			{
+				P_timeLimit = 0;
+			}
 			ElappesedTime_p[theP] = (int)stopwatch.ElapsedMilliseconds / 1000;
 			finalSol_p[theP].copyRosters(mip.mipOpt.Intern_itdh);
 			finalSol_p[theP].WriteSolution(data_p.allPath.OutPutLocation, InsName + "PrTr_" + theP);
