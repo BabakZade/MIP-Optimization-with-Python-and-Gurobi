@@ -309,7 +309,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void cleanRedundantSequence()
 		{
 			int counter = -1;
-			while (counter < FutureActiveState.Count-1)
+			while (counter < FutureActiveState.Count-1 && counter >= - 1)
 			{
 				counter++;
 				bool removeIT = false;
@@ -398,7 +398,7 @@ namespace NestedDynamicProgrammingAlgorithm
 						int maxCandidate = -1;
 						double maxVal = -data.AlgSettings.BigM;
 
-						while (removeCounter < FutureActiveState.Count - 1)
+						while (removeCounter < FutureActiveState.Count - 1 && removeCounter >= -1)
 						{
 							removeCounter++;
 							StateStage state = (StateStage)FutureActiveState[removeCounter];
@@ -551,7 +551,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		//remove more than a number
 		public void limittedFutureList()
 		{
-			int limit = (data.General.Disciplines - 1 ) * data.General.Disciplines * data.General.Hospitals;
+			int limit = 5 * data.General.Disciplines * data.General.Disciplines * data.General.Hospitals * data.General.Hospitals;
 			//foreach (StateStage item in FutureActiveState)
 			//{
 			//	Console.WriteLine(item.DisplayMe());

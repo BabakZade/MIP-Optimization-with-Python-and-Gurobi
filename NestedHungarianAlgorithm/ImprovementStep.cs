@@ -30,7 +30,7 @@ namespace NestedHungarianAlgorithm
 			Initial();
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
-			bucketLinsLocal = new BucketLinsLocalSearch(data, incumbentSol, HungarianActiveList,Name);
+			//bucketLinsLocal = new BucketLinsLocalSearch(data, incumbentSol, HungarianActiveList,Name);
 			stopwatch.Stop();
 			TimeForbucketListImp = (int)stopwatch.ElapsedMilliseconds / 1000;
 			stopwatch.Reset();
@@ -38,7 +38,7 @@ namespace NestedHungarianAlgorithm
 			
 			stopwatch.Reset();
 			stopwatch.Restart();
-			internBasedLocalSearch = new InternBasedLocalSearch(data, bucketLinsLocal.improvedSolution, Name);
+			internBasedLocalSearch = new InternBasedLocalSearch(data, incumbentSol, Name);
 			stopwatch.Stop();
 			TimeForInternBaseImp = (int)stopwatch.ElapsedMilliseconds / 1000;
 			demandBaseLocalSearch = new DemandBaseLocalSearch(data, internBasedLocalSearch.finalSol , Name);

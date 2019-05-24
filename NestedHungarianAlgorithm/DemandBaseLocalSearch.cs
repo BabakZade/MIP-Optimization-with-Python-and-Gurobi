@@ -31,9 +31,12 @@ namespace NestedHungarianAlgorithm
 		public int[][] Roster_it;
 		public OptimalSolution Global;
 		public OptimalSolution Local;
+		int BLcounter;
+		int BLLimit;
 		public DemandBaseLocalSearch(AllData allData, OptimalSolution incumbentSol, string Name)
 		{
 			data = allData;
+			
 			Initial(incumbentSol, Name);
 			
 			AssignUnAssignedDiscipline(allData, Name);
@@ -50,11 +53,19 @@ namespace NestedHungarianAlgorithm
 
 		public void Initial(OptimalSolution incumbentSol, string Name)
 		{
+			BLLimit = 0;
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				BLLimit += data.Intern[i].K_AllDiscipline;
+			}
+			BLLimit = (int)Math.Ceiling(BLLimit * data.AlgSettings.bucketBasedImpPercentage);
+			BLcounter = 0;
 
 			Global = new OptimalSolution(data);
+			Local = new OptimalSolution(data);
 			Global.copyRosters(incumbentSol.Intern_itdh);
 			Global.WriteSolution(data.allPath.InsGroupLocation, "ImprovedDemand" + Name);
-			Local = new OptimalSolution(data);
+			
 			Local.copyRosters(incumbentSol.Intern_itdh);
 			
 
@@ -125,6 +136,68 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
+		public void InitialSolUpdate(OptimalSolution incumbentSol) {
+
+			Local = new OptimalSolution(data);
+			Local.copyRosters(incumbentSol.Intern_itdh);
+			new ArrayInitializer().CreateArray(ref MaxResEmrDemand_tdh, Timepriods, Disciplins, Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref ResEmrDemand_tdh, Timepriods, Disciplins, Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref isONDisc_id, Interns, Disciplins, false);
+			new ArrayInitializer().CreateArray(ref Roster_it, Interns, Timepriods, -1);
+
+			for (int t = 0; t < data.General.TimePriods; t++)
+			{
+				for (int h = 0; h < data.General.Hospitals; h++)
+				{
+					for (int w = 0; w < data.General.HospitalWard; w++)
+					{
+						for (int d = 0; d < data.General.Disciplines; d++)
+						{
+							if (data.Hospital[h].Hospital_dw[d][w])
+							{
+								for (int i = 0; i < data.General.Interns; i++)
+								{
+									if (incumbentSol.Intern_itdh[i][t][d][h])
+									{
+										for (int dd = 0; dd < Disciplins; dd++)
+										{
+											if (data.Hospital[h].Hospital_dw[dd][w])
+											{
+												MaxResEmrDemand_tdh[t][dd][h]++;
+												ResEmrDemand_tdh[t][dd][h]++;
+												isONDisc_id[i][d] = true;
+												Roster_it[i][t] = d;
+											}
+										}
+
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
+
+			for (int t = 0; t < Timepriods; t++)
+			{
+				for (int h = 0; h < Hospitals; h++)
+				{
+					for (int w = 0; w < data.General.HospitalWard; w++)
+					{
+						for (int d = 0; d < Disciplins; d++)
+						{
+							if (data.Hospital[h].Hospital_dw[d][w])
+							{
+								MaxResEmrDemand_tdh[t][d][h] -= data.Hospital[h].HospitalMaxDem_tw[t][w];
+								ResEmrDemand_tdh[t][d][h] -= (data.Hospital[h].HospitalMaxDem_tw[t][w] + data.Hospital[h].ReservedCap_tw[t][w] + data.Hospital[h].EmergencyCap_tw[t][w]);
+
+							}
+						}
+					}
+				}
+			}
+		}
 		public void AssignUnAssignedDiscipline(AllData allData, string Name)
 		{
 			for (int t = 0; t < Timepriods; t++)
@@ -145,6 +218,10 @@ namespace NestedHungarianAlgorithm
 													- allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
 									for (int dd = 0; dd < Disciplins; dd++)
 									{
+										if (BLcounter >= BLLimit)
+										{
+											break;
+										}
 										int durDD = allData.Discipline[dd].Duration_p[allData.Intern[i].ProgramID];
 										int durD = allData.Discipline[d].Duration_p[allData.Intern[i].ProgramID];
 										if (!isONDisc_id[i][dd] && durDD <= durD 
@@ -180,7 +257,7 @@ namespace NestedHungarianAlgorithm
 												Local.Intern_itdh[i][t][dd][h] = true;
 												MaxResEmrDemand_tdh[t][dd][h]++;
 												MaxResEmrDemand_tdh[t][d][h]--;
-
+												BLcounter++;
 											}
 										}
 									}
@@ -204,6 +281,10 @@ namespace NestedHungarianAlgorithm
 						{
 							for (int i = 0; i < Interns; i++)
 							{
+								if (BLcounter >= BLLimit)
+								{
+									break;
+								}
 								if (Local.Intern_itdh[i][t][d][h] && data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp > 1)
 								{								
 									int dd = -1;
@@ -360,6 +441,10 @@ namespace NestedHungarianAlgorithm
 						{
 							for (int i = 0; i < Interns; i++)
 							{
+								if (BLcounter >= BLLimit)
+								{
+									continue;
+								}
 								if (Local.Intern_itdh[i][t][d][h] && data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp > 1)
 								{
 									int dd = -1;
@@ -507,21 +592,18 @@ namespace NestedHungarianAlgorithm
 		public void UpdateGlobal(string Name, OptimalSolution incumbentSol)
 		{
 			Local.WriteSolution(data.allPath.InsGroupLocation, "ImprovedLocal");
-			if (Local.Obj > Global.Obj)
+			if (Local.Obj >= Global.Obj)
 			{
 				Global = new OptimalSolution(data);
 				Global.copyRosters(Local.Intern_itdh);
 				Global.WriteSolution(data.allPath.InsGroupLocation, "ImprovedDemand" + Name);
 			}
-			else
-			{
-				Initial(Global, Name);
-
-			}
+			InitialSolUpdate(Global);
 		}
 
 		public void ChangePair(int theI, int t1, int d1, int h1, int changeH1, int t2, int d2, int h2, int changeH2)
 		{
+			BLcounter++;
 			Local.Intern_itdh[theI][t1][d1][h1] = false;
 			Local.Intern_itdh[theI][t2][d2][h2] = false;
 			Local.Intern_itdh[theI][t1][d2][changeH2] = true;

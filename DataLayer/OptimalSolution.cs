@@ -61,6 +61,33 @@ namespace DataLayer
 					}
 				}
 			}
+
+			new ArrayInitializer().CreateArray(ref PrDisp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref Obj_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref MinDis, data.General.TrainingPr, data.AlgSettings.BigM);
+			new ArrayInitializer().CreateArray(ref TotalDis, data.General.TrainingPr, 0);
+			new ArrayInitializer().CreateArray(ref Assigned_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref NotUsesAcc, data.General.Region, data.General.TimePriods, 0);
+			AveDes = 0;
+			minimizedDev = 0;
+			ResDemand = 0;
+			EmrDemand = 0;
+			NotUsedAccTotal = 0;
+			Obj = 0;
+			SlackDem = 0;
+
+			infeasibilityK_Assigned = false;
+			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
+			infeasibilityChangesInHospital = false;
+			infeasibilityOverseaAbilityAve = false;
+			infeasibilitySkill = false;
 		}
 
 		public void copyRosters(bool[][][][] Copy_itdh)
@@ -98,6 +125,33 @@ namespace DataLayer
 					}
 				}
 			}
+
+			new ArrayInitializer().CreateArray(ref PrDisp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref Obj_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
+			new ArrayInitializer().CreateArray(ref MinDis, data.General.TrainingPr, data.AlgSettings.BigM);
+			new ArrayInitializer().CreateArray(ref TotalDis, data.General.TrainingPr, 0);
+			new ArrayInitializer().CreateArray(ref Assigned_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+			new ArrayInitializer().CreateArray(ref NotUsesAcc, data.General.Region, data.General.TimePriods, 0);
+			AveDes = 0;
+			minimizedDev = 0;
+			ResDemand = 0;
+			EmrDemand = 0;
+			NotUsedAccTotal = 0;
+			Obj = 0;
+			SlackDem = 0;
+
+			infeasibilityK_Assigned = false;
+			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
+			infeasibilityChangesInHospital = false;
+			infeasibilityOverseaAbilityAve = false;
+			infeasibilitySkill = false;
 		}
 
 		public void Initial(AllData data)

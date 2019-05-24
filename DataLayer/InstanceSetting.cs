@@ -137,7 +137,7 @@ namespace DataLayer
 
 			// ratio of discipline group size to attended course from that group
 			double[][] R_gk_g = new double[3][] { new double[2] { 1, 0.2 }, new double[2] { 0.8, 0.4 }, new double[2] { 0.6, 0.6 } };
-			R_gk_g = new double[1][] {  new double[2] { 0.8, 0.4 } };
+			R_gk_g = new double[1][] {  new double[4] { 1, 0.25, 0.33, 1/16 } };
 
 			// ratio of ward in hospital
 			double[] R_wh = new double[3] { 1, 0.75, 0.5 };
@@ -149,15 +149,15 @@ namespace DataLayer
 
 			// total number of intern
 			int[] Totalintern = new int[2] { 20, 40 };
-			Totalintern = new int[1] { 20 };
+			Totalintern = new int[1] { 320 };
 
 			// total number of discipline 
 			int[] TotalDiscipline = new int[2] { 12, 24 };
-			TotalDiscipline = new int[1] { 12 };
+			TotalDiscipline = new int[1] { 30 };
 
 			// min Demand Rate
 			double[] R_dMin = new double[1] { 0.05 };
-			R_dMin = new double[1] { 0.05 };
+			R_dMin = new double[1] { 0.00 };
 
 			// min demand 
 			int[] MinDem = new int[1] { 1 };
@@ -173,11 +173,11 @@ namespace DataLayer
 
 			// ratio of mutual discipline in training program
 			double[] R_muDp = new double[3] { 0, 0.1, 0.25 };
-			R_muDp = new double[1] { 0 };
+			R_muDp = new double[1] { 0.0 };
 
 			// ratio of mutual discipline in discipline groups
 			double[] R_muDg = new double[3] { 0, 0.1, 0.25 };
-			R_muDg = new double[1] { 0 };
+			R_muDg = new double[1] { 0.0 };
 
 			// preference max value 
 			int[] PrfMaxValue = new int[1] { 4 };
@@ -190,22 +190,22 @@ namespace DataLayer
 
 			// oversea hospital
 			double[] overseaHosp = new double[3] { 0, 0.1, 0.25 };
-			overseaHosp = new double[1] { 0 };
+			overseaHosp = new double[1] { 0.3 };
 
 			// fulfilled %
-			double[] fulfilled = new double[1] { 0.1 };
+			double[] fulfilled = new double[1] { 0.0 };
 
 			// total Region
 			int[] TRegion = new int[1] { 1 };
 
 			// total training Program
-			int[] TTrainingP = new int[1] { 2 };
+			int[] TTrainingP = new int[1] { 1 };
 			
 			// total Groups
-			int[] TDGroup = new int[1] { 2 };
+			int[] TDGroup = new int[1] { 4 };
 
 			// total TimePriod
-			int[] TTime = new int[1] { 24 };
+			int[] TTime = new int[1] { 12 };
 
 			// the percentage of discipline in each discipline groups
 			// 2 group, 2 traing program
@@ -213,14 +213,14 @@ namespace DataLayer
 			// 0.6 => training program 1
 			// 0.4 => training program 2
 			double[][] DisciplineDistribution_p = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
-			DisciplineDistribution_p  = new double[1][] { new double[2] { 0.5, 0.5 } };
+			DisciplineDistribution_p  = new double[1][] { new double[1] { 1 } };
 			// discipline distribution per group (from all assigned discipline to the training program) 
 			// sum per row => 1
 			// 0.2 0.8 
 			// 0.5 0.5
 			// it is considired equal for all training program
 			double[][] DisciplineDistribution_g = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
-			DisciplineDistribution_g = new double[1][] { new double[2] { 0.3, 0.7 } };
+			DisciplineDistribution_g = new double[1][] { new double[4] { 7.0/30 , 4.0/30, 3.0/30, 16.0/30} };
 
 			for (int wd = 0; wd < R_wd.Length; wd++)
 			{
@@ -271,6 +271,7 @@ namespace DataLayer
 																										for (int ddistg = 0; ddistg < DisciplineDistribution_g.GetLength(0); ddistg++)
 																										{
 																											int[] AllowedDiscInHospital_p = new int[2] { TotalDiscipline[d], 1 };
+																											AllowedDiscInHospital_p = new int[1] { TotalDiscipline[d]};
 																											AllinstanceSettings.Add(new InstanceSetting(R_wd[wd], R_gk_g[gk], R_wh[wh], R_Trel[trel], Totalintern[i], TotalDiscipline[d], R_dMin[rdmin], MinDem[mind],
 																												MaxDem[maxd], EmrDem[emrd], ResDem[resd], R_muDp[mup], R_muDg[mug], PrfMaxValue[prfMax], CoefficientMaxValue[coef], Prespective[prs],
 																												overseaHosp[overs], fulfilled[ff], TRegion[r], TTrainingP[p], TDGroup[g], TTime[t], DisciplineDistribution_p[ddistp], DisciplineDistribution_g[ddistg], AllowedDiscInHospital_p));

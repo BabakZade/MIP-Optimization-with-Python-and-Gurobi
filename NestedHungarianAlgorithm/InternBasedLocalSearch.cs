@@ -43,6 +43,7 @@ namespace NestedHungarianAlgorithm
 				}
 				DP neighbourhoodSol = new DP(data, theI, solI);
 				solI.CleanInternRoster(theI);
+
 				for (int t = 0; t < Timepriods; t++)
 				{
 					if (neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline < 0 || neighbourhoodSol.BestSol.theSchedule_t[t].theHospital < 0)

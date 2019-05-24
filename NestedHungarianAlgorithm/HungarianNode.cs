@@ -187,12 +187,40 @@ namespace NestedHungarianAlgorithm
 			discGrCounter_ig = new int[Interns][];
 			for (int i = 0; i < Interns; i++)
 			{
+				
+				bool[] d_status = new bool[Disciplins];
+				for (int d = 0; d < Disciplins; d++)
+				{
+					d_status[d] = false;
+				}
 				discGrCounter_ig[i] = new int[DisciplineGr];
 				for (int g = 0; g < DisciplineGr; g++)
 				{
 					if (isRoot)
 					{
 						discGrCounter_ig[i][g] = data.Intern[i].ShouldattendInGr_g[g];
+						for (int d = 0; d < Disciplins; d++)
+						{
+							if (!data.Intern[i].DisciplineList_dg[d][g])
+							{
+								continue;
+							}
+							for (int t = 0; t < Timepriods; t++)
+							{
+								if (data.Intern[i].OverSea_dt[d][t] && !d_status[d])
+								{
+									discGrCounter_ig[i][g]--;
+									K_totalDiscipline[i]--;
+									d_status[d] = true;
+									break;
+								}
+								else if(data.Intern[i].OverSea_dt[d][t] && d_status[d])
+								{
+									// the oversea discipline is a mutual discipline and might be and issue 
+								}
+							}
+							
+						}
 					}
 					else
 					{
@@ -461,7 +489,7 @@ namespace NestedHungarianAlgorithm
 					{
 						if (requiredTimeForRemainedDisc[i] > data.General.TimePriods - TimeID ) // if interns must take a course 
 						{
-							CostMatrix_i_whDem[i][j] += data.AlgSettings.MotivationBM;
+							//CostMatrix_i_whDem[i][j] += data.AlgSettings.MotivationBM;
 						}
 						else // if the intern wants to wait(weight_w<0)
 						{
@@ -841,12 +869,12 @@ namespace NestedHungarianAlgorithm
 								};
 
 							}
-							K_totalDiscipline[i]--;
+							//K_totalDiscipline[i]--; dont need it
 							for (int g = 0; g < DisciplineGr; g++)
 							{
 								if (data.Intern[i].DisciplineList_dg[discIn][g] && discGrCounter_ig[i][g] > 0)
 								{
-									discGrCounter_ig[i][g]--;
+									//discGrCounter_ig[i][g]--; dont need it
 									break;
 								}
 							}
