@@ -524,7 +524,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					discStatus[theD] = true;
 				}
-				if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.9)
+				if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.9 )
 				{
 					continue;
 				}
@@ -538,7 +538,8 @@ namespace NestedDynamicProgrammingAlgorithm
 					StateStage current = (StateStage)FutureActiveState[removeCounter];
 					int theDtmp = current.theSchedule_t[stageTime].theDiscipline;
 					
-					if (theDtmp >= 0 && theDtmp != theD && data.Discipline[theD].Duration_p[p] == data.Discipline[theDtmp].Duration_p[p])
+					if (theDtmp >= 0 && theDtmp != theD && data.Discipline[theD].Duration_p[p] == data.Discipline[theDtmp].Duration_p[p] 
+						&& !data.Intern[theIntern].FHRequirment_d[theDtmp] && !data.Discipline[theDtmp].requiredLater_p[data.Intern[theIntern].ProgramID])
 					{
 						FutureActiveState.RemoveAt(removeCounter);
 						removeCounter--;

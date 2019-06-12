@@ -426,6 +426,8 @@ namespace NestedHungarianAlgorithm
 						else
 						{
 							double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi + data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
+				
+							//double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
 							if (Change_ih[i][((PositionMap)MappingTable[j]).HIndex] > 0)
 							{
 								// if the person can be assigned to this hospital
@@ -436,9 +438,17 @@ namespace NestedHungarianAlgorithm
 							{
 								CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
 							}
-							
+
 							// discipline prf
-							CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+							if (false && TimeID <= 1 && data.Intern[i].takingDiscPercentage[discIn] > 0.95)// for the discipline which will be added anyway I will not add preferences 
+							{
+								CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline;
+							}
+							else
+							{
+								CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+							}
+							
 							// Training Program prf
 							CostMatrix_i_whDem[i][j] -= coeff * data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
 
@@ -611,7 +621,7 @@ namespace NestedHungarianAlgorithm
 					for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
 					{
 						// just desire 
-						if (j < TotalAvailablePosition)
+						if (j < TotalAvailablePosition && TimeID > 1)
 						{
 							int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
 							// if the intern is already assigned to this discipline

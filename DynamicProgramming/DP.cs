@@ -155,22 +155,22 @@ namespace NestedDynamicProgrammingAlgorithm
 
 			}
 
-			//for (int w = 0; w < data.General.HospitalWard; w++)
-			//{
-			//	Console.WriteLine("Resource TimeLine for ward " + w);
-			//	for (int t = 0; t < data.General.TimePriods; t++)
-			//	{
-			//		int x = 0;
-			//		for (int h = 0; h < data.General.Hospitals; h++)
-			//		{
-			//			x += MaxDem_twh[t][w][h];
-			//			x += ResDem_twh[t][w][h];
-			//			x += EmrDem_twh[t][w][h];
-			//		}
-			//		Console.Write(x.ToString("00") + " ");
-			//	}
-			//	Console.WriteLine();
-			//}
+		//	for (int w = 0; w < data.General.HospitalWard; w++)
+		//	{
+		//		Console.WriteLine("Resource TimeLine for ward " + w);
+		//		for (int t = 0; t < data.General.TimePriods; t++)
+		//		{
+		//			int x = 0;
+		//			for (int h = 0; h < data.General.Hospitals; h++)
+		//			{
+		//				x += MaxDem_twh[t][w][h];
+		//				x += ResDem_twh[t][w][h];
+		//				x += EmrDem_twh[t][w][h];
+		//			}
+		//			Console.Write(x.ToString("00") + " ");
+		//		}
+		//		Console.WriteLine();
+		//	}
 		}
 
 		public void FastScheduleEveryTimeChange(AllData data, OptimalSolution incumbentSol, int theIntern)

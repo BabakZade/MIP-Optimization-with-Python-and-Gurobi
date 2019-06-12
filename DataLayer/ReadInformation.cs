@@ -603,6 +603,7 @@ namespace DataLayer
 				data.Intern[i].setAveInfo(data);
 				data.Intern[i].setThePercetage(data);
 				data.Intern[i].sortPrf(data.General.Hospitals, data.General.Disciplines, data.General.DisciplineGr, data.General.HospitalWard, data);
+				data.Intern[i].SetSimplifiedScheduleForMaxPrf(data);
 			}
 			for (int d = 0; d < data.General.Disciplines; d++)
 			{

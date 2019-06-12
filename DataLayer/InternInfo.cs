@@ -10,17 +10,21 @@ namespace DataLayer
 		public int theD;
 		public int theH;
 		public double Desire;
-		DesirePos(int theD, int theH, double Desire)
+		public double AbsDesire;
+		
+		DesirePos(int theD, int theH, double Desire, double AbsDesire)
 		{
 			this.theD = theD;
 			this.theH = theH;
 			this.Desire = Desire;
+			this.AbsDesire = AbsDesire;
 		}
 		public void Copy(DesirePos copyable)
 		{
 			theD = copyable.theD;
 			theH = copyable.theH;
 			Desire = copyable.Desire;
+			AbsDesire = copyable.AbsDesire;
 		}
 	}
 	public class InternInfo
@@ -54,6 +58,7 @@ namespace DataLayer
 		public bool isProspective;
 		public int K_AllDiscipline;
 		public double[] takingDiscPercentage;
+		public double MaxPrfDiscipline;
 		public double AveDur;
 
 		public double[] requieredTimeForRemianed;
@@ -92,7 +97,7 @@ namespace DataLayer
 		public void sortPrf(int Hospitals, int Disciplines, int DisciplineGr , int HospitalWard, AllData allData)
 		{
 			sortedPrf = new ArrayList();
-			
+			MaxPrfDiscipline = 0;
 			K_AllDiscipline = 0;
 			for (int g = 0; g < DisciplineGr; g++)
 			{
@@ -100,25 +105,45 @@ namespace DataLayer
 			}
 			for (int d = 0; d < Disciplines ; d++)
 			{
+				if (MaxPrfDiscipline < Prf_d[d])
+				{
+					MaxPrfDiscipline = Prf_d[d];
+				}
 				for (int h = 0; h < Hospitals; h++)
 				{
 					
-					double MaxDesire = -1;
+					double MMaxDesire = -1;
+					double AbsMaxDesire = -1;
 					for (int w = 0; w < HospitalWard ; w++)
 					{
 						if (allData.Hospital[h].Hospital_dw[d][w])
 						{
-							MaxDesire = (Prf_d[d] * wieght_d 
-										+ Prf_h[h] * wieght_h 
-										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d]) * takingDiscPercentage[d] ;
+							bool overS = false;
+							for (int t = 0; t < allData.General.TimePriods; t++)
+							{
+								if (OverSea_dt[d][t])
+								{
+									overS = true;
+									break;
+								}
+							}
+							AbsMaxDesire = (Prf_d[d] * wieght_d
+										+ Prf_h[h] * wieght_h
+										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d]);
+							if (overS)
+							{
+								AbsMaxDesire -= Prf_h[h] * wieght_h;
+							}
+							MMaxDesire = AbsMaxDesire * takingDiscPercentage[d] ;
+							
 						}
 					}
-					if (MaxDesire!=-1)
+					if (AbsMaxDesire != -1)
 					{
 						int counter = 0;
 						foreach (DesirePos item in sortedPrf)
 						{
-							if (item.Desire > MaxDesire)
+							if (item.AbsDesire > AbsMaxDesire)
 							{
 								counter++;
 							}
@@ -130,7 +155,8 @@ namespace DataLayer
 						sortedPrf.Insert(counter, new DesirePos() {
 							theD = d,
 							theH = h,
-							Desire = MaxDesire
+							Desire = MMaxDesire,
+							AbsDesire = AbsMaxDesire
 						});
 					}
 					
@@ -278,6 +304,153 @@ namespace DataLayer
 						}
 					}
 				}
+			}
+		}
+
+
+		public void SetSimplifiedScheduleForMaxPrf(AllData allData)
+		{
+			int tmpKAll = K_AllDiscipline;
+			int[] tmpK_g = new int[allData.General.DisciplineGr];
+			for (int g = 0; g < allData.General.DisciplineGr; g++)
+			{
+				tmpK_g[g] = ShouldattendInGr_g[g];
+			}
+			MaxPrf = 0;
+			// first assign foregn hospital and related requirements 
+			for (int d = 0; d < allData.General.Disciplines; d++)
+			{
+				bool overS = false;
+				for (int t = 0; t < allData.General.TimePriods; t++)
+				{
+					if (OverSea_dt[d][t] )
+					{
+						overS = true;
+						break;
+					}
+				}
+				if (overS)
+				{
+					// find the best place for d
+					int c = -1;
+					foreach (DesirePos item in sortedPrf)
+					{
+						c++;
+						if (item.theD == d)
+						{							
+							break;
+						}
+					}
+					if (c >= 0)
+					{
+						tmpKAll--;
+						MaxPrf += ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+						removeDisciplineFromList(allData, d);
+					}
+					// now the requiremnets 
+					// find the group
+					for (int g = 0; g < allData.General.DisciplineGr; g++)
+					{
+						if (DisciplineList_dg[d][g])
+						{
+							tmpK_g[g]--;
+							break;
+						}
+						
+					}
+
+					for (int dd = 0; dd < allData.General.Disciplines; dd++)
+					{
+						if (FHRequirment_d[dd])
+						{
+							c = -1;
+							foreach (DesirePos item in sortedPrf)
+							{
+								c++;
+								if (item.theD == d)
+								{
+									break;
+								}
+							}
+							if (c >= 0)
+							{
+								tmpKAll--;
+								MaxPrf += ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+								removeDisciplineFromList(allData, d);
+							}
+						}
+					}
+				}
+			}
+
+			// the rest of schedule 
+			int IndeXarry = 0;
+			// with this while it is not always a max prf
+			while (tmpKAll > 0 && IndeXarry < sortedPrf.Count)
+			{
+				DesirePos tmp = (DesirePos)sortedPrf[IndeXarry];
+				int GrIndex = -1;
+				for (int g = 0; g < allData.General.DisciplineGr; g++)
+				{
+					if (DisciplineList_dg[tmp.theD][g] && tmpK_g[g] > 0)
+					{
+						GrIndex = g;
+						break;
+					}
+				}
+				if (GrIndex >= 0)
+				{
+					tmpKAll--;
+					tmpK_g[GrIndex]--;
+					MaxPrf += tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+					removeDisciplineFromList(allData, tmp.theD);
+				}
+				else
+				{
+					IndeXarry++;
+				}
+				
+			}
+
+			// if we could not manage to consider the group K
+			IndeXarry = 0;
+			while (tmpKAll > 0 && IndeXarry < sortedPrf.Count)
+			{
+				DesirePos tmp = (DesirePos)sortedPrf[IndeXarry];
+				int GrIndex = -1;
+				for (int g = 0; g < allData.General.DisciplineGr; g++)
+				{
+					if (DisciplineList_dg[tmp.theD][g])
+					{
+						GrIndex = g;
+						break;
+					}
+				}
+				if (GrIndex >= 0)
+				{
+					tmpKAll--;
+					MaxPrf += tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+					removeDisciplineFromList(allData, tmp.theD);
+				}
+				else
+				{
+					IndeXarry++;
+				}
+
+			}
+		}
+
+		public void removeDisciplineFromList(AllData allData, int theD)
+		{
+			int c = 0;
+			while (c < sortedPrf.Count)
+			{
+				if (((DesirePos)sortedPrf[c]).theD == theD)
+				{
+					sortedPrf.RemoveAt(c);
+					c--;
+				}
+				c++;
 			}
 		}
 	}

@@ -227,6 +227,7 @@ namespace DataLayer
 										if (data.Intern[i].OverSea_dt[d][t] && h != data.General.Hospitals)
 										{
 											infeasibilityOverseaAbilityAve = true;
+											infeasibleIntern_i[i] = true;
 											Result += "The intern " + i + " requested oversea at time " + t + " for discipline " + d + " but (s)he didnot get it \n";
 											if (data.Intern[i].Abi_dh[d][h])
 											{
@@ -260,6 +261,7 @@ namespace DataLayer
 													{
 														infeasibilitySkill = true;
 														Result += "The intern " + i + " must fulfill discipline  " + dd + " before going abroad for discipline " + d + " \n";
+														infeasibleIntern_i[i] = true;
 													}
 												}
 
