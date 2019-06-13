@@ -24,9 +24,11 @@ namespace NestedHungarianAlgorithm
 		public BucketLinsLocalSearch bucketLinsLocal;
 		public InternBasedLocalSearch internBasedLocalSearch;
 		public DemandBaseLocalSearch demandBaseLocalSearch;
+		
 		public ImprovementStep(AllData alldata, OptimalSolution incumbentSol, ArrayList HungarianActiveList, string Name)
 		{
 			data = alldata;
+			HungarianActiveList = new ArrayList();
 			Initial();
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -50,6 +52,7 @@ namespace NestedHungarianAlgorithm
 		public void Initial()
 		{
 		}
+		
 	}
 }
                                                                                                                

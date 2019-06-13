@@ -138,6 +138,8 @@ namespace NestedDynamicProgrammingAlgorithm
 						FutureActiveState.Add((StateStage)parentNode.FutureActiveState[c]);
 						((StateStage)FutureActiveState[FutureActiveState.Count - 1]).tStage++;
 						continue;
+
+
 					}
 					if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0)
 					{
@@ -609,8 +611,9 @@ namespace NestedDynamicProgrammingAlgorithm
 			bool overseaNotexist = true;
 			if (result)
 			{
-				for (int t = 0; t < data.General.TimePriods; t++)
+				for (int t = 0; t < data.General.TimePriods && result; t++)
 				{
+					// if this discipline is over sea
 					if (data.Intern[theIntern].OverSea_dt[theDisc][t])
 					{
 						if (t != stageTime)
@@ -635,18 +638,42 @@ namespace NestedDynamicProgrammingAlgorithm
 							}
 							overseaNotexist = false;
 							
-						}
-						
-						for (int dd = 0; dd < data.General.Disciplines; dd++)
+						}					
+					}
+					// if there is other discipline for oversea
+					for (int dd = 0; dd < data.General.Disciplines && result; dd++)
+					{
+						if (result && dd != theDisc
+							&& data.Intern[theIntern].OverSea_dt[dd][t] && stageTime == t)
 						{
-							if (result && dd != theDisc
-								&& data.Intern[theIntern].OverSea_dt[dd][t] 
-								&& stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] > t)
-							{
-								result = false;
-								break;
-							}
+							result = false;
+							break;
 						}
+
+					}
+					// remain time
+					for (int dd = 0; dd < data.General.Disciplines && result; dd++)
+					{
+						if (result && dd != theDisc
+							&& data.Intern[theIntern].OverSea_dt[dd][t] && stageTime < t
+							&& stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] > t)
+						{
+							result = false;
+							break;
+						}
+
+					}
+
+					// requirment 
+					for (int dd = 0; dd < data.General.Disciplines && result; dd++)
+					{
+						if (result && data.Intern[theIntern].OverSea_dt[dd][t] && stageTime >= t
+							&& data.Intern[theIntern].FHRequirment_d[theDisc])
+						{
+							result = false;
+							break;
+						}
+
 					}
 				}
 				if (overseaNotexist && theH == data.General.Hospitals)

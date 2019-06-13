@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 using DataLayer;
 using NestedDynamicProgrammingAlgorithm;
@@ -33,10 +33,11 @@ namespace NestedHungarianAlgorithm
 		public OptimalSolution Local;
 		int BLcounter;
 		int BLLimit;
+		public ArrayList HungarianActiveList;
 		public DemandBaseLocalSearch(AllData allData, OptimalSolution incumbentSol, string Name)
 		{
 			data = allData;
-			
+			HungarianActiveList = new ArrayList();
 			Initial(incumbentSol, Name);
 			
 			AssignUnAssignedDiscipline(allData, Name);
@@ -48,6 +49,9 @@ namespace NestedHungarianAlgorithm
 
 			PairwiseChangeBackward(allData, Name);
 			UpdateGlobal(Name, incumbentSol);
+
+			//UseHungarianAgain();
+			//setSolution(Name);
 			
 		}
 
@@ -336,7 +340,7 @@ namespace NestedHungarianAlgorithm
 											{
 												if (MaxResEmrDemand_tdh[t][dd][h] > 0)
 												{
-													MinImpObj -= allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
+													MinImpObj -= TrainingPr * allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
 												}
 												// if change happens we recieve it
 												// it should not be counted in min obj
@@ -346,7 +350,7 @@ namespace NestedHungarianAlgorithm
 												//}
 												if (MaxResEmrDemand_tdh[secontTime][d][SecondHospital] > 0)
 												{
-													MincurrentObj -= allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
+													MincurrentObj -= TrainingPr * allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
 												}
 												//if (MaxResEmrDemand_tdh[t][d][h] > 0)
 												//{
@@ -528,7 +532,7 @@ namespace NestedHungarianAlgorithm
 													MincurrentObj += allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_SumDesi * (allData.Intern[i].wieght_h * allData.Intern[i].Prf_h[h]);
 													if (MaxResEmrDemand_tdh[t][dd][h] > 0)
 													{
-														MinImpObj -= allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
+														MinImpObj -= TrainingPr * allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
 													}
 													//if (MaxResEmrDemand_tdh[secontTime][dd][SecondHospital] > 0)
 													//{
@@ -536,7 +540,7 @@ namespace NestedHungarianAlgorithm
 													//}
 													if (MaxResEmrDemand_tdh[secontTime][d][h] > 0)
 													{
-														MincurrentObj -= allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
+														MincurrentObj -= TrainingPr *  allData.TrainingPr[allData.Intern[i].ProgramID].CoeffObj_ResCap;
 													}
 													//if (MaxResEmrDemand_tdh[t][d][h] > 0)
 													//{
@@ -617,6 +621,54 @@ namespace NestedHungarianAlgorithm
 			Roster_it[theI][t2] = d1;
 		}
 
-	
+		public void UseHungarianAgain()
+		{
+			bool[][] NotRequiredSkill_id = new bool[Interns][];
+			for (int i = 0; i < Interns; i++)
+			{
+				NotRequiredSkill_id[i] = new bool[Disciplins];
+				for (int d = 0; d < Disciplins; d++)
+				{
+					NotRequiredSkill_id[i][d] = false;
+				}
+			}
+			HungarianNode Root = new HungarianNode(0, data, new HungarianNode(), Global.Intern_itdh, NotRequiredSkill_id);
+			HungarianActiveList.Add(Root);
+
+
+			for (int t = 1; t < Timepriods; t++)
+			{
+				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1], Global.Intern_itdh, NotRequiredSkill_id);
+				HungarianActiveList.Add(nestedHungrian);
+			}
+		}
+
+
+		public void setSolution(string Name)
+		{
+			Global = new OptimalSolution(data);
+			for (int i = 0; i < Interns; i++)
+			{
+				for (int d = 0; d < Disciplins; d++)
+				{
+					bool assignedDisc = false;
+					for (int t = 0; t < Timepriods && !assignedDisc; t++)
+					{
+						for (int h = 0; h < Hospitals + 1 && !assignedDisc; h++)
+						{
+							if (((HungarianNode)HungarianActiveList[HungarianActiveList.Count - 1]).ResidentSchedule_it[i][t].dIndex == d
+								&& ((HungarianNode)HungarianActiveList[HungarianActiveList.Count - 1]).ResidentSchedule_it[i][t].HIndex == h)
+							{
+								assignedDisc = true;
+								Global.Intern_itdh[i][t][d][h] = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			Global.WriteSolution(data.allPath.InsGroupLocation, "secondHungarian" + Name);
+			
+		}
 	}
 }

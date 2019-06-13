@@ -151,9 +151,9 @@ namespace MedicalTraineeScheduling
 				for (int i = 0; i < InstanceSize; i++)
 				{
 					groupCounter++;
-					if (groupCounter < 24)
+					if (groupCounter < 34)
 					{
-						continue;
+						//continue;
 					}
 					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHANew", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 0.25;

@@ -37,6 +37,13 @@ namespace NestedHungarianAlgorithm
 			positionDesire = copyable.positionDesire;
 			Mindemand = copyable.Mindemand;
 		}
+
+		public string printMe()
+		{
+			string result = "";
+			result = WIndex.ToString("00") + " - " + HIndex.ToString("00")  + " - " + Mindemand+ " - " + ResDem  + " - " + EmrDem;
+			return result;
+		}
 	}
 	public class HungarianNode
 	{
@@ -439,23 +446,37 @@ namespace NestedHungarianAlgorithm
 								CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
 							}
 
-							// discipline prf
-							if (false && TimeID <= 1 && data.Intern[i].takingDiscPercentage[discIn] > 0.95)// for the discipline which will be added anyway I will not add preferences 
+							//if she will take this discipline 
+							bool willTakeIt = false;
+							for (int t = 0; t < Timepriods && !willTakeIt; t++)
 							{
-								CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline;
+								for (int h = 0; h < Hospitals && !willTakeIt; h++)
+								{
+									if (MotivationList_itdh[i][t][discIn][h])
+									{
+										willTakeIt = true;
+									}
+								}
+							}
+
+							// discipline prf and Training Program prf
+							if (TimeID <= 1 && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 ||willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
+							{
+								CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
 							}
 							else
 							{
 								CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+								
+								CostMatrix_i_whDem[i][j] -= coeff * data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
 							}
 							
-							// Training Program prf
-							CostMatrix_i_whDem[i][j] -= coeff * data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+							
 
 							// motivationList
 							if (MotivationList_itdh[i][TimeID][discIn][((PositionMap)MappingTable[j]).HIndex])
 							{
-								CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
+								//CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
 							}
 							
 							//Change
@@ -702,9 +723,16 @@ namespace NestedHungarianAlgorithm
 						// if the intern is already assigned to this discipline
 						if (discIn >= 0)
 						{
-							if (data.Discipline[discIn].requiredLater_p[data.Intern[i].ProgramID] && !NotRequiredSkill_id[i][discIn])
+							if (data.Discipline[discIn].requiredLater_p[data.Intern[i].ProgramID] && !NotRequiredSkill_id[i][discIn] )
 							{
-								CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
+								if (TimeID < data.General.TimePriods / 2 && data.Intern[i].takingDiscPercentage[discIn] >= 0.95)
+								{
+
+								}
+								else
+								{
+									CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
+								}								
 							}
 						}
 					}
@@ -829,7 +857,7 @@ namespace NestedHungarianAlgorithm
 				if (BestSchedule[i] < TotalAvailablePosition)
 				{
 					discIn = Disc_iwh[i][((PositionMap)MappingTable[Index]).WIndex][((PositionMap)MappingTable[Index]).HIndex];
-
+					// Console.WriteLine(i.ToString("00") + ": " + ((PositionMap)MappingTable[Index]).printMe() + " => "	+ data.Hospital[((PositionMap)MappingTable[Index]).HIndex].HospitalMaxDem_tw[TimeID][((PositionMap)MappingTable[Index]).WIndex]);
 					// Hospital changed
 					LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
 					LastPosition_i[i].dIndex = discIn;
