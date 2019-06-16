@@ -86,65 +86,71 @@ namespace MedicalTraineeScheduling
 
 
 			//}
-			//double[] bl = new double[] { 0.0, 0.10, 0.25, 0.50, 1.00 };
-			//for (int b = 0; b < 5; b++)
-			//{
-			//	for (int g = 0; g < 9; g++)
-			//	{
-			//		for (int i = 0; i < InstanceSize; i++)
-			//		{
-			//			GC.Collect();
-			//			groupCounter++;
-			//			if (groupCounter < 18)
-			//			{
-			//				//continue;
-			//			}
-			//			ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHALS", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
-			//			read.data.AlgSettings.internBasedImpPercentage = 0.25;
-			//			read.data.AlgSettings.bucketBasedImpPercentage =bl[b];
-			//			Stopwatch stopwatch = new Stopwatch();
-			//			stopwatch.Start();
-			//			///MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
-			//			//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
-			//			NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
-			//			stopwatch.Stop();
-			//			int time = (int)stopwatch.ElapsedMilliseconds / 1000;
-			//			using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
-			//			{
+			double[] bl = new double[] { 0.0, 0.10, 0.25, 0.50,0.75, 1.00 };
+			double[] iCh = new double[] { 0.0, 0.10, 0.25, 0.50, 0.75, 1.00 };
+			
+			for (int ic = 0; ic < 1; ic++)
+			{
+				for (int b = 0; b < 6; b++)
+				{
+					for (int g = 0; g < 9; g++)
+					{
+						for (int i = 0; i < InstanceSize; i++)
+						{
+							GC.Collect();
+							groupCounter++;
+							if (groupCounter < 18)
+							{
+								//continue;
+							}
+							ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHASensitivity", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+							read.data.AlgSettings.internBasedImpPercentage = iCh[ic];
+							read.data.AlgSettings.bucketBasedImpPercentage = bl[b];
+							Stopwatch stopwatch = new Stopwatch();
+							stopwatch.Start();
+							///MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
+							//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
+							NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
+							stopwatch.Stop();
+							int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+							using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+							{
 
-			//				file.WriteLine(i + "\t" + time
-			//					// NHA first Sol
-			//					+ "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
-			//					+ "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
-			//					+ "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
-			//					// NHA bucket list improvement
-			//					+ "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.Obj + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.demandBaseLocalSearch.Global.MinDis)
-			//					+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.ResDemand
-			//					+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.SlackDem + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.NotUsedAccTotal
-			//					// NHA intern based improvement 
-			//					+ "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
-			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
-			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
+								file.WriteLine(i + "\t" + time
+									// NHA first Sol
+									+ "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
+									+ "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
+									+ "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
+									// NHA bucket list improvement
+									+ "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.Obj + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.demandBaseLocalSearch.Global.MinDis)
+									+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.ResDemand
+									+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.SlackDem + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.NotUsedAccTotal
+									// NHA intern based improvement 
+									+ "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
+									+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
+									+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
 
-			//					);
-			//			}
-			//			//using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
-			//			//{
-			//			//	string output = i + "\t" + time + "\t" + xy.objFunction; 
-			//			//	for (int p = 0; p < read.data.General.TrainingPr; p++)
-			//			//	{
-			//			//		output += "\t" + xy.ElappesedTime_p[p]
-			//			//		// NHA first Sol
-			//			//		+ "\t" + xy.finalSol_p[p].Obj + "\t" + xy.finalSol_p[p].AveDes + "\t" + String.Join(" \t ", xy.finalSol_p[p].MinDis)
-			//			//		+ "\t" + xy.finalSol_p[p].EmrDemand + "\t" + xy.finalSol_p[p].ResDemand
-			//			//		+ "\t" + xy.finalSol_p[p].SlackDem + "\t" + xy.finalSol_p[p].NotUsedAccTotal;
-			//			//	}
-			//			//	file.WriteLine(output);
-			//			//}
-			//		}
+									);
+							}
+							//using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+							//{
+							//	string output = i + "\t" + time + "\t" + xy.objFunction; 
+							//	for (int p = 0; p < read.data.General.TrainingPr; p++)
+							//	{
+							//		output += "\t" + xy.ElappesedTime_p[p]
+							//		// NHA first Sol
+							//		+ "\t" + xy.finalSol_p[p].Obj + "\t" + xy.finalSol_p[p].AveDes + "\t" + String.Join(" \t ", xy.finalSol_p[p].MinDis)
+							//		+ "\t" + xy.finalSol_p[p].EmrDemand + "\t" + xy.finalSol_p[p].ResDemand
+							//		+ "\t" + xy.finalSol_p[p].SlackDem + "\t" + xy.finalSol_p[p].NotUsedAccTotal;
+							//	}
+							//	file.WriteLine(output);
+							//}
+						}
 
-			//	}
-			//}
+					}
+				}
+				
+			}
 
 			for (int g = 0; g < 09; g++)
 			{
@@ -155,8 +161,8 @@ namespace MedicalTraineeScheduling
 					{
 						//continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ResourcePool", "NHANew", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
-					read.data.AlgSettings.bucketBasedImpPercentage = 0.75;
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHANew", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					read.data.AlgSettings.bucketBasedImpPercentage = 0.25;
 					read.data.AlgSettings.internBasedImpPercentage = 0.25;
 					Stopwatch stopwatch = new Stopwatch();
 					stopwatch.Start();

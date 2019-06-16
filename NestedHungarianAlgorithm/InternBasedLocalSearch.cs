@@ -31,7 +31,12 @@ namespace NestedHungarianAlgorithm
 			
 			finalSol.copyRosters(incumbentSol.Intern_itdh);
 			finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
-			for (int i = 0; i < Interns * ChangePercentage; i++)
+			double MaxChange = Math.Ceiling(Interns * ChangePercentage);
+			if (MaxChange == 0) // to check the infeasibility
+			{
+				MaxChange = 1;
+			}
+			for (int i = 0; i < MaxChange; i++)
 			{
 				OptimalSolution solI = new OptimalSolution(data);
 				solI.copyRosters(finalSol.Intern_itdh);

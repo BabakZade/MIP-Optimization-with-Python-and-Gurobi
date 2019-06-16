@@ -44,6 +44,8 @@ namespace DataLayer
 		bool infeasibilitySkill;
 		public bool IsFeasible;
 		public bool[] infeasibleIntern_i;
+		public bool[][] overLap_dd;
+		public int[][][] overused_hwt;
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -85,6 +87,8 @@ namespace DataLayer
 
 			infeasibilityK_Assigned = false;
 			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
+			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
+			new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
 			infeasibilityChangesInHospital = false;
 			infeasibilityOverseaAbilityAve = false;
 			infeasibilitySkill = false;
@@ -149,6 +153,8 @@ namespace DataLayer
 
 			infeasibilityK_Assigned = false;
 			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
+			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
+			new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
 			infeasibilityChangesInHospital = false;
 			infeasibilityOverseaAbilityAve = false;
 			infeasibilitySkill = false;
@@ -180,6 +186,8 @@ namespace DataLayer
 
 			infeasibilityK_Assigned = false;
 			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
+			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
+			new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
 			infeasibilityChangesInHospital = false;
 			infeasibilityOverseaAbilityAve = false;
 			infeasibilitySkill = false;
@@ -363,6 +371,85 @@ namespace DataLayer
 					infeasibleIntern_i[i] = true;
 				}
 
+			}
+
+
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int t = 0; t < data.General.TimePriods; t++)
+					{
+						for (int h = 0; h < data.General.Hospitals; h++)
+						{
+							if (Intern_itdh[i][t][d][h])
+							{
+								for (int w = 0; w < data.General.HospitalWard; w++)
+								{
+									if (data.Hospital[h].Hospital_dw[d][w])
+									{
+										for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; tt++)
+										{
+											overused_hwt[h][w][tt]++;
+										}
+										
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			for (int t = 0; t < data.General.TimePriods; t++)
+			{
+				for (int h = 0; h < data.General.Hospitals; h++)
+				{
+					for (int w = 0; w < data.General.HospitalWard; w++)
+					{
+						overused_hwt[h][w][t] -= data.Hospital[h].HospitalMaxDem_tw[t][w];
+						overused_hwt[h][w][t] -= data.Hospital[h].EmergencyCap_tw[t][w];
+						overused_hwt[h][w][t] -= data.Hospital[h].ReservedCap_tw[t][w];
+						if (overused_hwt[h][w][t] > 0)
+						{
+							Result += "The hospital " + h + " in ward " + w + " at time  " + t + " overassigned " + overused_hwt[h][w][t] + " position \n";
+						}
+					}
+				}
+			}
+
+			for (int i = 0; i < data.General.Interns; i++)
+			{
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int t = 0; t < data.General.TimePriods; t++)
+					{
+						for (int h = 0; h < data.General.Hospitals; h++)
+						{
+							if (Intern_itdh[i][t][d][h])
+							{
+								for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; tt++)
+								{
+									for (int dd = 0; dd < data.General.Disciplines; dd++)
+									{
+										if (d == dd)
+										{
+											continue;
+										}
+										for (int hh = 0; hh < data.General.Hospitals + 1; hh++)
+										{
+											if (Intern_itdh[i][tt][dd][hh])
+											{
+												overLap_dd[d][dd] = true;
+												Result += "The intern " + i + " has overlap for discipline " + d + " and  " + dd + " \n";
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 
 

@@ -170,6 +170,7 @@ namespace NestedHungarianAlgorithm
 								{
 									if (incumbentSol.Intern_itdh[i][t][d][h])
 									{
+										Roster_it[i][t] = d;
 										for (int dd = 0; dd < Disciplins; dd++) // for the shared recouces 
 										{
 											if (data.Hospital[h].Hospital_dw[dd][w])
@@ -180,9 +181,9 @@ namespace NestedHungarianAlgorithm
 													MaxResEmrDemand_tdh[tt][dd][h]++;
 													ResEmrDemand_tdh[tt][dd][h]++;
 													isONDisc_id[i][d] = true;
-													Roster_it[i][tt] = d;
+													
 												}
-
+												
 											}
 										}
 
@@ -616,8 +617,25 @@ namespace NestedHungarianAlgorithm
 			InitialSolUpdate(Global);
 		}
 
-		public void ChangePairEqualLength(int theI, int t1, int d1, int h1, int changeH1, int t2, int d2, int h2, int changeH2)
+		/// <summary>
+		/// d1h1t1 d2h2t2 => d1HCh1t1 d2HCh2t2
+		/// d1 and d2 equal length 
+		/// </summary>
+		/// <param name="theI"></param>
+		/// <param name="t1"></param>
+		/// <param name="d1"></param>
+		/// <param name="h1"></param>
+		/// <param name="changeH1"></param>
+		/// <param name="t2"></param>
+		/// <param name="d2"></param>
+		/// <param name="h2"></param>
+		/// <param name="changeH2"></param>
+		public void ChangePair(int theI, int t1, int d1, int h1, int changeH1, int t2, int d2, int h2, int changeH2)
 		{
+			if (data.Discipline[d2].Duration_p[data.Intern[theI].ProgramID] != data.Discipline[d1].Duration_p[data.Intern[theI].ProgramID])
+			{
+				return;
+			}
 			
 			// check timeline 
 			bool timelineCap = true;
@@ -659,32 +677,158 @@ namespace NestedHungarianAlgorithm
 			Local.Intern_itdh[theI][t1][d2][changeH2] = true;
 			Local.Intern_itdh[theI][t2][d1][changeH1] = true;
 
+			// lets update when d1 goes to changeH1
 
 			for (int w = 0; w < Wards; w++)
 			{
-				if (data.Hospital[h1].Hospital_dw[d1][w])
+				if (data.Hospital[h1].Hospital_dw[d1][w]) // lets chech d1
 				{
 					for (int dd = 0; dd < Disciplins; dd++) // shared resource
 					{
-
+						MaxResEmrDemand_tdh[t1][dd][h1]--;
+						ResEmrDemand_tdh[t1][dd][h1]--;
+					}
+				}
+				if (data.Hospital[changeH1].Hospital_dw[d1][w]) // lets chech d1
+				{
+					for (int dd = 0; dd < Disciplins; dd++) // shared resource
+					{
+						MaxResEmrDemand_tdh[t2][dd][changeH1]++;
+						ResEmrDemand_tdh[t2][dd][changeH1]++;
 					}
 				}
 			}
-			MaxResEmrDemand_tdh[t1][d2][changeH2]++;
-			MaxResEmrDemand_tdh[t1][d1][h1]--;
-			MaxResEmrDemand_tdh[t2][d1][changeH1]++;
-			MaxResEmrDemand_tdh[t2][d2][h2]--;
 
-			ResEmrDemand_tdh[t1][d2][changeH2]++;
-			ResEmrDemand_tdh[t1][d1][h1]--;
-			ResEmrDemand_tdh[t2][d1][changeH1]++;
-			ResEmrDemand_tdh[t2][d2][h2]--;
+			// lets update when d2 goes to changeH2
+
+			for (int w = 0; w < Wards; w++)
+			{
+				if (data.Hospital[h2].Hospital_dw[d2][w]) // lets chech d1
+				{
+					for (int dd = 0; dd < Disciplins; dd++) // shared resource
+					{
+						MaxResEmrDemand_tdh[t2][dd][h2]--;
+						ResEmrDemand_tdh[t2][dd][h2]--;
+					}
+				}
+				if (data.Hospital[changeH2].Hospital_dw[d2][w]) // lets chech d1
+				{
+					for (int dd = 0; dd < Disciplins; dd++) // shared resource
+					{
+						MaxResEmrDemand_tdh[t1][d2][changeH2]++;
+						ResEmrDemand_tdh[t1][d2][changeH2]++;
+					}
+				}
+			}
 
 			Roster_it[theI][t1] = d2;
 			Roster_it[theI][t2] = d1;
 			
 		}
 
+
+		/// <summary>
+		/// d1h1 d2h2 => d2h1 d1h2
+		/// d1 and d2 can have different duration 
+		/// </summary>
+		/// <param name="theI"></param>
+		/// <param name="t1"></param>
+		/// <param name="d1"></param>
+		/// <param name="h1"></param>
+		/// <param name="t2"></param>
+		/// <param name="d2"></param>
+		/// <param name="h2"></param>
+		public void ChangePairWardPairHospital(int theI, int t1, int d1, int h1, int t2, int d2, int h2)
+		{
+
+			// check timeline 
+			bool timelineCap = true;
+			if (t1 + data.Discipline[d2].Duration_p[data.Intern[theI].ProgramID] > Timepriods
+				|| t2 + data.Discipline[d1].Duration_p[data.Intern[theI].ProgramID] > Timepriods)
+			{
+				return;
+			}
+
+			// chech from t1 till t1 + du_2, hospital h1 has capcity for d2
+			for (int t = t1; t < t1 + data.Discipline[d2].Duration_p[data.Intern[theI].ProgramID] && timelineCap; t++)
+			{
+				if (ResEmrDemand_tdh[t][d2][h1] >= 0)
+				{
+					timelineCap = false;
+				}
+			}
+
+			// chech from t2 till t2 + du_1, hospital h1 has capcity for d2
+			for (int t = t2; t < t2 + data.Discipline[d1].Duration_p[data.Intern[theI].ProgramID] && timelineCap; t++)
+			{
+				if (ResEmrDemand_tdh[t][d2][h1] >= 0)
+				{
+					timelineCap = false;
+				}
+			}
+
+			if (!timelineCap)
+			{
+				return;
+			}
+
+			BLcounter++;
+
+
+
+			//Local.Intern_itdh[theI][t1][d1][h1] = false;
+			//Local.Intern_itdh[theI][t2][d2][h2] = false;
+			//Local.Intern_itdh[theI][t1][d2][changeH2] = true;
+			//Local.Intern_itdh[theI][t2][d1][changeH1] = true;
+
+			//// lets update when d1 goes to changeH1
+
+			//for (int w = 0; w < Wards; w++)
+			//{
+			//	if (data.Hospital[h1].Hospital_dw[d1][w]) // lets chech d1
+			//	{
+			//		for (int dd = 0; dd < Disciplins; dd++) // shared resource
+			//		{
+			//			MaxResEmrDemand_tdh[t1][dd][h1]--;
+			//			ResEmrDemand_tdh[t1][dd][h1]--;
+			//		}
+			//	}
+			//	if (data.Hospital[changeH1].Hospital_dw[d1][w]) // lets chech d1
+			//	{
+			//		for (int dd = 0; dd < Disciplins; dd++) // shared resource
+			//		{
+			//			MaxResEmrDemand_tdh[t2][dd][changeH1]++;
+			//			ResEmrDemand_tdh[t2][dd][changeH1]++;
+			//		}
+			//	}
+			//}
+
+			//// lets update when d2 goes to changeH2
+
+			//for (int w = 0; w < Wards; w++)
+			//{
+			//	if (data.Hospital[h2].Hospital_dw[d2][w]) // lets chech d1
+			//	{
+			//		for (int dd = 0; dd < Disciplins; dd++) // shared resource
+			//		{
+			//			MaxResEmrDemand_tdh[t2][dd][h2]--;
+			//			ResEmrDemand_tdh[t2][dd][h2]--;
+			//		}
+			//	}
+			//	if (data.Hospital[changeH2].Hospital_dw[d2][w]) // lets chech d1
+			//	{
+			//		for (int dd = 0; dd < Disciplins; dd++) // shared resource
+			//		{
+			//			MaxResEmrDemand_tdh[t1][d2][changeH2]++;
+			//			ResEmrDemand_tdh[t1][d2][changeH2]++;
+			//		}
+			//	}
+			//}
+
+			//Roster_it[theI][t1] = d2;
+			//Roster_it[theI][t2] = d1;
+
+		}
 
 		// w1 - h1, w2 - h2 =====> w1 - h2, w2 - h1 
 		public void SwapPairWardsInPairHospital(AllData allData, string Name)
@@ -792,11 +936,21 @@ namespace NestedHungarianAlgorithm
 									int[] rtime = time.OrderBy(x => rnd.Next()).ToArray();
 									for (int rt = 0; rt < maxTime; rt++)
 									{
+										dd = -1;
+										SecondHospital = -1;
 										int tt = rtime[rt];
 										if (Roster_it[i][tt] >= 0 && Roster_it[i][tt] != d)
 										{
+
 											dd = Roster_it[i][tt];
 											secontTime = tt;
+
+											// check the duration 
+											if (data.Discipline[d].Duration_p[data.Intern[i].ProgramID] != data.Discipline[dd].Duration_p[data.Intern[i].ProgramID])
+											{
+												continue;
+											}
+
 											// check if it requires skills and you can not change it (tt > t) otherwise we will send it furthor so definetly it has its required skill
 											if (data.Discipline[dd].requiresSkill_p[data.Intern[i].ProgramID] && tt > t)
 											{
@@ -910,11 +1064,13 @@ namespace NestedHungarianAlgorithm
 											{
 												continue;
 											}
+
+											
 											break;
 										}
 									}
 
-									if (dd >= 0)
+									if (dd >= 0 && SecondHospital >=0)
 									{
 										ChangePair(i, t, d, h, SecondHospital, secontTime, dd, SecondHospital, h);
 									}
