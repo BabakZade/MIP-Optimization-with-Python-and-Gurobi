@@ -235,7 +235,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			setDisc_iwh();
+			
 			MappingTable = new ArrayList();
 
 			// max demand has reserved and emergency inside
@@ -259,14 +259,34 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-
+			DemMin_wth = new int[Wards][][];
+			for (int d = 0; d < Wards; d++)
+			{
+				DemMin_wth[d] = new int[Timepriods][];
+				for (int t = 0; t < Timepriods; t++)
+				{
+					DemMin_wth[d][t] = new int[Hospitals];
+					for (int h = 0; h < Hospitals; h++)
+					{
+						if (isRoot)
+						{
+							DemMin_wth[d][t][h] = data.Hospital[h].HospitalMinDem_tw[t][d];
+						}
+						else
+						{
+							DemMin_wth[d][t][h] = parentNode.DemMin_wth[d][t][h];
+						}
+					}
+				}
+			}
+			setDisc_iwh();
 			// we need map for current time
 			for (int w = 0; w < Wards; w++)
 			{
 				for (int h = 0; h < Hospitals; h++)
 				{
 					TotalAvailablePosition += DemMax_wth[w][TimeID][h];
-					int totalMinDem = data.Hospital[h].HospitalMinDem_tw[TimeID][w];
+					int totalMinDem = DemMin_wth[w][TimeID][h];
 					for (int dd = 0; dd < DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]); dd++)
 					{
 						MappingTable.Add(new PositionMap()
@@ -280,7 +300,9 @@ namespace NestedHungarianAlgorithm
 						});
 						totalMinDem--;
 					}
-					int start = DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]);
+					int start = DemMax_wth[w][TimeID][h] - data.Hospital[h].ReservedCap_tw[TimeID][w] - data.Hospital[h].EmergencyCap_tw[TimeID][w]; // for reserved cap
+					start = Math.Max(0 , start);
+					
 					for (int dd = start; dd < DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w]; dd++)
 					{
 						MappingTable.Add(new PositionMap()
@@ -294,6 +316,7 @@ namespace NestedHungarianAlgorithm
 						});
 					}
 					start = DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w];
+					start = Math.Max(0, start);
 					for (int dd = start; dd < DemMax_wth[w][TimeID][h]; dd++)
 					{
 						MappingTable.Add(new PositionMap()
@@ -315,26 +338,7 @@ namespace NestedHungarianAlgorithm
 				MappingTable.Add(new PositionMap(-1));
 			}
 
-			DemMin_wth = new int[Wards][][];
-			for (int d = 0; d < Wards; d++)
-			{
-				DemMin_wth[d] = new int[Timepriods][];
-				for (int t = 0; t < Timepriods; t++)
-				{
-					DemMin_wth[d][t] = new int[Hospitals];
-					for (int h = 0; h < Hospitals; h++)
-					{
-						if (isRoot)
-						{
-							DemMin_wth[d][t][h] = data.Hospital[h].HospitalMinDem_tw[t][d];
-						}
-						else
-						{
-							DemMin_wth[d][t][h] = parentNode.DemMin_wth[d][t][h];
-						}
-					}
-				}
-			}
+			
 			AvAcc_rt = new int[Region][];
 			for (int r = 0; r < Region; r++)
 			{
@@ -811,6 +815,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
+
 		}
 
 		public void updateTimeLine()
@@ -927,7 +932,6 @@ namespace NestedHungarianAlgorithm
 
 		public int get_DisciplineFromWard(int theI, int theW, int theH)
 		{
-			
 
 			int result = -1;			
 			int MaxObj = -1;
@@ -958,6 +962,21 @@ namespace NestedHungarianAlgorithm
 				{
 					continue;
 				}
+				// if there is no capcity
+				bool noCap = false;
+				for (int t = TimeID; t < TimeID + data.Discipline[d].Duration_p[data.Intern[theI].ProgramID]; t++)
+				{
+					if (DemMax_wth[theW][t][theH] <= 0)
+					{
+						// this discipline deos not have capacity
+						noCap = true;
+					}
+				}
+				if (noCap)
+				{
+					continue;
+				}
+				
 				int thep = -1;
 				
 				for (int p = 0; p < TrainingPr && thep < 0; p++)
@@ -1063,6 +1082,11 @@ namespace NestedHungarianAlgorithm
 						Disc_iwh[i][w][h] = get_DisciplineFromWard(i, w, h);
 					}
 				}
+			}
+
+			if (TimeID == 9)
+			{
+				Console.WriteLine();
 			}
 		}
 		/// <summary>

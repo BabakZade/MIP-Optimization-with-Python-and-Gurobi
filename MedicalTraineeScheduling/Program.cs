@@ -86,10 +86,10 @@ namespace MedicalTraineeScheduling
 
 
 			//}
-			double[] bl = new double[] { 0.0, 0.10, 0.25, 0.50,0.75, 1.00 };
+			double[] bl = new double[] { 0.0, 0.10, 0.25, 0.50, 0.75, 1.00 };
 			double[] iCh = new double[] { 0.0, 0.10, 0.25, 0.50, 0.75, 1.00 };
-			
-			for (int ic = 0; ic < 1; ic++)
+
+			for (int ic = 0; ic < 6; ic++)
 			{
 				for (int b = 0; b < 6; b++)
 				{
@@ -149,7 +149,7 @@ namespace MedicalTraineeScheduling
 
 					}
 				}
-				
+
 			}
 
 			for (int g = 0; g < 09; g++)
@@ -157,7 +157,7 @@ namespace MedicalTraineeScheduling
 				for (int i = 0; i < InstanceSize; i++)
 				{
 					groupCounter++;
-					if (groupCounter < 34)
+					if (groupCounter < 2)
 					{
 						//continue;
 					}

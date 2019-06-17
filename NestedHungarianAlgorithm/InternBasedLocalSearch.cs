@@ -86,7 +86,7 @@ namespace NestedHungarianAlgorithm
 		public int findCandidateForDP(ref int Counter, OptimalSolution incumbentSol)
 		{
 			int candidate = -1;
-			double MaxDif = -data.AlgSettings.BigM;
+			double MaxDif = 0;
 
 			for (int i = 0; i < Interns; i++)
 			{				

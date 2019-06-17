@@ -46,6 +46,9 @@ namespace DataLayer
 		public bool[] infeasibleIntern_i;
 		public bool[][] overLap_dd;
 		public int[][][] overused_hwt;
+		public bool infeasibilityOverused;
+		public bool infeasibilityOverlap;
+
 		public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -412,7 +415,32 @@ namespace DataLayer
 						overused_hwt[h][w][t] -= data.Hospital[h].ReservedCap_tw[t][w];
 						if (overused_hwt[h][w][t] > 0)
 						{
+							infeasibilityOverused = true;
 							Result += "The hospital " + h + " in ward " + w + " at time  " + t + " overassigned " + overused_hwt[h][w][t] + " position \n";
+							for (int i = 0; i < data.General.Interns; i++)
+							{
+								for (int d = 0; d < data.General.Disciplines; d++)
+								{
+									if (data.Hospital[h].Hospital_dw[d][w])
+									{
+										// if we are at time 3 and the duration is 2
+										// we have to chack from 3 - 2 + 1 till 3 + 2 -1
+										int start = t - (data.Discipline[d].Duration_p[data.Intern[i].ProgramID] - 1);
+										start = Math.Max(start, 0);
+										int finish = t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; // (we are not counting the last one in the loop)
+										finish = Math.Min(finish, data.General.TimePriods);
+										for (int tt = 0; tt < finish; tt++)
+										{
+											if (Intern_itdh[i][tt][d][h])
+											{
+												infeasibleIntern_i[i] = true;
+												Result += "Intern " + i + " used the capacity at time " + tt + " till  " + (tt + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]).ToString() + "\n";
+											}
+										}
+									}
+								}
+								
+							}
 						}
 					}
 				}
@@ -441,7 +469,10 @@ namespace DataLayer
 											if (Intern_itdh[i][tt][dd][hh])
 											{
 												overLap_dd[d][dd] = true;
+												infeasibilityOverused = true;
+												infeasibleIntern_i[i] = true;
 												Result += "The intern " + i + " has overlap for discipline " + d + " and  " + dd + " \n";
+												
 											}
 										}
 									}
@@ -783,7 +814,7 @@ namespace DataLayer
 			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.WriteLine(setInfSetting());
-			IsFeasible = !infeasibilityChangesInHospital && !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve && !infeasibilitySkill;
+			IsFeasible = !infeasibilityChangesInHospital && !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve && !infeasibilitySkill && !infeasibilityOverused && !infeasibilityOverlap;
 			if (!IsFeasible)
 			{
 				Obj = -data.AlgSettings.BigM;
