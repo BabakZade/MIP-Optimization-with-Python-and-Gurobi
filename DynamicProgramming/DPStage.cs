@@ -526,10 +526,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					discStatus[theD] = true;
 				}
-				if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.9 )
-				{
-					continue;
-				}
+				
 				
 				// remove all other discipline
 				int removeCounter = -1;
@@ -539,8 +536,31 @@ namespace NestedDynamicProgrammingAlgorithm
 					removeCounter++;
 					StateStage current = (StateStage)FutureActiveState[removeCounter];
 					int theDtmp = current.theSchedule_t[stageTime].theDiscipline;
-					
-					if (theDtmp >= 0 && theDtmp != theD && data.Discipline[theD].Duration_p[p] == data.Discipline[theDtmp].Duration_p[p] 
+
+					// check oversea otherwise the time is not matter 
+
+					if (data.Intern[theIntern].overseaReq && data.Discipline[theD].Duration_p[p] != data.Discipline[theDtmp].Duration_p[p])
+					{
+						continue;
+					}
+
+					if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.95 && theDtmp >= 0)
+					{
+						double prfX1 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theD] + data.TrainingPr[p].weight_p*data.TrainingPr[p].Prf_d[theD];
+						double prfX2 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theDtmp] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theDtmp];
+						if (data.Discipline[theD].Duration_p[p] == data.Discipline[theDtmp].Duration_p[p]
+							&& prfX1 >= prfX2 && !data.Discipline[theD].isRare)
+						{
+							// remove x2
+						}
+						else
+						{
+							continue;
+						}
+					}
+
+
+					if (theDtmp >= 0 && theDtmp != theD  
 						&& !data.Intern[theIntern].FHRequirment_d[theDtmp] && !data.Discipline[theDtmp].requiredLater_p[data.Intern[theIntern].ProgramID])
 					{
 						FutureActiveState.RemoveAt(removeCounter);
@@ -566,7 +586,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				//{
 				//	Console.WriteLine(item.DisplayMe());
 				//}
-				//FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
+				FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
 			}
 
 		}

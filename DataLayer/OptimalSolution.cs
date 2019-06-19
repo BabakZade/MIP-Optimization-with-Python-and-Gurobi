@@ -30,11 +30,17 @@ namespace DataLayer
 		public double NotUsedAccTotal;
 		public double Obj;
 		public double[] Obj_i;
-		public double wieghterSumInDisPrf;
-		public double wieghterSumPrDisPrf;
-		public double wieghterSumInHosPrf;
-		public double wieghterSumInChnPrf;
-		public double wieghterSumInWaiPrf;
+		public double wieghtedSumInDisPrf;
+		public double wieghtedSumPrDisPrf;
+		public double wieghtedSumInHosPrf;
+		public double wieghtedSumInChnPrf;
+		public double wieghtedSumInWaiPrf;
+		public double MaxDisier;
+		public double MaxEmr;
+		public double MaxRes;
+		public double MaxMin;
+		public double MaxAcc;
+
 
 		// in-feasibility signs 
 		bool infeasibilityK_Assigned;
@@ -229,12 +235,12 @@ namespace DataLayer
 										totalK_g[g]++;
 										if (h < data.General.Hospitals)
 										{
-											wieghterSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
+											wieghtedSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
 										}
-										wieghterSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
-										wieghterSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];										
-										wieghterSumInChnPrf = 0;
-										wieghterSumInWaiPrf = 0;
+										wieghtedSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
+										wieghtedSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];										
+										wieghtedSumInChnPrf = 0;
+										wieghtedSumInWaiPrf = 0;
 										if (data.Intern[i].OverSea_dt[d][t] && h != data.General.Hospitals)
 										{
 											infeasibilityOverseaAbilityAve = true;
@@ -493,17 +499,23 @@ namespace DataLayer
 
 		public void WriteSolution(string Path, string Name)
 		{
-			wieghterSumInDisPrf = 0;
-			wieghterSumPrDisPrf = 0;
-			wieghterSumInHosPrf = 0;
-			wieghterSumInChnPrf = 0;
-			wieghterSumInWaiPrf = 0;
+			wieghtedSumInDisPrf = 0;
+			wieghtedSumPrDisPrf = 0;
+			wieghtedSumInHosPrf = 0;
+			wieghtedSumInChnPrf = 0;
+			wieghtedSumInWaiPrf = 0;
+			MaxDisier = 0;
+			MaxEmr = 0;
+			MaxRes = 0;
+			MaxMin = 0;
+			MaxAcc = 0;
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 			tw.WriteLine("PP | II | GG | DD | TT | Du | HH | PrD | PrH | PrP | K_G | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				for (int i = 0; i < data.General.Interns; i++)
 				{
+					MaxDisier += data.Intern[i].MaxPrf;
 					for (int t = 0; t < data.General.TimePriods; t++)
 					{
 						for (int g = 0; g < data.General.DisciplineGr; g++)
@@ -519,14 +531,14 @@ namespace DataLayer
 										{
 											if (Intern_itdh[i][t][d][h])
 											{
-												wieghterSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
-												wieghterSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+												wieghtedSumInDisPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
+												wieghtedSumPrDisPrf += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
 												if (h < data.General.Hospitals)
 												{
-													wieghterSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
+													wieghtedSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
 												}
-												wieghterSumInChnPrf = 0;
-												wieghterSumInWaiPrf = 0;
+												wieghtedSumInChnPrf = 0;
+												wieghtedSumInWaiPrf = 0;
 												if (data.Intern[i].OverSea_dt[d][t])
 												{
 													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
@@ -553,11 +565,13 @@ namespace DataLayer
 
 				}
 			}
+			MaxDisier /= data.General.Interns;
 			for (int r = 0; r < data.General.Region; r++)
 			{
 				for (int t = 0; t < data.General.TimePriods; t++)
 				{
 					NotUsesAcc[r][t] -= data.Region[r].AvaAcc_t[t];
+					MaxAcc += data.Region[r].AvaAcc_t[t]; 
 				}
 			}
 			for (int r = 0; r < data.General.Region; r++)
@@ -667,6 +681,9 @@ namespace DataLayer
 				{
 					for (int w = 0; w < data.General.HospitalWard; w++)
 					{
+						MaxMin += data.Hospital[h].HospitalMinDem_tw[t][w];
+						MaxEmr += data.Hospital[h].EmergencyCap_tw[t][w];
+						MaxRes += data.Hospital[h].ReservedCap_tw[t][w];
 						int filledDem = 0;
 						for (int d = 0; d < data.General.Disciplines; d++)
 						{
@@ -754,8 +771,8 @@ namespace DataLayer
 						 + data.Intern[i].wieght_d * PrDisp_i[i]
 						 + data.Intern[i].wieght_h * PrHosp_i[i]
 						 + data.TrainingPr[data.Intern[i].ProgramID].weight_p * TrPrPrf[i];
-				wieghterSumInChnPrf += data.Intern[i].wieght_ch * PrChang_i[i];
-				wieghterSumInWaiPrf += data.Intern[i].wieght_w * PrWait_i[i];
+				wieghtedSumInChnPrf += data.Intern[i].wieght_ch * PrChang_i[i];
+				wieghtedSumInWaiPrf += data.Intern[i].wieght_w * PrWait_i[i];
 				AveDes += Des_i[i];
 				if (MinDis[data.Intern[i].ProgramID] == data.AlgSettings.BigM)
 				{

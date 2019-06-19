@@ -241,6 +241,7 @@ namespace DataLayer
 
 		public void setThePercetage(AllData allData)
 		{
+
 			int totalDiscList = 0;
 			for (int d = 0; d < allData.General.Disciplines; d++)
 			{
@@ -256,7 +257,7 @@ namespace DataLayer
 
 			for (int d = 0; d < allData.General.Disciplines; d++)
 			{
-				takingDiscPercentage[d] = K_AllDiscipline / totalDiscList;
+				takingDiscPercentage[d] = (double)K_AllDiscipline / totalDiscList;
 			}
 
 			for (int g = 0; g < allData.General.DisciplineGr; g++)
@@ -273,7 +274,7 @@ namespace DataLayer
 				{
 					if (DisciplineList_dg[d][g])
 					{
-						takingDiscPercentage[d] = ShouldattendInGr_g[g] / totalGr;
+						takingDiscPercentage[d] = (double)ShouldattendInGr_g[g] / totalGr;
 					}
 				}
 			}
