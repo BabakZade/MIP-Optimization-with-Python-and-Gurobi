@@ -71,20 +71,16 @@ namespace GeneralMIPAlgorithm
 		{
 			ILinearNumExpr sol = MIPModel.LinearNumExpr();
 			sol.AddTerm(y_idDh[6][0][4][1], 1);
-			//sol.AddTerm(y_idDh[6][10][6][2], 1);
-			//sol.AddTerm(y_idDh[6][6][7][0], 1);
-			//sol.AddTerm(y_idDh[6][7][9][3], 1);
-			//sol.AddTerm(y_idDh[6][9][8][4], 1);
-			//sol.AddTerm(y_idDh[6][8][11][0], 1);
+			
 
-			//sol.AddTerm(s_idth[6][10][0][1], 1);
-			//sol.AddTerm(s_idth[6][6][6][2], 1);
-			//sol.AddTerm(s_idth[6][7][10][0], 1);
-			//sol.AddTerm(s_idth[6][9][14][3], 1);
+			sol.AddTerm(s_idth[0][11][00][0], 1);
+			sol.AddTerm(s_idth[0][09][04][0], 1);
+			sol.AddTerm(s_idth[0][08][06][1], 1);
+			sol.AddTerm(s_idth[0][06][11][2], 1);
 			//sol.AddTerm(s_idth[6][8][15][4], 1);
 			//sol.AddTerm(s_idth[6][11][19][0], 1);
 			//sol.AddTerm(w_id[1][1], 1);
-			MIPModel.AddEq(sol, 1);
+			MIPModel.AddEq(sol, 4);
 		}
 		public void Initial()
 		{

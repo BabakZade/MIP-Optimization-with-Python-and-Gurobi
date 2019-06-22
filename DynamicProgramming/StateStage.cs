@@ -9,6 +9,7 @@ namespace NestedDynamicProgrammingAlgorithm
 	{
 		public int theHospital;
 		public int theDiscipline;
+	
 		public StateSchedule(int theH, int theD)
 		{
 			theDiscipline = theD;
@@ -45,7 +46,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		public bool[] activeDisc;
 		public StateSchedule[] theSchedule_t;
 		public int tStage;
-
+		public int totalChange;
 		public StateStage(AllData alldata)
 		{
 			data = alldata;
@@ -62,6 +63,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				theSchedule_t[t] = new StateSchedule();
 			}
 			activeDisc = new bool[alldata.General.Disciplines];
+			totalChange = 0;
 		}
 		public StateStage(StateStage stateInput, StateStage xInput, int theI, AllData alldata, int theStage, bool isRoot)
 		{
@@ -134,23 +136,26 @@ namespace NestedDynamicProgrammingAlgorithm
 					if (stateInput.x_Hosp != xInput.x_Hosp && stateInput.x_Hosp != -1)
 					{
 						Fx += coeff * data.Intern[theI].wieght_ch;
+						totalChange = stateInput.totalChange + 1;
 
 					}
 				}
 			}
-			// like MIP
-			for (int p = 0; p < data.General.TrainingPr; p++)
-			{
-				if (flagEmrD)
-				{
+			// we considered this in the DPStage class
 
-					Fx -= (int)data.TrainingPr[p].CoeffObj_EmrCap;
-				}
-				if (flagResD)
-				{
-					Fx -= (int)data.TrainingPr[p].CoeffObj_ResCap;
-				}
-			}
+			// like MIP
+			//for (int p = 0; p < data.General.TrainingPr; p++)
+			//{
+			//	if (flagEmrD)
+			//	{
+
+			//		Fx -= (int)data.TrainingPr[p].CoeffObj_EmrCap;
+			//	}
+			//	if (flagResD)
+			//	{
+			//		Fx -= (int)data.TrainingPr[p].CoeffObj_ResCap;
+			//	}
+			//}
 
 			possibleStates = new ArrayList();
 

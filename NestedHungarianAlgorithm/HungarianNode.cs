@@ -932,13 +932,17 @@ namespace NestedHungarianAlgorithm
 
 		public int get_DisciplineFromWard(int theI, int theW, int theH)
 		{
+			
 
 			int result = -1;			
 			int MaxObj = -1;
 			int discInd = -1;
 			for (int d = 0; d < Disciplins ; d++)
 			{
-				
+				if (!data.Hospital[theH].Hospital_dw[d][theW])
+				{
+					continue;
+				}
 				if (data.Intern[theI].OverSea_dt[d][TimeID]) // if the interns must go oversea now
 				{
 					discInd = -1;
@@ -1084,10 +1088,6 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 
-			if (TimeID == 9)
-			{
-				Console.WriteLine();
-			}
 		}
 		/// <summary>
 		/// Checks if the intern needs other discipline in advance to the following discipline

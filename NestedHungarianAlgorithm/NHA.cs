@@ -65,8 +65,14 @@ namespace NestedHungarianAlgorithm
 		{
 			nhaResult = new OptimalSolution(data);
 			for (int i = 0; i < Interns; i++)
-			{				
-				for (int d = 0; d < Disciplins ; d++)
+			{
+				bool[] disStatus = new bool[Disciplins]; // if the hungarian waits we just now the duration of the prevuis discipline prolonged 
+				for (int d = 0; d < Disciplins; d++)
+				{
+					disStatus[d] = false;
+				}
+
+				for (int d = 0; d < Disciplins; d++)
 				{
 					bool assignedDisc = false;
 					for (int t = 0; t < Timepriods && !assignedDisc; t++)
@@ -74,10 +80,12 @@ namespace NestedHungarianAlgorithm
 						for (int h = 0; h < Hospitals + 1 && !assignedDisc; h++)
 						{
 							if (((HungarianNode)ActiveList[ActiveList.Count - 1]).ResidentSchedule_it[i][t].dIndex == d
-								&& ((HungarianNode)ActiveList[ActiveList.Count - 1]).ResidentSchedule_it[i][t].HIndex == h)
+								&& ((HungarianNode)ActiveList[ActiveList.Count - 1]).ResidentSchedule_it[i][t].HIndex == h
+								&& !disStatus[d])
 							{
 								assignedDisc = true;
 								nhaResult.Intern_itdh[i][t][d][h] = true;
+								disStatus[d] = true;
 								break;
 							}
 						}

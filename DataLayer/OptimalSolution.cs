@@ -48,6 +48,7 @@ namespace DataLayer
 		bool infeasibilityChangesInHospital;
 		bool infeasibilityOverseaAbilityAve;
 		bool infeasibilitySkill;
+		bool infeasibilityKdiscOneHosp;
 		public bool IsFeasible;
 		public bool[] infeasibleIntern_i;
 		public bool[][] overLap_dd;
@@ -94,13 +95,7 @@ namespace DataLayer
 			Obj = 0;
 			SlackDem = 0;
 
-			infeasibilityK_Assigned = false;
-			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
-			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
-			new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
-			infeasibilityChangesInHospital = false;
-			infeasibilityOverseaAbilityAve = false;
-			infeasibilitySkill = false;
+			resetInf(data);
 		}
 
 		public void copyRosters(bool[][][][] Copy_itdh)
@@ -160,13 +155,7 @@ namespace DataLayer
 			Obj = 0;
 			SlackDem = 0;
 
-			infeasibilityK_Assigned = false;
-			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
-			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
-			new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
-			infeasibilityChangesInHospital = false;
-			infeasibilityOverseaAbilityAve = false;
-			infeasibilitySkill = false;
+			resetInf(data);
 		}
 
 		public void Initial(AllData data)
@@ -193,6 +182,10 @@ namespace DataLayer
 			Obj = 0;
 			SlackDem = 0;
 
+			resetInf(data);
+		}
+		public void resetInf(AllData data)
+		{
 			infeasibilityK_Assigned = false;
 			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
 			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
@@ -201,7 +194,6 @@ namespace DataLayer
 			infeasibilityOverseaAbilityAve = false;
 			infeasibilitySkill = false;
 		}
-
 		public string setInfSetting()
 		{
 			string  Result = "";
@@ -354,6 +346,27 @@ namespace DataLayer
 						{
 							if (Intern_itdh[i][t][d][h])
 							{
+								int totalDiscInthisHosp = 0;
+								for (int dd = 0; dd < data.General.Disciplines; dd++)
+								{
+									for (int tt = 0; tt < data.General.TimePriods; tt++)
+									{
+										if (Intern_itdh[i][t][dd][h])
+										{
+											totalDiscInthisHosp++;
+											break;
+										}
+									}
+									
+								}
+								if (totalDiscInthisHosp > data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp)
+								{
+									infeasibleIntern_i[i] = true;
+									infeasibilityKdiscOneHosp = true;
+									Result += "The intern " + i + " performed " + totalDiscInthisHosp + " in hospital  " + h + " instead of  " + data.TrainingPr[data.Intern[i].ProgramID].DiscChangeInOneHosp + " \n";
+
+								}
+
 								totalDis++;
 								if (IndH1 < 0)
 								{
@@ -831,7 +844,10 @@ namespace DataLayer
 			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
 			tw.WriteLine(setInfSetting());
-			IsFeasible = !infeasibilityChangesInHospital && !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve && !infeasibilitySkill && !infeasibilityOverused && !infeasibilityOverlap;
+			IsFeasible = !infeasibilityChangesInHospital 
+				&& !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve 
+				&& !infeasibilitySkill && !infeasibilityOverused && !infeasibilityOverlap
+				&& !infeasibilityKdiscOneHosp;
 			if (!IsFeasible)
 			{
 				Obj = -data.AlgSettings.BigM;

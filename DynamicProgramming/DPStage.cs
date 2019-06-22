@@ -22,15 +22,17 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][][] MinDem_twh;
 		public int[][][] ResDem_twh;
 		public int[][][] EmrDem_twh;
+		public int[][] AccDem_tr;
 		bool flagRes;
 		bool flagEmr;
-		public DPStage(ref StateStage finalSchedule, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, bool incombentExist)
+		public DPStage(ref StateStage finalSchedule, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, int[][] AccDem_tr, bool incombentExist)
 		{
 			this.incombentExist = incombentExist;
 			this.MaxDem_twh = MaxDem_twh;
 			this.MinDem_twh = MinDem_twh;
 			this.ResDem_twh = ResDem_twh;
 			this.EmrDem_twh = EmrDem_twh;
+			this.AccDem_tr = AccDem_tr;
 			data = alldata;
 			theIntern = theI;
 			stageTime = theTime;
@@ -213,31 +215,34 @@ namespace NestedDynamicProgrammingAlgorithm
 
 		public void setFutureState()
 		{
-			//Console.WriteLine("====== Stage " + stageTime + " ======");
+			// Console.WriteLine("====== Stage " + stageTime + " ======");
 			for (int c = 0; c < ActiveStatesCount; c++)
 			{
-				//Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+				// Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
 				// 0 is the current state
 				for (int i = 1; i < activeStatesValue[c].Count; i++)
 				{
 					StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], theIntern, data, stageTime, rootStage);
 					foreach (StateStage item in tmp.possibleStates)
 					{
-						//Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
-						int index = 0;
-						foreach (StateStage futur in FutureActiveState)
-						{
+						item.Fx -= returnDemandCost(item.x_Disc, item.x_Hosp, stageTime, item.x_wait);
 
-							if (futur.Fx / (data.Intern[theIntern].K_AllDiscipline - futur.x_K)  > item.Fx / (data.Intern[theIntern].K_AllDiscipline - item.x_K))
-							{
-								index++;
-							}
-							else
-							{
-								break;
-							}
-						} 
-						FutureActiveState.Insert(index, item);
+						// Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+						FutureActiveState.Add(item);
+						//int index = 0;
+						//foreach (StateStage futur in FutureActiveState)
+						//{
+							
+						//	if (futur.Fx / (data.Intern[theIntern].K_AllDiscipline - futur.x_K)  > item.Fx / (data.Intern[theIntern].K_AllDiscipline - item.x_K))
+						//	{
+						//		index++;
+						//	}
+						//	else
+						//	{
+						//		break;
+						//	}
+						//} 
+						//FutureActiveState.Insert(index, item);
 						
 					}
 				}
@@ -245,11 +250,76 @@ namespace NestedDynamicProgrammingAlgorithm
 			cleanTheActiveState();
 		}
 
+		public double returnDemandCost(int theD, int theH, int theT, bool waitingLable)
+		{
+			double result = 0;
+			if (waitingLable || theD < 0)
+			{
+				return result;
+			}
+			for (int w = 0; w < data.General.HospitalWard; w++)
+			{
+				if (data.Hospital[theH].Hospital_dw[theD][w]) 
+				{
+					for (int t = theT; t < theT + data.Discipline[theD].Duration_p[data.Intern[theIntern].ProgramID]; t++)
+					{
+						if (MaxDem_twh[t][w][theH] > 0)
+						{
+							result += 0;
+						}
+						else if (ResDem_twh[t][w][theH] > 0)
+						{
+							for (int p = 0; p < data.General.TrainingPr; p++)
+							{
+								result += data.TrainingPr[p].CoeffObj_ResCap;
+							}
+						}
+						else if (EmrDem_twh[t][w][theH] > 0)
+						{
+							for (int p = 0; p < data.General.TrainingPr; p++)
+							{
+								result += data.TrainingPr[p].CoeffObj_EmrCap;
+							}
+						}
+						if (MinDem_twh[t][w][theH] > 0)
+						{
+							for (int p = 0; p < data.General.TrainingPr; p++)
+							{
+								result -= data.TrainingPr[p].CoeffObj_MINDem;
+							}
+						}
+					}
+					break;
+				}
+			}
+
+			for (int r = 0; r < data.General.Region; r++)
+			{
+				if (data.Intern[theIntern].TransferredTo_r[r] && data.Hospital[theH].InToRegion_r[r])
+				{
+					for (int t = theT; t < theT + data.Discipline[theD].Duration_p[data.Intern[theIntern].ProgramID]; t++)
+					{
+						if (AccDem_tr[t][r] > 0)
+						{
+							for (int p = 0; p < data.General.TrainingPr; p++)
+							{
+								result -= data.TrainingPr[p].CoeffObj_NotUsedAcc;
+							}
+						}
+					}
+				}
+			}
+
+
+			return result;
+		}
+
 		public void cleanTheActiveState()
 		{
 			//chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital	
 			Console.WriteLine("Before one disc: " + FutureActiveState.Count);
-			keepOneDisci();
+			// it will not work with unstable demand structure => at t we are in regular demand, t+1 it is reserved demand
+			keepOneDisci(); 
 			Console.WriteLine("After one disc: " + FutureActiveState.Count);
 			Console.WriteLine("Before cleaning redundant node: "+FutureActiveState.Count);
 			cleanRedundantSequence();
@@ -307,7 +377,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 		}
 
-		// redundant schedule d1h1 - d2h2 === d2h2 - d1h1
+		// redundant schedule d1h1 - d2h2 - d3h3 === d2h2 - d1h1 -d3h3 (last one is fixed)
 		public void cleanRedundantSequence()
 		{
 			int counter = -1;
@@ -322,11 +392,16 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					continue;
 				}
-				for (int l = 2; l <= length; l++) 
+				for (int l = length; l <= length; l++) 
 				{
 					int[] theH = new int[l];
-					int[] theD = new int[l];
 					
+					int[] theD = new int[l];
+					bool[] theHStatus = new bool[data.General.Hospitals + 1];
+					for (int h = 0; h < data.General.Hospitals + 1; h++)
+					{
+						theHStatus[h] = false;
+					}
 					int startTime = -1;
 					int lastoneStart = -1;
 					for (int ll = 0; ll < l; ll++)
@@ -374,6 +449,8 @@ namespace NestedDynamicProgrammingAlgorithm
 									lengCounter++;
 									theD[ll] = current.theSchedule_t[t].theDiscipline;
 									theH[ll] = current.theSchedule_t[t].theHospital;
+
+									theHStatus[current.theSchedule_t[t].theHospital] = true;
 									lastoneStart = t;
 									t += data.Discipline[current.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theIntern].ProgramID];						
 									
@@ -441,15 +518,33 @@ namespace NestedDynamicProgrammingAlgorithm
 									}
 									starttmp += data.Discipline[theD1].Duration_p[data.Intern[theIntern].ProgramID];
 									remove = false;
+								
 									for (int lch = 0; lch < l - 1; lch++)
 									{
-										if (theD1 == theD[lch] && (theH1 == theH[lch] || data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp > 1)) // lets not check the hospital except the last h
+										if (theD1 == theD[lch] )
 										{
 											remove = true;
 											break;
 										}
 									}
 									if (!remove)
+									{
+										break;
+									}
+									remove = false;
+									//  hospitals must be from the already assigned hospitals 
+									// if we already used d1h1 and d2h2
+									// if we have d1h1 and  d2h1 we will remove it => we used a hospital twice 
+									//if we have d1h2 and  d2h1 we will remove it => we used a used hospital with differnt order 
+									for (int lch = 0; lch < l - 1; lch++)
+									{
+										if (theH1 == theH[lch]) 
+										{
+											remove = true;
+											break;
+										}
+									}
+									if (!remove && data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp == 1)
 									{
 										break;
 									}
@@ -497,6 +592,9 @@ namespace NestedDynamicProgrammingAlgorithm
 			}
 		}
 
+
+	
+
 		// keep only one discipline 
 		public void keepOneDisci()
 		{
@@ -535,21 +633,44 @@ namespace NestedDynamicProgrammingAlgorithm
 					
 					removeCounter++;
 					StateStage current = (StateStage)FutureActiveState[removeCounter];
+					
 					int theDtmp = current.theSchedule_t[stageTime].theDiscipline;
-
+					if (theDtmp < 0)
+					{
+						continue;
+					}
+					if (stageTime > 0)
+					{
+						if (current.theSchedule_t[stageTime-1].theDiscipline == theDtmp
+							|| state.theSchedule_t[stageTime - 1].theDiscipline == theD)
+						{
+							continue;
+						}
+					}
 					// check oversea otherwise the time is not matter 
 
-					if (data.Intern[theIntern].overseaReq && data.Discipline[theD].Duration_p[p] != data.Discipline[theDtmp].Duration_p[p])
+					if (data.Discipline[theD].Duration_p[p] != data.Discipline[theDtmp].Duration_p[p])
 					{
 						continue;
 					}
 
-					if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.95 && theDtmp >= 0)
+					double prfX1 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theD] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theD];
+					double prfX2 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theDtmp] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theDtmp];
+
+					double demCost = returnDemandCost(state.x_Disc, state.x_Hosp, stageTime, state.x_wait);
+					double tmpdemCost = returnDemandCost(current.x_Disc, current.x_Hosp, stageTime, state.x_wait);
+
+					double obj1 = -demCost + prfX1 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+					double obj2 = -tmpdemCost + prfX2 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+					if (obj2 > obj1)
 					{
-						double prfX1 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theD] + data.TrainingPr[p].weight_p*data.TrainingPr[p].Prf_d[theD];
-						double prfX2 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theDtmp] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theDtmp];
+						continue;
+					}
+					if (data.Intern[theIntern].takingDiscPercentage[theD] < 0.95)
+					{
 						if (data.Discipline[theD].Duration_p[p] == data.Discipline[theDtmp].Duration_p[p]
-							&& prfX1 >= prfX2 && !data.Discipline[theD].isRare)
+							&& !data.Discipline[theD].isRare 
+						/*&& data.Intern[theIntern].takingDiscPercentage[theD] >= data.Intern[theIntern].takingDiscPercentage[theDtmp]*/)
 						{
 							// remove x2
 						}
@@ -602,13 +723,13 @@ namespace NestedDynamicProgrammingAlgorithm
 		}
 
 		public bool checkDiscipline(int theDisc, int theH, StateStage theState)
-		{
-			
+		{			
 			flagEmr = false;
 			flagRes = false;
 			bool result = true;
 			// already assigned or the time is filled
-			if (theState.activeDisc[theDisc] || theState.theSchedule_t[stageTime].theDiscipline!=-1)
+			if (theState.activeDisc[theDisc] || theState.theSchedule_t[stageTime].theDiscipline!=-1 
+				|| stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] >= data.General.TimePriods)
 			{
 				result = false;
 			}
@@ -752,23 +873,43 @@ namespace NestedDynamicProgrammingAlgorithm
 			if (result)
 			{
 				result = false;
-
+				
+				// check capacity 
+				
 				for (int w = 0; w < data.General.HospitalWard; w++)
 				{
+					bool capLable = true;
+					
 					if (data.Hospital[theH].Hospital_dw[theDisc][w])
 					{
-						if (MaxDem_twh[stageTime][w][theH] > 0)
+						for (int t = stageTime; t < stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID]; t++)
+						{
+							if (MaxDem_twh[t][w][theH] + ResDem_twh[t][w][theH] + EmrDem_twh[t][w][theH] <= 0)
+							{
+								capLable = false;
+								break;
+							}
+						}
+						if (!capLable)
+						{
+							continue;
+						}
+						else
+						{
+							result = true;
+						}
+						if (result && MaxDem_twh[stageTime][w][theH] > 0)
 						{
 							result = true;
 							break;
 						}
-						else if(ResDem_twh[stageTime][w][theH] > 0)
+						else if(result && ResDem_twh[stageTime][w][theH] > 0)
 						{
 							result = true;
 							flagRes = true;
 							break;
 						}
-						else if (EmrDem_twh[stageTime][w][theH] > 0)
+						else if (result && EmrDem_twh[stageTime][w][theH] > 0)
 						{
 							result = true;
 							flagEmr = true;
@@ -839,7 +980,7 @@ namespace NestedDynamicProgrammingAlgorithm
 						}
 					}
 				}
-				if (totaldisc > data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp)
+				if (totaldisc >= data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp)
 				{
 					result = false;
 				}
@@ -847,7 +988,7 @@ namespace NestedDynamicProgrammingAlgorithm
 
 			// if it is here it means that he can attend to this hospital
 			// 2- same hospital next together (if it is possible)	
-			if (result)
+			if (result && false)
 			{
 				result = differentDiscSameHospital(theDisc, theH, theState);
 			}
