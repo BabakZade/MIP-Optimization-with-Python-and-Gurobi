@@ -156,14 +156,14 @@ namespace MedicalTraineeScheduling
 
 			//}
 
-			for (int g = 0; g < 4; g++)
+			for (int g = 0; g < 04 ; g++)
 			{
 				for (int i = 0; i < InstanceSize; i++)
 				{
 					groupCounter++;
 					if (groupCounter < 6)
 					{
-						continue;
+						//continue;
 					}
 					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Size", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 1;

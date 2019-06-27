@@ -204,13 +204,83 @@ namespace NestedDynamicProgrammingAlgorithm
 						if (((StateStage)parentNode.FutureActiveState[c]).Fx > finalSchedule.Fx )
 						{
 							finalSchedule = (StateStage)parentNode.FutureActiveState[c];
-							//solutionFound = true;
+							solutionFound = true;
 							//break;
 						}
 					}
 
 				}
 			}
+
+		}
+
+		public bool NotOptiamalAndCutTheBranches(double FinalObj, StateStage curentStat)
+		{
+			bool result = false;
+			double obj = curentStat.Fx;
+			if (curentStat.x_K > 0)
+			{
+				bool[] disStatus = new bool[data.General.Disciplines];
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					disStatus[d] = false;
+				}
+				for (int g = 0; g < data.General.DisciplineGr; g++)
+				{
+					if (curentStat.x_K_g[g] > 0)
+					{
+						int length = curentStat.x_K_g[g];
+						
+
+						foreach (DataLayer.DesirePos item in data.Intern[theIntern].sortedPrf)
+						{
+							int theH = item.theH;
+							bool itCanbeIntheHosp = true;
+							if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp == 1)
+							{
+								for (int t = 0; t < data.General.TimePriods; t++)
+								{
+									if (curentStat.theSchedule_t[t].theHospital == theH)
+									{
+										itCanbeIntheHosp = false;
+										break;
+									}
+								}
+							}
+
+							if (!itCanbeIntheHosp)
+							{
+								continue;
+							}
+
+							int theD = item.theD;
+							if (!disStatus[theD] && !curentStat.activeDisc[theD])
+							{
+								obj += item.AbsDesire * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_MinDesi + data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+								disStatus[theD] = true;
+								length--;
+							}
+							else
+							{
+								continue;
+							}
+
+							if (length == 0)
+							{
+								break;
+							}
+						}
+					}
+				}
+				
+			}
+
+			if (obj <= FinalObj)
+			{
+				result = true;
+			}
+			return result;
+
 		}
 
 		public void setFutureState()
@@ -253,8 +323,14 @@ namespace NestedDynamicProgrammingAlgorithm
 		public double returnDemandCost(int theD, int theH, int theT, bool waitingLable)
 		{
 			double result = 0;
-			if (waitingLable || theD < 0)
+			if (theH == data.General.Hospitals)
 			{
+				result = -data.AlgSettings.BigM;
+				return result;
+			}
+			if (waitingLable || theD < 0 )
+			{
+				result = -data.AlgSettings.BigM;
 				return result;
 			}
 			for (int w = 0; w < data.General.HospitalWard; w++)
@@ -321,10 +397,11 @@ namespace NestedDynamicProgrammingAlgorithm
 			// it will not work with unstable demand structure => at t we are in regular demand, t+1 it is reserved demand
 			keepOneDisci(); 
 			Console.WriteLine("After one disc: " + FutureActiveState.Count);
-			Console.WriteLine("Before cleaning redundant node: "+FutureActiveState.Count);
 			cleanRedundantSequence();
 			Console.WriteLine("After cleaning redundant node: " + FutureActiveState.Count);
-			
+			cutTheBranch();
+			Console.WriteLine("After cutting not promissing nodes: " + FutureActiveState.Count);
+
 			Console.WriteLine();
 			Console.WriteLine();
 
@@ -593,7 +670,47 @@ namespace NestedDynamicProgrammingAlgorithm
 		}
 
 
-	
+		// curent prf + Max praf <=  current objective function
+		// cut the branch
+		public void cutTheBranch()
+		{
+			int counter = -1;
+			int p = data.Intern[theIntern].ProgramID;
+		
+			while (counter < FutureActiveState.Count - 1)
+			{
+				counter++;
+				StateStage state = (StateStage)FutureActiveState[counter];
+				int theD = state.theSchedule_t[stageTime].theDiscipline;
+				bool cango = false;
+				// oversea skill and availbility is already checked 
+				if (state.x_K != 0)
+				{
+					continue;
+				}
+
+
+				// remove all other discipline
+				bool flagFirst = true;
+				int removeCounter = -1;
+				while (removeCounter < FutureActiveState.Count - 1)
+				{
+
+					removeCounter++;
+					StateStage current = (StateStage)FutureActiveState[removeCounter];
+					if (NotOptiamalAndCutTheBranches(state.Fx, current))
+					{
+						if (flagFirst && state.Fx == current.Fx && current.x_K == 0)
+						{
+							flagFirst = false;
+							continue;
+						}
+						FutureActiveState.RemoveAt(removeCounter);
+						removeCounter--;
+					}
+				}
+			}
+		}
 
 		// keep only one discipline 
 		public void keepOneDisci()

@@ -308,7 +308,6 @@ namespace DataLayer
 			}
 		}
 
-
 		public void SetSimplifiedScheduleForMaxPrf(AllData allData)
 		{
 			int tmpKAll = K_AllDiscipline;
