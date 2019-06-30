@@ -21,6 +21,9 @@ namespace NestedDynamicProgrammingAlgorithm
 		public bool incombentExist;
 		public int K_totalDiscipline;
 		public int[] discGrCounter_g;
+		public int MaxProcessedNode;
+		public int RealProcessedNode;
+
 		public DP(AllData alldata, int theI, OptimalSolution incumbentSol)
 		{
 			Initial(alldata, incumbentSol, theI);
@@ -42,13 +45,18 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					dPStages[t] = new DPStage(ref BestSol, alldata, dPStages[t - 1], theI, t,false, MaxDem_twh, MinDem_twh, ResDem_twh, EmrDem_twh, AccDem_tr, incombentExist);
 				}
+				MaxProcessedNode += dPStages[t].MaxProcessedNode;
+				RealProcessedNode += dPStages[t].RealProcessedNode;
 			}
 			
 		}
 		public void Initial(AllData data, OptimalSolution incumbentSol, int theIntern)
 		{
+			MaxProcessedNode = 0;
+			RealProcessedNode = 0;
 			BestSol = new StateStage(data);
 			incombentExist = false;
+
 			//
 			new ArrayInitializer().CreateArray(ref MaxDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
 			new ArrayInitializer().CreateArray(ref MinDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);

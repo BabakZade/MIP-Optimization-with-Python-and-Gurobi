@@ -19,10 +19,14 @@ namespace NestedHungarianAlgorithm
 		public int Region;
 		public OptimalSolution finalSol;
 		public bool[] InternStatus;
+		public int MaxProcessedNode;
+		public int RealProcessedNode;
 		public InternBasedLocalSearch(AllData allData, OptimalSolution incumbentSol, string Name)
 		{
 			data = allData;
-			Initial(incumbentSol);
+			MaxProcessedNode = 0;
+		RealProcessedNode = 0;
+		Initial(incumbentSol);
 			reScheduleIntern(incumbentSol, data.AlgSettings.internBasedImpPercentage, Name);
 		}
 		public void reScheduleIntern(OptimalSolution incumbentSol, double ChangePercentage, string Name)
@@ -36,6 +40,7 @@ namespace NestedHungarianAlgorithm
 			{
 				MaxChange = 1;
 			}
+			int counter = 0;
 			for (int i = 0; i < MaxChange; i++)
 			{
 				OptimalSolution solI = new OptimalSolution(data);
@@ -46,7 +51,10 @@ namespace NestedHungarianAlgorithm
 				{
 					break;
 				}
+				counter++;
 				DP neighbourhoodSol = new DP(data, theI, solI);
+				MaxProcessedNode += neighbourhoodSol.MaxProcessedNode;
+				RealProcessedNode += neighbourhoodSol.RealProcessedNode;
 				solI.CleanInternRoster(theI);
 
 				for (int t = 0; t < Timepriods; t++)
@@ -66,6 +74,13 @@ namespace NestedHungarianAlgorithm
 					finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);					
 				}
 			}
+			if (counter > 0)
+			{
+				MaxProcessedNode /= counter;
+				RealProcessedNode /= counter;
+			}
+			
+
 		}
 		public void Initial(OptimalSolution incumbentSol)
 		{

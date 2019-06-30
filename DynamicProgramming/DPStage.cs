@@ -25,6 +25,8 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][] AccDem_tr;
 		bool flagRes;
 		bool flagEmr;
+		public int MaxProcessedNode;
+		public int RealProcessedNode;
 		public DPStage(ref StateStage finalSchedule, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, int[][] AccDem_tr, bool incombentExist)
 		{
 			this.incombentExist = incombentExist;
@@ -393,7 +395,9 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void cleanTheActiveState()
 		{
 			//chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital	
-			Console.WriteLine("Before one disc: " + FutureActiveState.Count);
+		MaxProcessedNode = FutureActiveState.Count;
+		
+		Console.WriteLine("Before one disc: " + FutureActiveState.Count);
 			// it will not work with unstable demand structure => at t we are in regular demand, t+1 it is reserved demand
 			keepOneDisci(); 
 			Console.WriteLine("After one disc: " + FutureActiveState.Count);
@@ -406,7 +410,8 @@ namespace NestedDynamicProgrammingAlgorithm
 			Console.WriteLine();
 
 			limittedFutureList();
-			
+			RealProcessedNode = FutureActiveState.Count;
+
 		}
 		//Necessary 
 		public void chooseBestHospIfChangeIsNecessary()
@@ -812,7 +817,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		//remove more than a number
 		public void limittedFutureList()
 		{
-			int limit = 5 * data.General.Disciplines * data.General.Disciplines * data.General.Hospitals * data.General.Hospitals;
+			int limit = data.General.Disciplines * data.General.Disciplines * data.General.Hospitals * data.General.Hospitals;
 			//foreach (StateStage item in FutureActiveState)
 			//{
 			//	Console.WriteLine(item.DisplayMe());
@@ -824,7 +829,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				//{
 				//	Console.WriteLine(item.DisplayMe());
 				//}
-				FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
+				//FutureActiveState.RemoveRange(limit, FutureActiveState.Count - limit);
 			}
 
 		}

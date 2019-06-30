@@ -156,16 +156,16 @@ namespace MedicalTraineeScheduling
 
 			//}
 
-			for (int g = 0; g < 04 ; g++)
+			for (int g = 0; g < 9 ; g++)
 			{
 				for (int i = 0; i < InstanceSize; i++)
 				{
 					groupCounter++;
-					if (groupCounter < 6)
+					if (groupCounter < 31)
 					{
 						//continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Size", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 1;
 					read.data.AlgSettings.internBasedImpPercentage = 0.5;
 					Stopwatch stopwatch = new Stopwatch();
@@ -192,8 +192,8 @@ namespace MedicalTraineeScheduling
 							+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
 							+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
 							+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxDisier + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxMin
-							+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxRes + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxEmr
-							+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxAcc
+							+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxRes + "\t" + nha.improvementStep.internBasedLocalSearch.MaxProcessedNode
+							+ "\t" + nha.improvementStep.internBasedLocalSearch.RealProcessedNode
 							);
 					}
 					//using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
