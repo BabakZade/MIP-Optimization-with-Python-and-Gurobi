@@ -645,19 +645,19 @@ namespace NestedHungarianAlgorithm
 				return; 
 			}
 
-			// chech from t1 till t1 + du_2, hospital h1 has capcity for d2
+			// check from t1 till t1 + du_2, hospital h1 has capcity for h1change
 			for (int t = t1	; t < t1 + data.Discipline[d2].Duration_p[data.Intern[theI].ProgramID] && timelineCap; t++)
 			{
-				if (ResEmrDemand_tdh[t][d2][h1] >= 0)
+				if (ResEmrDemand_tdh[t][d2][changeH1] >= 0)
 				{
 					timelineCap = false;
 				}
 			}
 
-			// chech from t2 till t2 + du_1, hospital h1 has capcity for d2
+			// chech from t2 till t2 + du_1, hospital h2 has capcity for d1
 			for (int t = t2; t < t2 + data.Discipline[d1].Duration_p[data.Intern[theI].ProgramID] && timelineCap; t++)
 			{
-				if (ResEmrDemand_tdh[t][d2][h1] >= 0)
+				if (ResEmrDemand_tdh[t][d1][changeH2] >= 0)
 				{
 					timelineCap = false;
 				}
@@ -679,25 +679,44 @@ namespace NestedHungarianAlgorithm
 
 			// lets update when d1 goes to changeH1
 
+
 			for (int w = 0; w < Wards; w++)
 			{
 				if (data.Hospital[h1].Hospital_dw[d1][w]) // lets chech d1
 				{
 					for (int dd = 0; dd < Disciplins; dd++) // shared resource
 					{
-						MaxResEmrDemand_tdh[t1][dd][h1]--;
-						ResEmrDemand_tdh[t1][dd][h1]--;
+						for (int t = t1; t < t1 + data.Discipline[d1].Duration_p[data.Intern[theI].ProgramID]; t++)
+						{
+							if (data.Hospital[h1].Hospital_dw[dd][w])
+							{
+								MaxResEmrDemand_tdh[t][dd][h1]--;
+								ResEmrDemand_tdh[t][dd][h1]--;
+							}
+						}
 					}
 				}
+			}
+			for (int w = 0; w < Wards; w++)
+			{
 				if (data.Hospital[changeH1].Hospital_dw[d1][w]) // lets chech d1
 				{
 					for (int dd = 0; dd < Disciplins; dd++) // shared resource
 					{
-						MaxResEmrDemand_tdh[t2][dd][changeH1]++;
-						ResEmrDemand_tdh[t2][dd][changeH1]++;
+						for (int t = t2; t < t2 + data.Discipline[d1].Duration_p[data.Intern[theI].ProgramID]; t++)
+						{
+
+							if (data.Hospital[h1].Hospital_dw[dd][w])
+							{
+								MaxResEmrDemand_tdh[t][dd][changeH1]++;
+								ResEmrDemand_tdh[t][dd][changeH1]++;
+							}
+
+						}
 					}
 				}
 			}
+
 
 			// lets update when d2 goes to changeH2
 
@@ -707,19 +726,40 @@ namespace NestedHungarianAlgorithm
 				{
 					for (int dd = 0; dd < Disciplins; dd++) // shared resource
 					{
-						MaxResEmrDemand_tdh[t2][dd][h2]--;
-						ResEmrDemand_tdh[t2][dd][h2]--;
+						for (int t = t2; t < t2 + data.Discipline[d2].Duration_p[data.Intern[theI].ProgramID]; t++)
+						{
+							if (data.Hospital[h2].Hospital_dw[dd][w])
+							{
+								MaxResEmrDemand_tdh[t][dd][h2]--;
+								ResEmrDemand_tdh[t][dd][h2]--;
+							}
+
+						}
 					}
+
 				}
+			}
+
+
+			for (int w = 0; w < Wards; w++)
+			{
 				if (data.Hospital[changeH2].Hospital_dw[d2][w]) // lets chech d1
 				{
 					for (int dd = 0; dd < Disciplins; dd++) // shared resource
 					{
-						MaxResEmrDemand_tdh[t1][d2][changeH2]++;
-						ResEmrDemand_tdh[t1][d2][changeH2]++;
+						for (int t = t1; t < t1 + data.Discipline[d2].Duration_p[data.Intern[theI].ProgramID]; t++)
+						{
+							if (data.Hospital[changeH2].Hospital_dw[dd][w])
+							{
+								MaxResEmrDemand_tdh[t][d2][changeH2]++;
+								ResEmrDemand_tdh[t][d2][changeH2]++;
+							}
+
+						}
 					}
 				}
 			}
+			
 
 			Roster_it[theI][t1] = d2;
 			Roster_it[theI][t2] = d1;

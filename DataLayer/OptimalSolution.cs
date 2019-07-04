@@ -95,7 +95,6 @@ namespace DataLayer
 			Obj = 0;
 			SlackDem = 0;
 
-			resetInf(data);
 		}
 
 		public void copyRosters(bool[][][][] Copy_itdh)
@@ -155,7 +154,7 @@ namespace DataLayer
 			Obj = 0;
 			SlackDem = 0;
 
-			resetInf(data);
+			
 		}
 
 		public void Initial(AllData data)
@@ -182,7 +181,7 @@ namespace DataLayer
 			Obj = 0;
 			SlackDem = 0;
 
-			resetInf(data);
+			
 		}
 		public void resetInf(AllData data)
 		{
@@ -197,7 +196,7 @@ namespace DataLayer
 		public string setInfSetting()
 		{
 			string  Result = "";
-
+			resetInf(data);
 			infeasibleIntern_i = new bool[data.General.Interns];
 
 			for (int i = 0; i < data.General.Interns; i++)
@@ -448,7 +447,7 @@ namespace DataLayer
 										start = Math.Max(start, 0);
 										int finish = t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; // (we are not counting the last one in the loop)
 										finish = Math.Min(finish, data.General.TimePriods);
-										for (int tt = 0; tt < finish; tt++)
+										for (int tt = start; tt < finish; tt++)
 										{
 											if (Intern_itdh[i][tt][d][h])
 											{

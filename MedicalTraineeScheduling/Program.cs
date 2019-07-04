@@ -165,7 +165,7 @@ namespace MedicalTraineeScheduling
 					{
 						//continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "RealLife", "NHA1", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 1;
 					read.data.AlgSettings.internBasedImpPercentage = 0.5;
 					Stopwatch stopwatch = new Stopwatch();
