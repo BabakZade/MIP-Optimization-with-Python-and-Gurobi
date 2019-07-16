@@ -60,7 +60,6 @@ namespace NestedDynamicProgrammingAlgorithm
 		public void Initial(AllData alldata)
 		{
 
-
 		}
 		public void setStateStage(ref StateStage finalSchedule)
 		{
@@ -855,7 +854,18 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				result = false;
 			}
-			
+
+			int thep = -1;
+			for (int p = 0; p < data.General.TrainingPr && thep < 0; p++)
+			{
+				for (int h = 0; h < data.General.Hospitals && thep < 0; h++)
+				{
+					if (data.Intern[theIntern].Fulfilled_dhp[theDisc][h][p])
+					{
+						result = false;
+					}
+				}
+			}
 			// if the intern needs it 
 			if (result)
 			{

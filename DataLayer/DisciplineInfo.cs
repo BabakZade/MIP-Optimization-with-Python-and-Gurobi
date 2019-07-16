@@ -14,6 +14,7 @@ namespace DataLayer
 		public bool[] requiresSkill_p;
 		public bool[] requiredLater_p;
 		public int[] Duration_p;
+		public int[] CourseCredit_p;
 		public bool isRare;
 		public double howRare;
 		public DisciplineInfo(int Disciplines, int Programs)
@@ -24,6 +25,7 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref Duration_p, Programs, 0);
 			new ArrayInitializer().CreateArray(ref requiresSkill_p, Programs, false);
 			new ArrayInitializer().CreateArray(ref requiredLater_p, Programs, false);
+			new ArrayInitializer().CreateArray(ref CourseCredit_p, Programs, 0);
 		}
 
 		public void setIsRare(AllData data)

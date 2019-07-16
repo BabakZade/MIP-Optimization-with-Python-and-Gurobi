@@ -222,8 +222,8 @@ namespace DataLayer
 								{
 									if (Intern_itdh[i][t][d][h])
 									{
-										totalK++;
-										totalK_g[g]++;
+										totalK += data.Discipline[d].CourseCredit_p[data.Intern[i].ProgramID];
+										totalK_g[g] += data.Discipline[d].CourseCredit_p[data.Intern[i].ProgramID];
 										if (h < data.General.Hospitals)
 										{
 											wieghtedSumInHosPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_h[h];
@@ -311,8 +311,26 @@ namespace DataLayer
 
 
 					}
+				}
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int h = 0; h < data.General.Hospitals; h++)
+					{
+						if (data.Intern[i].Fulfilled_dhp[d][h][data.Intern[i].ProgramID])
+						{
+							totalK -= data.Discipline[d].CourseCredit_p[data.Intern[i].ProgramID];
+							for (int g = 0; g < data.General.DisciplineGr; g++)
+							{
+								if (data.Intern[i].DisciplineList_dg[d][g])
+								{
+									totalK_g[g] -= data.Discipline[d].CourseCredit_p[data.Intern[i].ProgramID];
+									break;
+								}
+							}
 
-
+							break;
+						}
+					}
 				}
 				if (totalK != data.Intern[i].K_AllDiscipline)
 				{

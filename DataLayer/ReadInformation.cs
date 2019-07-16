@@ -277,6 +277,23 @@ namespace DataLayer
 				line = tw.ReadLine();
 			}
 			line = tw.ReadLine();
+			if (line.Contains("Course credit"))
+			{
+				line = tw.ReadLine();
+				for (int d = 0; d < data.General.Disciplines; d++)
+				{
+					for (int p = 0; p < data.General.TrainingPr; p++)
+					{
+						indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+						data.Discipline[d].CourseCredit_p[p] = int.Parse(line.Substring(0, indexN));
+						line = line.Substring(indexN + 1);
+
+					}
+					line = tw.ReadLine();
+				}
+				line = tw.ReadLine();
+			}
+			
 
 			for (int d = 0; d < data.General.Disciplines; d++)
 			{

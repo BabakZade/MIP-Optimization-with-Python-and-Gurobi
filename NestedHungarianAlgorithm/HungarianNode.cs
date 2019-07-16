@@ -75,7 +75,7 @@ namespace NestedHungarianAlgorithm
 		public int Wards;
 		public int Region;
 		public int DisciplineGr;
-		
+		public bool[] disStatus_d;
 		public int[][] Change_ih;
 
 		public bool[][] sHeOccupies_ir;
@@ -216,8 +216,8 @@ namespace NestedHungarianAlgorithm
 							{
 								if (data.Intern[i].OverSea_dt[d][t] && !d_status[d])
 								{
-									discGrCounter_ig[i][g]--;
-									K_totalDiscipline[i]--;
+									discGrCounter_ig[i][g] -= data.Discipline[d].CourseCredit_p[data.Intern[i].ProgramID];
+									K_totalDiscipline[i] -= data.Discipline[d].CourseCredit_p[data.Intern[i].ProgramID];
 									d_status[d] = true;
 									break;
 								}
@@ -369,7 +369,18 @@ namespace NestedHungarianAlgorithm
 					LastPosition_i[i].CopyPosition(parentNode.LastPosition_i[i]);
 				}
 			}
-
+			disStatus_d = new bool[Disciplins];
+			for (int d = 0; d < Disciplins; d++)
+			{
+				if (isRoot)
+				{
+					disStatus_d[d] = false;
+				}
+				else
+				{
+					disStatus_d[d] = parentNode.disStatus_d[d];
+				}
+			}
 			requiredTimeForRemainedDisc = new int[Interns];
 			for (int i = 0; i < Interns; i++)
 			{
@@ -878,16 +889,16 @@ namespace NestedHungarianAlgorithm
 							HIndex = ((PositionMap)MappingTable[Index]).HIndex,
 						};
 					}
-					K_totalDiscipline[i]--;
+					K_totalDiscipline[i] -= data.Discipline[discIn].CourseCredit_p[data.Intern[i].ProgramID];
 					for (int g = 0; g < DisciplineGr; g++)
 					{
 						if (data.Intern[i].DisciplineList_dg[discIn][g] && discGrCounter_ig[i][g]>0)
 						{
-							discGrCounter_ig[i][g]--;
+							discGrCounter_ig[i][g] -= data.Discipline[discIn].CourseCredit_p[data.Intern[i].ProgramID];
 							break;
 						}
 					}
-
+					disStatus_d[discIn] = true;
 					requiredTimeForRemainedDisc[i] -= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
 				}
 				else if(BestSchedule[i] < TotalAvailablePosition + Interns) // oversea
@@ -897,6 +908,7 @@ namespace NestedHungarianAlgorithm
 						if (data.Intern[i].OverSea_dt[d][TimeID])
 						{
 							discIn = d;
+							disStatus_d[discIn] = true;
 							// Hospital changed
 							LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
 							LastPosition_i[i].dIndex = discIn;
@@ -932,8 +944,6 @@ namespace NestedHungarianAlgorithm
 
 		public int get_DisciplineFromWard(int theI, int theW, int theH)
 		{
-			
-
 			int result = -1;			
 			int MaxObj = -1;
 			int discInd = -1;
@@ -994,19 +1004,26 @@ namespace NestedHungarianAlgorithm
 					}					
 				}
 
-				if (thep >= 0)
+				if (thep >= 0 && isRoot && !disStatus_d[d]) // already fulfilled 
 				{
+					disStatus_d[d] = true;
 					if (thep == data.Intern[theI].ProgramID && TimeID == 0)
 					{
-						K_totalDiscipline[theI]--;
+						K_totalDiscipline[theI] -= data.Discipline[d].CourseCredit_p[thep];
+					}
+					for (int g = 0; g < DisciplineGr; g++)
+					{
+						if (data.Intern[theI].DisciplineList_dg[d][g] && TimeID == 0)
+						{
+							discGrCounter_ig[theI][g] -= data.Discipline[d].CourseCredit_p[thep];
+						}
 					}
 					continue;
 				}
 
-				if (K_totalDiscipline[theI] <= 0) // no more assignment 
+				if (K_totalDiscipline[theI] < data.Discipline[d].CourseCredit_p[thep]) // no more assignment 
 				{
-					discInd = -1;
-					break;
+					continue;
 				}
 				// if all the discipline in the group is finished
 				bool necessaryToAttend = false;

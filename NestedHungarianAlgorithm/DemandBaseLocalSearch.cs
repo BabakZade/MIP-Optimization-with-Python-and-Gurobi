@@ -240,7 +240,9 @@ namespace NestedHungarianAlgorithm
 										}
 										int durDD = allData.Discipline[dd].Duration_p[allData.Intern[i].ProgramID];
 										int durD = allData.Discipline[d].Duration_p[allData.Intern[i].ProgramID];
-										if (!isONDisc_id[i][dd] && durDD <= durD
+										int ccDD = allData.Discipline[dd].CourseCredit_p[allData.Intern[i].ProgramID];
+										int ccD = allData.Discipline[d].CourseCredit_p[allData.Intern[i].ProgramID];
+										if (!isONDisc_id[i][dd] && durDD == durD && ccDD == ccD
 											&& allData.Discipline[d].requiredLater_p[allData.Intern[i].ProgramID]
 											&& allData.Discipline[dd].requiresSkill_p[allData.Intern[i].ProgramID])
 										{

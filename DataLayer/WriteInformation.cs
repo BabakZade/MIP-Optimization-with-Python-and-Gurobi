@@ -267,6 +267,7 @@ namespace DataLayer
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
 					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)((double)tmpGeneral.TimePriods / totalInternship));
+					tmpdisciplineInfos[d].CourseCredit_p[p] = random_.Next(1, 10) > 8 ? 2 : 1;
 				}
 			}
 
@@ -685,6 +686,7 @@ namespace DataLayer
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
 					tmpdisciplineInfos[d].Duration_p[p] = 1;
+					tmpdisciplineInfos[d].CourseCredit_p[p] = 1;
 				}
 			}
 
@@ -1077,6 +1079,17 @@ namespace DataLayer
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
 					tw.Write(tmpdisciplineInfos[d].Duration_p[p] + " ");
+				}
+				tw.WriteLine();
+			}
+			tw.WriteLine();
+			strline = "// Course credit different in Program [d][p]";
+			tw.WriteLine(strline);
+			for (int d = 0; d < tmpGeneral.Disciplines; d++)
+			{
+				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+				{
+					tw.Write(tmpdisciplineInfos[d].CourseCredit_p[p] + " ");
 				}
 				tw.WriteLine();
 			}

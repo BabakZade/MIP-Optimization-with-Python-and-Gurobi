@@ -19,7 +19,7 @@ namespace MedicalTraineeScheduling
 			//	groupCounter++;
 			//	for (int i = 0; i < InstanceSize; i++)
 			//	{
-			//		SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("RealLife", "", "");
+			//		SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("TestCC", "", "");
 			//		WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "\\", "Instance_" + i, true);
 			//		using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
 			//		{
@@ -165,7 +165,7 @@ namespace MedicalTraineeScheduling
 					{
 						//continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "RealLife", "NHA1", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "TestCC", "NHA1", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 1;
 					read.data.AlgSettings.internBasedImpPercentage = 0.5;
 					Stopwatch stopwatch = new Stopwatch();

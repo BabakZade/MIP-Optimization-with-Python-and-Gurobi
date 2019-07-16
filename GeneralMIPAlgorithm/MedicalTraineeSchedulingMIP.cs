@@ -552,7 +552,7 @@ namespace GeneralMIPAlgorithm
 							{
 								if (data.Intern[i].Fulfilled_dhp[d - 1][h][data.Intern[i].ProgramID])
 								{
-									fulfilled++;
+									fulfilled += data.Discipline[d - 1].CourseCredit_p[data.Intern[i].ProgramID];
 								}
 							}
 							
@@ -560,7 +560,7 @@ namespace GeneralMIPAlgorithm
 							{
 								for (int h = 0; h < Hospitals; h++)
 								{
-									mandatory.AddTerm(y_idDh[i][dd][d][h], 1);
+									mandatory.AddTerm(y_idDh[i][dd][d][h], data.Discipline[d-1].CourseCredit_p[data.Intern[i].ProgramID]);
 								}
 							}
 						}
@@ -583,7 +583,7 @@ namespace GeneralMIPAlgorithm
 					{
 						if (data.Intern[i].Fulfilled_dhp[d - 1][h][data.Intern[i].ProgramID])
 						{
-							totalFulfilled++;
+							totalFulfilled += data.Discipline[d - 1].CourseCredit_p[data.Intern[i].ProgramID];
 						}
 						
 					}
@@ -602,7 +602,7 @@ namespace GeneralMIPAlgorithm
 					{
 						for (int h = 0; h < Hospitals; h++)
 						{
-							AllDiscipline.AddTerm(y_idDh[i][dd][d][h], 1);
+							AllDiscipline.AddTerm(y_idDh[i][dd][d][h], data.Discipline[d - 1].CourseCredit_p[data.Intern[i].ProgramID]);
 						}
 					}
 				}

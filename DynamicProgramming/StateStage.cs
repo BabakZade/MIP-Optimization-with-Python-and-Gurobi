@@ -173,13 +173,35 @@ namespace NestedDynamicProgrammingAlgorithm
 				if (isRoot)
 				{
 					x_K_g[g] = data.Intern[theI].ShouldattendInGr_g[g];
-					x_K += data.Intern[theI].ShouldattendInGr_g[g];
+					x_K = data.Intern[theI].K_AllDiscipline;					
 				}
 				else
 				{
 					x_K_g[g] = stateInput.x_K_g[g];
 					x_K = stateInput.x_K;
 				}
+			}
+
+			if (isRoot)
+			{
+				for (int h = 0; h < data.General.Hospitals; h++)
+				{
+					if (data.Intern[theI].Fulfilled_dhp[x_Disc][h][data.Intern[theI].ProgramID])
+					{
+						x_K -= data.Discipline[x_Disc].CourseCredit_p[data.Intern[theI].ProgramID];
+						for (int g = 0; g < data.General.DisciplineGr; g++)
+						{
+							if (data.Intern[theI].DisciplineList_dg[x_Disc][g])
+							{
+								x_K_g[g] -= data.Discipline[x_Disc].CourseCredit_p[data.Intern[theI].ProgramID];
+								break;
+							}
+						}
+
+						break;
+					}
+				}
+
 			}
 
 			theSchedule_t = new StateSchedule[data.General.TimePriods];
@@ -219,7 +241,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{
-					if (data.Intern[theI].DisciplineList_dg[x_Disc][g] && x_K_g[g] > 0)
+					if (data.Intern[theI].DisciplineList_dg[x_Disc][g] && x_K_g[g] >= data.Discipline[x_Disc].CourseCredit_p[data.Intern[theI].ProgramID])
 					{
 						for (int t = tStage; t < tStage + data.Discipline[x_Disc].Duration_p[data.Intern[theI].ProgramID]; t++)
 						{
@@ -227,7 +249,7 @@ namespace NestedDynamicProgrammingAlgorithm
 						}
 						// insert at right place 
 						int counter = 0;
-						StateStage tmp = copyState(this, g);
+						StateStage tmp = copyState(this, g, theI);
 						foreach (StateStage item in possibleStates)
 						{
 							if (tmp.Fx > item.Fx)
@@ -247,7 +269,7 @@ namespace NestedDynamicProgrammingAlgorithm
 		}
 
 		// it is private function
-		StateStage copyState(StateStage copyable, int theG)
+		StateStage copyState(StateStage copyable, int theG, int theI)
 		{
 			StateStage duplicated = new StateStage(data);
 			duplicated.Fx = copyable.Fx;
@@ -263,10 +285,10 @@ namespace NestedDynamicProgrammingAlgorithm
 				duplicated.x_K_g[g] = copyable.x_K_g[g];
 				if (g == theG)
 				{
-					duplicated.x_K_g[g]--;
+					duplicated.x_K_g[g] -= data.Discipline[copyable.x_Disc].CourseCredit_p[data.Intern[theI].ProgramID];
 				}
 			}
-			duplicated.x_K = copyable.x_K - 1;
+			duplicated.x_K = copyable.x_K - data.Discipline[copyable.x_Disc].CourseCredit_p[data.Intern[theI].ProgramID];
 			duplicated.isRoot = copyable.isRoot;
 			duplicated.x_group = theG;
 			for (int d = 0; d < data.General.Disciplines; d++)
