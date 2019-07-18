@@ -25,7 +25,7 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref Duration_p, Programs, 0);
 			new ArrayInitializer().CreateArray(ref requiresSkill_p, Programs, false);
 			new ArrayInitializer().CreateArray(ref requiredLater_p, Programs, false);
-			new ArrayInitializer().CreateArray(ref CourseCredit_p, Programs, 0);
+			new ArrayInitializer().CreateArray(ref CourseCredit_p, Programs, 1);
 		}
 
 		public void setIsRare(AllData data)

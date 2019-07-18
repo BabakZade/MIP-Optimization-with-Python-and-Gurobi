@@ -171,8 +171,8 @@ namespace NestedDynamicProgrammingAlgorithm
 								{
 									//nothing
 								}
-								else if(!incumbentSol.infeasibleIntern_i[i] )
-								{
+								else if(!incumbentSol.infeasibleIntern_i[i] ) 
+ 								{
 									ResDem_twh[t][w][h] = 0;
 									EmrDem_twh[t][w][h] = 0;
 								}

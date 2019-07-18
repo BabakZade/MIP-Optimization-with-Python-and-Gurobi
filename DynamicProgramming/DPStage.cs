@@ -658,15 +658,17 @@ namespace NestedDynamicProgrammingAlgorithm
 									FutureActiveState.RemoveAt(removeCounter);
 									removeCounter--;
 								}
-							}
-
-							
+							}							
 						} 
 					}
 
 					if (firstLoopUpdate)
 					{
 						counter--;
+					}
+					if (counter < -1)
+					{
+						counter = -1;
 					}
 				}
 				

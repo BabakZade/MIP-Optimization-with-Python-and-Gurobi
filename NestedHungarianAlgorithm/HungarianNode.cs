@@ -58,6 +58,8 @@ namespace NestedHungarianAlgorithm
 		public int[][] TimeLine_it;
 		public int[] requiredTimeForRemainedDisc;
 		public int[][][] DemMax_wth;
+		public int[][][] DemRes_wth;
+		public int[][][] DemEmr_wth;
 		public int[][][] DemMin_wth;
 		public int[][][] Disc_iwh;
 		public int[][] AvAcc_rt;
@@ -240,17 +242,30 @@ namespace NestedHungarianAlgorithm
 
 			// max demand has reserved and emergency inside
 			DemMax_wth = new int[Wards][][];
+			DemEmr_wth = new int[Wards][][];
+			DemRes_wth = new int[Wards][][];
 			for (int d = 0; d < Wards; d++)
 			{
 				DemMax_wth[d] = new int[Timepriods][];
+				DemEmr_wth[d] = new int[Timepriods][];
+				DemRes_wth[d] = new int[Timepriods][];
 				for (int t = 0; t < Timepriods; t++)
 				{
 					DemMax_wth[d][t] = new int[Hospitals];
+					DemEmr_wth[d][t] = new int[Hospitals];
+					DemRes_wth[d][t] = new int[Hospitals];
 					for (int h = 0; h < Hospitals; h++)
 					{
+						DemRes_wth[d][t][h] = data.Hospital[h].ReservedCap_tw[t][d];
+						DemEmr_wth[d][t][h] = data.Hospital[h].EmergencyCap_tw[t][d];
+
+						DemRes_wth[d][t][h] = 0;
+						DemEmr_wth[d][t][h] = 0; // we consider this capacity only in the dynamic programming the
+
 						if (isRoot)
 						{
 							DemMax_wth[d][t][h] = data.Hospital[h].HospitalMaxDem_tw[t][d] + data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d];
+							DemMax_wth[d][t][h] = data.Hospital[h].HospitalMaxDem_tw[t][d];
 						}
 						else
 						{
@@ -287,7 +302,7 @@ namespace NestedHungarianAlgorithm
 				{
 					TotalAvailablePosition += DemMax_wth[w][TimeID][h];
 					int totalMinDem = DemMin_wth[w][TimeID][h];
-					for (int dd = 0; dd < DemMax_wth[w][TimeID][h] - (data.Hospital[h].EmergencyCap_tw[TimeID][w] + data.Hospital[h].ReservedCap_tw[TimeID][w]); dd++)
+					for (int dd = 0; dd < DemMax_wth[w][TimeID][h] - (DemEmr_wth[w][TimeID][h] + DemRes_wth[w][TimeID][h]); dd++)
 					{
 						MappingTable.Add(new PositionMap()
 						{
@@ -300,10 +315,10 @@ namespace NestedHungarianAlgorithm
 						});
 						totalMinDem--;
 					}
-					int start = DemMax_wth[w][TimeID][h] - data.Hospital[h].ReservedCap_tw[TimeID][w] - data.Hospital[h].EmergencyCap_tw[TimeID][w]; // for reserved cap
+					int start = DemMax_wth[w][TimeID][h] - DemRes_wth[w][TimeID][h] - DemEmr_wth[w][TimeID][h]; // for reserved cap
 					start = Math.Max(0 , start);
 					
-					for (int dd = start; dd < DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w]; dd++)
+					for (int dd = start; dd < DemMax_wth[w][TimeID][h] - DemRes_wth[w][TimeID][h]; dd++)
 					{
 						MappingTable.Add(new PositionMap()
 
@@ -315,7 +330,7 @@ namespace NestedHungarianAlgorithm
 							EmrDem = false,
 						});
 					}
-					start = DemMax_wth[w][TimeID][h] - data.Hospital[h].EmergencyCap_tw[TimeID][w];
+					start = DemMax_wth[w][TimeID][h] - DemEmr_wth[w][TimeID][h];
 					start = Math.Max(0, start);
 					for (int dd = start; dd < DemMax_wth[w][TimeID][h]; dd++)
 					{
@@ -1021,7 +1036,7 @@ namespace NestedHungarianAlgorithm
 					continue;
 				}
 
-				if (K_totalDiscipline[theI] < data.Discipline[d].CourseCredit_p[thep]) // no more assignment 
+				if (K_totalDiscipline[theI] < data.Discipline[d].CourseCredit_p[data.Intern[theI].ProgramID]) // no more assignment 
 				{
 					continue;
 				}
