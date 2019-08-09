@@ -61,7 +61,9 @@ namespace NestedHungarianAlgorithm
 		public int[][][] DemRes_wth;
 		public int[][][] DemEmr_wth;
 		public int[][][] DemMin_wth;
-		public int[][][] Disc_iwh;
+        public int[][] DemMinYearly_wh;
+        public int[][] DemMaxYearly_wh;
+        public int[][][] Disc_iwh;
 		public int[][] AvAcc_rt;
 		public PositionMap[][] ResidentSchedule_it; // it shows the discipline 
 		public ArrayList MappingTable;
@@ -275,7 +277,7 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 			DemMin_wth = new int[Wards][][];
-			for (int d = 0; d < Wards; d++)
+            for (int d = 0; d < Wards; d++)
 			{
 				DemMin_wth[d] = new int[Timepriods][];
 				for (int t = 0; t < Timepriods; t++)
@@ -294,7 +296,29 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			setDisc_iwh();
+
+            DemMinYearly_wh = new int[Wards][];
+            DemMaxYearly_wh = new int[Wards][];
+            for (int d = 0; d < Wards; d++)
+            {
+                DemMinYearly_wh[d] = new int[Hospitals];
+                DemMaxYearly_wh[d] = new int[Hospitals];
+                for (int h = 0; h < Hospitals; h++)
+                {
+                    if (isRoot)
+                    {
+                        DemMinYearly_wh[d][h] = data.Hospital[h].HospitalMinYearly_w[d];
+                        DemMaxYearly_wh[d][h] = data.Hospital[h].HospitalMinYearly_w[d];
+                    }
+                    else
+                    {
+                        DemMinYearly_wh[d][h] = parentNode.DemMinYearly_wh[d][h];
+                        DemMaxYearly_wh[d][h] = parentNode.DemMaxYearly_wh[d][h];
+                    }
+                }
+
+            }
+            setDisc_iwh();
 			// we need map for current time
 			for (int w = 0; w < Wards; w++)
 			{
@@ -842,7 +866,34 @@ namespace NestedHungarianAlgorithm
 				}
 			}
 
-		}
+            for (int i = 0; i < Interns; i++)
+            {
+                for (int w = 0; w < Wards; w++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        for (int d = 0; d < Disciplins; d++)
+                        {
+                            if (Schedule_idh[i][d][h] && data.Hospital[h].Hospital_dw[d][w])
+                            {
+                                DemMaxYearly_wh[w][h]--;
+
+                                if (DemMinYearly_wh[w][h] > 0)
+                                {
+                                    DemMinYearly_wh[w][h]--;
+                                }
+                                else
+                                {
+                                    DemMinYearly_wh[w][h] = 0;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+        }
 
 		public void updateTimeLine()
 		{
@@ -964,6 +1015,11 @@ namespace NestedHungarianAlgorithm
 			int discInd = -1;
 			for (int d = 0; d < Disciplins ; d++)
 			{
+                if (DemMaxYearly_wh[theW][theH]==0) // yearly capacity
+                {
+                    discInd = -1;
+                    break;
+                }
 				if (!data.Hospital[theH].Hospital_dw[d][theW])
 				{
 					continue;

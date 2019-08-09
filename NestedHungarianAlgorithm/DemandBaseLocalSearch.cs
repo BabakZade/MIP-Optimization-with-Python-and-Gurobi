@@ -26,8 +26,9 @@ namespace NestedHungarianAlgorithm
 		public int Wards;
 		public int Region;
 		public int[][][] MaxResEmrDemand_tdh;
-		public int[][][] ResEmrDemand_tdh;
-		public bool[] InternStatus;
+        public int[][][] ResEmrDemand_tdh;
+        public int[][] YearlyDemand_dh;
+        public bool[] InternStatus;
 		public bool[][] isONDisc_id;
 		public int[][] Roster_it;
 		public OptimalSolution Global;
@@ -88,8 +89,8 @@ namespace NestedHungarianAlgorithm
 			new ArrayInitializer().CreateArray(ref ResEmrDemand_tdh, Timepriods, Disciplins, Hospitals, 0);
 			new ArrayInitializer().CreateArray(ref isONDisc_id, Interns, Disciplins, false);
 			new ArrayInitializer().CreateArray(ref Roster_it, Interns, Timepriods, -1);
-
-			for (int t = 0; t < data.General.TimePriods; t++)
+            new ArrayInitializer().CreateArray(ref YearlyDemand_dh, Disciplins, Hospitals, 0);
+            for (int t = 0; t < data.General.TimePriods; t++)
 			{
 				for (int h = 0; h < data.General.Hospitals; h++)
 				{
@@ -107,6 +108,7 @@ namespace NestedHungarianAlgorithm
 										{
 											if (data.Hospital[h].Hospital_dw[dd][w])
 											{
+                                                YearlyDemand_dh[d][h]++;
 												// only during the d1 we used the resources 
 												for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID] && t < Timepriods; tt++)
 												{
@@ -128,23 +130,25 @@ namespace NestedHungarianAlgorithm
 
 			}
 
-			for (int t = 0; t < Timepriods; t++)
-			{
-				for (int h = 0; h < Hospitals; h++)
-				{
-					for (int w = 0; w < data.General.HospitalWard; w++)
-					{
-						for (int d = 0; d < Disciplins; d++)
-						{
-							if (data.Hospital[h].Hospital_dw[d][w])
-							{
-								MaxResEmrDemand_tdh[t][d][h] -= data.Hospital[h].HospitalMaxDem_tw[t][w];
-								ResEmrDemand_tdh[t][d][h] -= (data.Hospital[h].HospitalMaxDem_tw[t][w] + data.Hospital[h].ReservedCap_tw[t][w] + data.Hospital[h].EmergencyCap_tw[t][w]);
-							}
-						}
-					}
-				}
-			}
+
+            for (int h = 0; h < Hospitals; h++)
+            {
+                for (int w = 0; w < data.General.HospitalWard; w++)
+                {
+                    for (int d = 0; d < Disciplins; d++)
+                    {
+                        if (data.Hospital[h].Hospital_dw[d][w])
+                        {
+                            YearlyDemand_dh[d][h] -= data.Hospital[h].HospitalMaxYearly_w[w];
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                MaxResEmrDemand_tdh[t][d][h] -= data.Hospital[h].HospitalMaxDem_tw[t][w];
+                                ResEmrDemand_tdh[t][d][h] -= (data.Hospital[h].HospitalMaxDem_tw[t][w] + data.Hospital[h].ReservedCap_tw[t][w] + data.Hospital[h].EmergencyCap_tw[t][w]);
+                            }
+                        }
+                    }
+                }
+            }
 		}
 
 		public void InitialSolUpdate(OptimalSolution incumbentSol) {
@@ -638,6 +642,10 @@ namespace NestedHungarianAlgorithm
 			{
 				return;
 			}
+            if (YearlyDemand_dh[d1][h2] <= 0 || YearlyDemand_dh[d2][h1] <= 0)
+            {
+                return;
+            }
 			
 			// check timeline 
 			bool timelineCap = true;

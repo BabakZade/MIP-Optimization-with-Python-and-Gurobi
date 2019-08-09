@@ -15,7 +15,9 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][][] MinDem_twh;
 		public int[][][] ResDem_twh;
 		public int[][][] EmrDem_twh;
-		public int[][] AccDem_tr;
+        public int[][] MaxDemYearly_wh;
+        public int[][] MinDemYearly_wh;
+        public int[][] AccDem_tr;
 		public bool[][][] activatedDisc_tdh; // from sol
 		public bool[] activeDisc_d;
 		public bool incombentExist;
@@ -34,7 +36,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				if (!rootIsSet && alldata.Intern[theI].Ave_t[t])
 				{
-					dPStages[t] = new DPStage(ref BestSol, alldata, new DPStage(), theI, t, true, MaxDem_twh, MinDem_twh, ResDem_twh, EmrDem_twh, AccDem_tr, incombentExist);
+					dPStages[t] = new DPStage(ref BestSol, alldata, new DPStage(), theI, t, true, MaxDem_twh, MinDem_twh,MaxDemYearly_wh, MinDemYearly_wh, ResDem_twh, EmrDem_twh, AccDem_tr, incombentExist);
 					rootIsSet = true;
 				}
 				else if(rootIsSet && dPStages[t - 1].FutureActiveState.Count == 0)
@@ -43,7 +45,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				}
 				else if (rootIsSet)
 				{
-					dPStages[t] = new DPStage(ref BestSol, alldata, dPStages[t - 1], theI, t,false, MaxDem_twh, MinDem_twh, ResDem_twh, EmrDem_twh, AccDem_tr, incombentExist);
+					dPStages[t] = new DPStage(ref BestSol, alldata, dPStages[t - 1], theI, t,false, MaxDem_twh, MinDem_twh,MaxDemYearly_wh, MinDemYearly_wh, ResDem_twh, EmrDem_twh, AccDem_tr, incombentExist);
 				}
 				MaxProcessedNode += dPStages[t].MaxProcessedNode;
 				RealProcessedNode += dPStages[t].RealProcessedNode;
@@ -64,7 +66,10 @@ namespace NestedDynamicProgrammingAlgorithm
 			new ArrayInitializer().CreateArray(ref EmrDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
 			new ArrayInitializer().CreateArray(ref AccDem_tr, data.General.TimePriods, data.General.Region, 0);
 			new ArrayInitializer().CreateArray(ref activatedDisc_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, false);
-			for (int t = 0; t < data.General.TimePriods; t++)
+            new ArrayInitializer().CreateArray(ref MaxDemYearly_wh, data.General.HospitalWard, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref MinDemYearly_wh, data.General.HospitalWard, data.General.Hospitals, 0);
+
+            for (int t = 0; t < data.General.TimePriods; t++)
 			{
 				for (int r = 0; r < data.General.Region; r++)
 				{
@@ -78,7 +83,9 @@ namespace NestedDynamicProgrammingAlgorithm
 						MinDem_twh[t][w][h] = data.Hospital[h].HospitalMinDem_tw[t][w];
 						ResDem_twh[t][w][h] = data.Hospital[h].ReservedCap_tw[t][w];
 						EmrDem_twh[t][w][h] = data.Hospital[h].EmergencyCap_tw[t][w];
-					}
+                        MaxDemYearly_wh[w][h] = data.Hospital[h].HospitalMaxYearly_w[w];
+                        MinDemYearly_wh[w][h] = data.Hospital[h].HospitalMinYearly_w[w];
+                    }
 				}
 			}
 
@@ -111,6 +118,11 @@ namespace NestedDynamicProgrammingAlgorithm
 									{
 										if (data.Hospital[h].Hospital_dw[d][w])
 										{
+                                            MaxDemYearly_wh[w][h]--;
+                                            if (MinDemYearly_wh[w][h]>0)
+                                            {
+                                                MinDemYearly_wh[w][h]--;
+                                            }
 											for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; tt++)
 											{
 												activatedDisc_tdh[t][d][h] = true;

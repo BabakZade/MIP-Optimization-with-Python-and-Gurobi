@@ -12,7 +12,9 @@ namespace DataLayer
 		public bool[][] Hospital_dw;
 		public int[][] HospitalMaxDem_tw;
 		public int[][] HospitalMinDem_tw;
-		public int[][] ReservedCap_tw;
+        public int[] HospitalMaxYearly_w;
+        public int[] HospitalMinYearly_w;
+        public int[][] ReservedCap_tw;
 		public int[][] EmergencyCap_tw;
 		public bool[] InToRegion_r;
 		public HospitalInfo(int Disciplins, int TimePeriods, int HospitalWard, int Region)
@@ -25,6 +27,8 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref ReservedCap_tw, TimePeriods, HospitalWard, 0);
 			new ArrayInitializer().CreateArray(ref EmergencyCap_tw, TimePeriods, HospitalWard, 0);
 			new ArrayInitializer().CreateArray(ref InToRegion_r, Region, false);
-		}
+            new ArrayInitializer().CreateArray(ref HospitalMaxYearly_w, HospitalWard, 0);
+            new ArrayInitializer().CreateArray(ref HospitalMinYearly_w, HospitalWard, 0);
+        }
 	}
 }

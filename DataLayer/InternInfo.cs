@@ -438,6 +438,11 @@ namespace DataLayer
 				}
 
 			}
+
+			if (allData.TrainingPr[ProgramID].DiscChangeInOneHosp == 1)
+			{
+				MaxPrf -= wieght_ch * (this.K_AllDiscipline - 1) * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+			}
 		}
 
 		public void removeDisciplineFromList(AllData allData, int theD)

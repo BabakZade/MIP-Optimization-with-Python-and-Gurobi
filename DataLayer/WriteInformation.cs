@@ -18,7 +18,8 @@ namespace DataLayer
 		public OptimalSolution FeasibleSolution;
 		bool[][][][] X_itdh;
 		int[][][] timelineHospMax_twh;
-		bool[][] timeline_it;
+        int[][] YearlyHospMax_wh;
+        bool[][] timeline_it;
 		bool[][] discipline_id;
 		int[][] hospital_ih;
 		public WriteInformation(InstanceSetting InsSetting, string location, string name, bool ifReal)
@@ -230,14 +231,18 @@ namespace DataLayer
 
 						int min = random_.NextDouble() < instancesetting.R_dMin ? 1 : 0;
 						int max = random_.Next(1, rate + 1);
-						for (int t = 0; t < tmpGeneral.TimePriods; t++)
+                        int yearlyMax = random_.Next((int)(0.5*tmpGeneral.TimePriods * max), tmpGeneral.TimePriods * max + 1);
+                        int yearlyMin = 0;
+                        for (int t = 0; t < tmpGeneral.TimePriods; t++)
 						{
 							tmphospitalInfos[h].HospitalMinDem_tw[t][w] = min;
 							tmphospitalInfos[h].HospitalMaxDem_tw[t][w] = max;
-							tmphospitalInfos[h].EmergencyCap_tw[t][w] = instancesetting.EmrDem;
+                            tmphospitalInfos[h].HospitalMaxYearly_w[w] = yearlyMax;
+                            tmphospitalInfos[h].HospitalMinYearly_w[w] = yearlyMin;
+                            tmphospitalInfos[h].EmergencyCap_tw[t][w] = instancesetting.EmrDem;
 							tmphospitalInfos[h].ReservedCap_tw[t][w] = instancesetting.ResDem;
 						}
-
+                        
 					}
 					else
 					{
@@ -647,17 +652,21 @@ namespace DataLayer
 					{
 						int rate = instancesetting.MaxDem;
 
-						int min = random_.NextDouble() < instancesetting.R_dMin ? 1 : 0;
-						int max = random_.Next(2, rate + 1);
-						for (int t = 0; t < tmpGeneral.TimePriods; t++)
-						{
-							tmphospitalInfos[h].HospitalMinDem_tw[t][w] = min;
-							tmphospitalInfos[h].HospitalMaxDem_tw[t][w] = max;
-							tmphospitalInfos[h].EmergencyCap_tw[t][w] = instancesetting.EmrDem;
-							tmphospitalInfos[h].ReservedCap_tw[t][w] = instancesetting.ResDem;
-						}
+                        int min = random_.NextDouble() < instancesetting.R_dMin ? 1 : 0;
+                        int max = random_.Next(1, rate + 1);
+                        int yearlyMax = random_.Next((int)(0.5 * tmpGeneral.TimePriods * max), tmpGeneral.TimePriods * max + 1);
+                        int yearlyMin = 0;
+                        for (int t = 0; t < tmpGeneral.TimePriods; t++)
+                        {
+                            tmphospitalInfos[h].HospitalMinDem_tw[t][w] = min;
+                            tmphospitalInfos[h].HospitalMaxDem_tw[t][w] = max;
+                            tmphospitalInfos[h].HospitalMaxYearly_w[w] = yearlyMax;
+                            tmphospitalInfos[h].HospitalMinYearly_w[w] = yearlyMin;
+                            tmphospitalInfos[h].EmergencyCap_tw[t][w] = instancesetting.EmrDem;
+                            tmphospitalInfos[h].ReservedCap_tw[t][w] = instancesetting.ResDem;
+                        }
 
-					}
+                    }
 					else
 					{
 						int min = 0;
@@ -1047,7 +1056,47 @@ namespace DataLayer
 				}
 			}
 
-			tw.WriteLine();
+            tw.WriteLine();
+            strline = "// Yearly Max demand [h][w]";
+            tw.WriteLine(strline);
+            for (int h = 0; h < tmpGeneral.Hospitals; h++)
+            { 
+                for (int d = 0; d < tmpGeneral.HospitalWard; d++)
+                {
+                    if (tmphospitalInfos[h].HospitalMaxYearly_w[d] > 0)
+                    {
+                        tw.Write(tmphospitalInfos[h].HospitalMaxYearly_w[d] + " ");
+                    }
+                    else
+                    {
+                        tw.Write(0 + " ");
+                    }
+                }
+                tw.WriteLine();
+
+            }
+
+            tw.WriteLine();
+            strline = "// Yearly Min demand [h][w]";
+            tw.WriteLine(strline);
+            for (int h = 0; h < tmpGeneral.Hospitals; h++)
+            {
+                for (int d = 0; d < tmpGeneral.HospitalWard; d++)
+                {
+                    if (tmphospitalInfos[h].HospitalMinYearly_w[d] > 0)
+                    {
+                        tw.Write(tmphospitalInfos[h].HospitalMinYearly_w[d] + " ");
+                    }
+                    else
+                    {
+                        tw.Write(0 + " ");
+                    }
+                }
+                tw.WriteLine();
+
+            }
+
+            tw.WriteLine();
 			strline = "// located in regions [h][r]";
 			tw.WriteLine(strline);
 			for (int h = 0; h < tmpGeneral.Hospitals; h++)
@@ -1389,16 +1438,20 @@ namespace DataLayer
 		{
 			Random random = new Random();
 			timelineHospMax_twh = new int[tmpGeneral.TimePriods][][];
+            YearlyHospMax_wh = new int[tmpGeneral.HospitalWard][];
 			for (int t = 0; t < tmpGeneral.TimePriods; t++)
 			{
 				timelineHospMax_twh[t] = new int[tmpGeneral.HospitalWard][];
 				for (int w = 0; w < tmpGeneral.HospitalWard; w++)
 				{
 					timelineHospMax_twh[t][w] = new int[tmpGeneral.Hospitals];
+                    YearlyHospMax_wh[w] = new int[tmpGeneral.Hospitals];
 					for (int h = 0; h < tmpGeneral.Hospitals; h++)
 					{
 						timelineHospMax_twh[t][w][h] = tmphospitalInfos[h].HospitalMaxDem_tw[t][w] + tmphospitalInfos[h].ReservedCap_tw[t][w];
-					}
+                        YearlyHospMax_wh[w][h] = tmphospitalInfos[h].HospitalMaxYearly_w[w];
+
+                    }
 				}
 			}
 

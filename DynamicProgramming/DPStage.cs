@@ -22,12 +22,14 @@ namespace NestedDynamicProgrammingAlgorithm
 		public int[][][] MinDem_twh;
 		public int[][][] ResDem_twh;
 		public int[][][] EmrDem_twh;
-		public int[][] AccDem_tr;
+        public int[][] MaxDemYearly_wh;
+        public int[][] MinDemYearly_wh;
+        public int[][] AccDem_tr;
 		bool flagRes;
 		bool flagEmr;
 		public int MaxProcessedNode;
 		public int RealProcessedNode;
-		public DPStage(ref StateStage finalSchedule, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][][] ResDem_twh, int[][][] EmrDem_twh, int[][] AccDem_tr, bool incombentExist)
+		public DPStage(ref StateStage finalSchedule, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, int[][][] MaxDem_twh, int[][][] MinDem_twh, int[][] MaxDemYearly_wh, int[][] MinDemYearly_wh, int[][][] ResDem_twh, int[][][] EmrDem_twh, int[][] AccDem_tr, bool incombentExist)
 		{
 			this.incombentExist = incombentExist;
 			this.MaxDem_twh = MaxDem_twh;
@@ -35,6 +37,8 @@ namespace NestedDynamicProgrammingAlgorithm
 			this.ResDem_twh = ResDem_twh;
 			this.EmrDem_twh = EmrDem_twh;
 			this.AccDem_tr = AccDem_tr;
+            this.MaxDemYearly_wh = MaxDemYearly_wh;
+            this.MinDemYearly_wh = MinDemYearly_wh;
 			data = alldata;
 			theIntern = theI;
 			stageTime = theTime;
@@ -1018,7 +1022,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					{
 						for (int t = stageTime; t < stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID]; t++)
 						{
-							if (MaxDem_twh[t][w][theH] + ResDem_twh[t][w][theH] + EmrDem_twh[t][w][theH] <= 0)
+							if (MaxDem_twh[t][w][theH] + ResDem_twh[t][w][theH] + EmrDem_twh[t][w][theH] <= 0 || MaxDemYearly_wh[w][theH] <= 0)
 							{
 								capLable = false;
 								break;
