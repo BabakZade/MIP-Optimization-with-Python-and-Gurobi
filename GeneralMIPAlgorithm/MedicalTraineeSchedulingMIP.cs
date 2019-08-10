@@ -1156,8 +1156,34 @@ namespace GeneralMIPAlgorithm
 				}
 			}
 
-			// region demand
-			for (int t = 0; t < Timepriods; t++)
+            // max Yearly demand 
+            for (int h = 0; h < Hospitals - 1; h++)
+            {
+                for (int w = 0; w < Wards; w++)
+                {
+                    ILinearNumExpr maxDem = MIPModel.LinearNumExpr();
+                    
+                    for (int t = 0; t < Timepriods; t++)
+                    {
+                        for (int i = 0; i < Interns; i++)
+                        {
+                            int trp = data.Intern[i].ProgramID;
+                            for (int d = 1; d < Disciplins; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d - 1][w])
+                                {
+                                    maxDem.AddTerm(s_idth[i][d][t][h], 1);                                    
+                                }
+                            }
+                        }
+                    }
+                    MIPModel.AddLe(maxDem, data.Hospital[h].HospitalMaxYearly_w[w], "MaxYearlyDemand_"+ w + "_" + h);
+                   
+                }
+            }
+
+            // region demand
+            for (int t = 0; t < Timepriods; t++)
 			{
 				for (int r = 0; r < Regions; r++)
 				{

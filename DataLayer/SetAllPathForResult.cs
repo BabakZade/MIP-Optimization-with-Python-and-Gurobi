@@ -29,19 +29,19 @@ namespace DataLayer
 				}
 			}
 			
-			InstanceLocation = CurrentDir + "\\Instance\\";
+			InstanceLocation = CurrentDir + "Instance\\";
 			if (!Directory.Exists(InstanceLocation))
 			{
 				Directory.CreateDirectory(InstanceLocation);
 			}
 			if (InsGroupName!="")
 			{
-				InsGroupLocation = CurrentDir + "\\Instance\\"+InsGroupName + "\\";
+				InsGroupLocation = CurrentDir + "Instance\\"+InsGroupName + "\\";
 				if (!Directory.Exists(InsGroupLocation))
 				{
 					Directory.CreateDirectory(InsGroupLocation);
 				}
-			}
+            }
 			
 
 		}

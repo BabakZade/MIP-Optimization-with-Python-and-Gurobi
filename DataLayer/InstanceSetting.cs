@@ -42,9 +42,12 @@ namespace DataLayer
 
 		// res demand
 		public int ResDem;
+        // percent of MaxDemand*|T| which is maximum yearly demand
+        // random(MaxYearlyDemandPrcnt*MaxDemand*|T|, MaxDemand*|T|)
+        public double MaxYearlyDemandPrcnt;
 
-		// ratio of mutual discipline in training program
-		public double R_muDp;
+        // ratio of mutual discipline in training program
+        public double R_muDp;
 
 		// ratio of mutual discipline in discipline groups
 		public double R_muDg;
@@ -76,6 +79,7 @@ namespace DataLayer
 		// total TimePriod
 		public int TTime;
 
+        
 
 
 		// the percentage of discipline in each discipline groups
@@ -97,7 +101,7 @@ namespace DataLayer
 		public InstanceSetting(double R_wd, double[] R_gk_g, double R_wh,
 							   double R_Trel, int TotalIntern,
 							   int TotalDiscipline, double R_dMin, int MinDem, int MaxDem,
-							   int EmrDem, int ResDem, double R_muDp, double R_muDg, int PrfMaxValue, int CoefficientMaxValue,
+							   int EmrDem, int ResDem, double MaxYearlyDemandPrcnt, double R_muDp, double R_muDg, int PrfMaxValue, int CoefficientMaxValue,
 							   double Prespective, double overseaHosp, double fulfilled, int TRegion, int TTrainingP, int TDGroup, int TTime,
 							   double[] DisciplineDistribution_p, double[] DisciplineDistribution_g, int[] AllowedDiscInHospital_p)
 		{
@@ -112,6 +116,7 @@ namespace DataLayer
 			this.MaxDem = MaxDem;
 			this.EmrDem = EmrDem;
 			this.ResDem = ResDem;
+            this.MaxYearlyDemandPrcnt = MaxYearlyDemandPrcnt;
 			this.R_muDp = R_muDp;
 			this.R_muDg = R_muDg;
 			this.PrfMaxValue = PrfMaxValue;
@@ -149,11 +154,11 @@ namespace DataLayer
 
 			// total number of intern
 			int[] Totalintern = new int[2] { 20, 40 };
-			Totalintern = new int[1] { 320 };
+			Totalintern = new int[1] { 20};
 
 			// total number of discipline 
 			int[] TotalDiscipline = new int[2] { 12, 24 };
-			TotalDiscipline = new int[1] { 30 };
+			TotalDiscipline = new int[1] { 12 };
 
 			// min Demand Rate
 			double[] R_dMin = new double[1] { 0.05 };
@@ -171,8 +176,11 @@ namespace DataLayer
 			// res demand
 			int[] ResDem = new int[1] { 1 };
 
-			// ratio of mutual discipline in training program
-			double[] R_muDp = new double[3] { 0, 0.1, 0.25 };
+            // yearly demand percent
+            double MaxYearlyDemandPrcnt = 0.3;
+
+            // ratio of mutual discipline in training program
+            double[] R_muDp = new double[3] { 0, 0.1, 0.25 };
 			R_muDp = new double[1] { 0.0 };
 
 			// ratio of mutual discipline in discipline groups
@@ -190,7 +198,7 @@ namespace DataLayer
 
 			// oversea hospital
 			double[] overseaHosp = new double[3] { 0, 0.1, 0.25 };
-			overseaHosp = new double[1] { 0.3 };
+			overseaHosp = new double[1] { 0.1 };
 
 			// fulfilled %
 			double[] fulfilled = new double[1] { 0.0 };
@@ -202,7 +210,7 @@ namespace DataLayer
 			int[] TTrainingP = new int[1] { 1 };
 			
 			// total Groups
-			int[] TDGroup = new int[1] { 4 };
+			int[] TDGroup = new int[1] { 2 };
 
 			// total TimePriod
 			int[] TTime = new int[1] { 12 };
@@ -221,8 +229,9 @@ namespace DataLayer
 			// it is considired equal for all training program
 			double[][] DisciplineDistribution_g = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
 			DisciplineDistribution_g = new double[1][] { new double[4] { 7.0/30 , 4.0/30, 3.0/30, 16.0/30} };
+            DisciplineDistribution_g = new double[1][] { new double[2] { 0.3, 0.7 } };
 
-			for (int wd = 0; wd < R_wd.Length; wd++)
+            for (int wd = 0; wd < R_wd.Length; wd++)
 			{
 				for (int gk = 0; gk < R_gk_g.GetLength(0); gk++)
 				{
@@ -273,7 +282,7 @@ namespace DataLayer
 																											int[] AllowedDiscInHospital_p = new int[2] { TotalDiscipline[d], 1 };
 																											AllowedDiscInHospital_p = new int[1] { TotalDiscipline[d]};
 																											AllinstanceSettings.Add(new InstanceSetting(R_wd[wd], R_gk_g[gk], R_wh[wh], R_Trel[trel], Totalintern[i], TotalDiscipline[d], R_dMin[rdmin], MinDem[mind],
-																												MaxDem[maxd], EmrDem[emrd], ResDem[resd], R_muDp[mup], R_muDg[mug], PrfMaxValue[prfMax], CoefficientMaxValue[coef], Prespective[prs],
+																												MaxDem[maxd], EmrDem[emrd], ResDem[resd], MaxYearlyDemandPrcnt, R_muDp[mup], R_muDg[mug], PrfMaxValue[prfMax], CoefficientMaxValue[coef], Prespective[prs],
 																												overseaHosp[overs], fulfilled[ff], TRegion[r], TTrainingP[p], TDGroup[g], TTime[t], DisciplineDistribution_p[ddistp], DisciplineDistribution_g[ddistg], AllowedDiscInHospital_p));
 																										}
 																									}

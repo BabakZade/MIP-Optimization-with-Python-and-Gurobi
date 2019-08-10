@@ -241,6 +241,36 @@ namespace DataLayer
 			}
 
 			line = tw.ReadLine();
+            if (line.Contains("Yearly"))// yearly max demand
+            {
+                for (int h = 0; h < data.General.Hospitals; h++)
+                {
+                    line = tw.ReadLine();
+                    for (int d = 0; d < data.General.HospitalWard; d++)
+                    {
+                        indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                        data.Hospital[h].HospitalMaxYearly_w[d] = int.Parse(line.Substring(0, indexN));
+                        line = line.Substring(indexN + 1);
+                    }
+                }
+                line = tw.ReadLine();
+                line = tw.ReadLine();
+            }
+            if (line.Contains("Yearly")) // yearly min demand
+            {
+                for (int h = 0; h < data.General.Hospitals; h++)
+                {
+                    line = tw.ReadLine();
+                    for (int d = 0; d < data.General.HospitalWard; d++)
+                    {
+                        indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                        data.Hospital[h].HospitalMinYearly_w[d] = int.Parse(line.Substring(0, indexN));
+                        line = line.Substring(indexN + 1);
+                    }
+                }
+                line = tw.ReadLine();
+                line = tw.ReadLine();
+            }
 			line = tw.ReadLine();
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{

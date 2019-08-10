@@ -231,7 +231,7 @@ namespace DataLayer
 
 						int min = random_.NextDouble() < instancesetting.R_dMin ? 1 : 0;
 						int max = random_.Next(1, rate + 1);
-                        int yearlyMax = random_.Next((int)(0.5*tmpGeneral.TimePriods * max), tmpGeneral.TimePriods * max + 1);
+                        int yearlyMax = random_.Next((int)(instancesetting.MaxYearlyDemandPrcnt*tmpGeneral.TimePriods * max), tmpGeneral.TimePriods * max + 1);
                         int yearlyMin = 0;
                         for (int t = 0; t < tmpGeneral.TimePriods; t++)
 						{
@@ -272,7 +272,7 @@ namespace DataLayer
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
 					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)((double)tmpGeneral.TimePriods / totalInternship));
-					tmpdisciplineInfos[d].CourseCredit_p[p] = random_.Next(1, 10) > 8 ? 2 : 1;
+					tmpdisciplineInfos[d].CourseCredit_p[p] = random_.Next(1, 10) >= 8 ? 2 : 1;
 				}
 			}
 
@@ -654,7 +654,7 @@ namespace DataLayer
 
                         int min = random_.NextDouble() < instancesetting.R_dMin ? 1 : 0;
                         int max = random_.Next(1, rate + 1);
-                        int yearlyMax = random_.Next((int)(0.5 * tmpGeneral.TimePriods * max), tmpGeneral.TimePriods * max + 1);
+                        int yearlyMax = random_.Next((int)(instancesetting.MaxYearlyDemandPrcnt * tmpGeneral.TimePriods * max), tmpGeneral.TimePriods * max + 1);
                         int yearlyMin = 0;
                         for (int t = 0; t < tmpGeneral.TimePriods; t++)
                         {
@@ -1728,7 +1728,7 @@ namespace DataLayer
 											tmpinternInfos[i].OverSea_dt[d][t] = true;
 											tmpinternInfos[i].FHRequirment_d[theD_R[tmpinternInfos[i].ProgramID]] = true;
 											X_itdh[i][t][d][h] = false;
-											X_itdh[i][t][d][tmpGeneral.Hospitals + 1] = true;
+											X_itdh[i][t][d][tmpGeneral.Hospitals] = true;
 										}
 										getOversea = true;
 									}
