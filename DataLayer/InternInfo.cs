@@ -57,6 +57,7 @@ namespace DataLayer
 		public int[] ShouldattendInGr_g;
 		public bool isProspective;
 		public int K_AllDiscipline;
+        public int K_CountDiscipline;
 		public double[] takingDiscPercentage;
 		public double MaxPrfDiscipline;
 		public double AveDur;
@@ -105,13 +106,25 @@ namespace DataLayer
 			}
 			for (int d = 0; d < Disciplines ; d++)
 			{
+                bool notInvoleved = true;
+                for (int g = 0; g < allData.General.DisciplineGr; g++)
+                {
+                    if (DisciplineList_dg[d][g])
+                    {
+                        notInvoleved = false;
+                        break;
+                    }
+                }
+                if (notInvoleved)
+                {
+                    continue;
+                }
 				if (MaxPrfDiscipline < Prf_d[d])
 				{
 					MaxPrfDiscipline = Prf_d[d];
 				}
 				for (int h = 0; h < Hospitals; h++)
-				{
-					
+				{					
 					double MMaxDesire = -1;
 					double AbsMaxDesire = -1;
 					for (int w = 0; w < HospitalWard ; w++)
@@ -127,12 +140,12 @@ namespace DataLayer
 									break;
 								}
 							}
-							AbsMaxDesire = (Prf_d[d] * wieght_d
+							AbsMaxDesire = (double)(Prf_d[d] * wieght_d
 										+ Prf_h[h] * wieght_h
-										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d]);
+										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d]) / allData.Discipline[d].CourseCredit_p[ProgramID];
 							if (overS)
 							{
-								AbsMaxDesire -= Prf_h[h] * wieght_h;
+                                AbsMaxDesire -= (double)(Prf_h[h] * wieght_h) / allData.Discipline[d].CourseCredit_p[ProgramID];
 							}
 							MMaxDesire = AbsMaxDesire * takingDiscPercentage[d] ;
 							
@@ -152,12 +165,17 @@ namespace DataLayer
 								break;
 							}
 						}
-						sortedPrf.Insert(counter, new DesirePos() {
-							theD = d,
-							theH = h,
-							Desire = MMaxDesire,
-							AbsDesire = AbsMaxDesire
-						});
+                        for (int cc = 0; cc < allData.Discipline[d].CourseCredit_p[ProgramID]; cc++)
+                        {
+                            sortedPrf.Insert(counter, new DesirePos()
+                            {
+                                theD = d,
+                                theH = h,
+                                Desire = MMaxDesire,
+                                AbsDesire = AbsMaxDesire
+                            });
+                        }
+						
 					}
 					
 				}
@@ -172,9 +190,12 @@ namespace DataLayer
 		}
 		public void setKAllDiscipline(AllData allData)
 		{
-			for (int g = 0; g < allData.General.DisciplineGr; g++)
+            K_AllDiscipline = 0;
+
+            for (int g = 0; g < allData.General.DisciplineGr; g++)
 			{
 				K_AllDiscipline += this.ShouldattendInGr_g[g];
+
 			}
 		}
 
@@ -189,8 +210,11 @@ namespace DataLayer
 				{
 					if (DisciplineList_dg[d][g])
 					{
-						sequence.Add(allData.Discipline[d].Duration_p[ProgramID]);
-						counter++;
+                        for (int cc = 0; cc < allData.Discipline[d].CourseCredit_p[ProgramID]; cc++)
+                        {
+                            double xx = (double)allData.Discipline[d].Duration_p[ProgramID] / allData.Discipline[d].CourseCredit_p[ProgramID];
+                            sequence.Add(xx);
+                        }
 						break;
 					}
 				}
@@ -199,7 +223,7 @@ namespace DataLayer
 			for (int s = 0; s < sequence.Count; s++)
 			{
 				// to sort increasing 
-				seq[s] = -((int)sequence[s]);
+				seq[s] = -((double)sequence[s]);
 			}
 
 			AveDur = Percentile(seq, 0.5);
@@ -249,15 +273,16 @@ namespace DataLayer
 				{
 					if (DisciplineList_dg[d][g])
 					{
-						totalDiscList++;
+						totalDiscList += allData.Discipline[d].CourseCredit_p[ProgramID] ;
 						break; // no mutual discipline
 					}
 				}
 			}
 
-			for (int d = 0; d < allData.General.Disciplines; d++)
+			for (int d = 0; d < allData.General.Disciplines;)
 			{
 				takingDiscPercentage[d] = (double)K_AllDiscipline / totalDiscList;
+                d += allData.Discipline[d].CourseCredit_p[ProgramID]; 
 			}
 
 			for (int g = 0; g < allData.General.DisciplineGr; g++)
@@ -267,8 +292,8 @@ namespace DataLayer
 				{
 					if (DisciplineList_dg[d][g])
 					{
-						totalGr++;
-					}
+						totalGr += allData.Discipline[d].CourseCredit_p[ProgramID];
+                    }
 				}
 				for (int d = 0; d < allData.General.Disciplines; d++)
 				{
@@ -310,6 +335,7 @@ namespace DataLayer
 
 		public void SetSimplifiedScheduleForMaxPrf(AllData allData)
 		{
+            int totalAssignment = 0;
 			int tmpKAll = K_AllDiscipline;
 			int[] tmpK_g = new int[allData.General.DisciplineGr];
 			for (int g = 0; g < allData.General.DisciplineGr; g++)
@@ -323,7 +349,7 @@ namespace DataLayer
 				bool overS = false;
 				for (int t = 0; t < allData.General.TimePriods; t++)
 				{
-					if (OverSea_dt[d][t] )
+					if (OverSea_dt[d][t])
 					{
 						overS = true;
 						break;
@@ -343,9 +369,10 @@ namespace DataLayer
 					}
 					if (c >= 0)
 					{
-						tmpKAll--;
-						MaxPrf += ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+						tmpKAll -= allData.Discipline[d].CourseCredit_p[ProgramID];
+						MaxPrf += allData.Discipline[d].CourseCredit_p[ProgramID] * ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 						removeDisciplineFromList(allData, d);
+                        totalAssignment++;
 					}
 					// now the requiremnets 
 					// find the group
@@ -353,7 +380,7 @@ namespace DataLayer
 					{
 						if (DisciplineList_dg[d][g])
 						{
-							tmpK_g[g]--;
+							tmpK_g[g]-= allData.Discipline[d].CourseCredit_p[ProgramID];
 							break;
 						}
 						
@@ -374,10 +401,21 @@ namespace DataLayer
 							}
 							if (c >= 0)
 							{
-								tmpKAll--;
-								MaxPrf += ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+								tmpKAll-= allData.Discipline[d].CourseCredit_p[ProgramID];
+								MaxPrf += allData.Discipline[d].CourseCredit_p[ProgramID] * ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 								removeDisciplineFromList(allData, d);
-							}
+                                totalAssignment++;
+                                // find the group
+                                for (int g = 0; g < allData.General.DisciplineGr; g++)
+                                {
+                                    if (DisciplineList_dg[dd][g])
+                                    {
+                                        tmpK_g[g] -= allData.Discipline[dd].CourseCredit_p[ProgramID];
+                                        break;
+                                    }
+
+                                }
+                            }
 						}
 					}
 				}
@@ -400,10 +438,11 @@ namespace DataLayer
 				}
 				if (GrIndex >= 0)
 				{
-					tmpKAll--;
-					tmpK_g[GrIndex]--;
-					MaxPrf += tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+					tmpKAll-= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
+					tmpK_g[GrIndex]-= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
+					MaxPrf += allData.Discipline[tmp.theD].CourseCredit_p[ProgramID] * tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 					removeDisciplineFromList(allData, tmp.theD);
+                    totalAssignment++;
 				}
 				else
 				{
@@ -428,9 +467,10 @@ namespace DataLayer
 				}
 				if (GrIndex >= 0)
 				{
-					tmpKAll--;
-					MaxPrf += tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+					tmpKAll -= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
+					MaxPrf += allData.Discipline[tmp.theD].CourseCredit_p[ProgramID] * tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 					removeDisciplineFromList(allData, tmp.theD);
+                    totalAssignment++;
 				}
 				else
 				{
@@ -441,7 +481,7 @@ namespace DataLayer
 
 			if (allData.TrainingPr[ProgramID].DiscChangeInOneHosp == 1)
 			{
-				MaxPrf -= wieght_ch * (this.K_AllDiscipline - 1) * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+				MaxPrf -= wieght_ch * (totalAssignment - 1) * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 			}
 		}
 

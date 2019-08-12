@@ -272,7 +272,7 @@ namespace DataLayer
 				for (int p = 0; p < tmpGeneral.TrainingPr; p++)
 				{
 					tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)((double)tmpGeneral.TimePriods / totalInternship));
-					tmpdisciplineInfos[d].CourseCredit_p[p] = random_.Next(1, 10) >= 8 ? 2 : 1;
+					tmpdisciplineInfos[d].CourseCredit_p[p] = random_.Next(1, 10) >= 7 ? 2 : 1;
 				}
 			}
 
@@ -460,7 +460,7 @@ namespace DataLayer
 			tmpalgorithmSettings.MotivationBM = tmpalgorithmSettings.BigM / 100;
 			tmpalgorithmSettings.bucketBasedImpPercentage = 0.5;
 			tmpalgorithmSettings.internBasedImpPercentage = 0.1;
-
+           
 
 
 		}
@@ -1518,7 +1518,7 @@ namespace DataLayer
 								}
 							}
 							// if he can be in the hospital
-							if (thereIsWard && (hospital_ih[i][Hindex] >= tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp || timelineHospMax_twh[t][theW][Hindex] == 0))
+							if (thereIsWard && (hospital_ih[i][Hindex] >= tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp || timelineHospMax_twh[t][theW][Hindex] == 0 || YearlyHospMax_wh[theW][Hindex] <= 0))
 							{
 								thereIsWard = false;
 							}
@@ -1545,7 +1545,7 @@ namespace DataLayer
 							if (tmphospitalInfos[Hindex].Hospital_dw[disIndex][w])
 							{
 
-								if (timelineHospMax_twh[t][w][Hindex] > 0)
+								if (timelineHospMax_twh[t][w][Hindex] > 0 && YearlyHospMax_wh[w][Hindex] > 0)
 								{
 									bool theInternIsFree = true;
 									if (t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID] > tmpGeneral.TimePriods - 1)
@@ -1576,25 +1576,17 @@ namespace DataLayer
 									}
 									if (theInternIsFree)
 									{
+                                        YearlyHospMax_wh[w][Hindex]--;
 										for (int tt = t; tt < t + tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID]; tt++)
 										{
 											timelineHospMax_twh[tt][w][Hindex]--;
 											timeline_it[i][tt] = true;
-
 										}
 										X_itdh[i][t][disIndex][Hindex] = true;
 										hospital_ih[i][Hindex]++;
 										t += tmpdisciplineInfos[disIndex].Duration_p[tmpinternInfos[i].ProgramID];
 										discipline_id[i][disIndex] = true;
-										if (hospital_ih[i][Hindex] > tmpTrainingPr[tmpinternInfos[i].ProgramID].DiscChangeInOneHosp)
-										{
-											Console.WriteLine();
-										}
 									}
-								}
-								else
-								{
-									Console.WriteLine();
 								}
 							}
 						}
@@ -1616,10 +1608,12 @@ namespace DataLayer
 						for (int g = 0; g < tmpGeneral.DisciplineGr; g++)
 						{
 							if (tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][d])
-							{
-								tmpinternInfos[i].DisciplineList_dg[d][g] = true;
-								tmpinternInfos[i].ShouldattendInGr_g[g]++;
-								break;
+							{                                
+                                tmpinternInfos[i].DisciplineList_dg[d][g] = true;
+								tmpinternInfos[i].ShouldattendInGr_g[g] += tmpdisciplineInfos[d].CourseCredit_p[tmpinternInfos[i].ProgramID];
+                                tmpinternInfos[i].K_AllDiscipline += tmpdisciplineInfos[d].CourseCredit_p[tmpinternInfos[i].ProgramID];
+
+                                break;
 							}
 						}
 					}

@@ -44,6 +44,7 @@ namespace DataLayer
 
 		// in-feasibility signs 
 		bool infeasibilityK_Assigned;
+        bool infeasibilityYearlyDemand;
 		bool[] infeasibilityK_Assigned_g;
 		bool infeasibilityChangesInHospital;
 		bool infeasibilityOverseaAbilityAve;
@@ -53,6 +54,7 @@ namespace DataLayer
 		public bool[] infeasibleIntern_i;
 		public bool[][] overLap_dd;
 		public int[][][] overused_hwt;
+        public int[][] YearlyCap_wh;
 		public bool infeasibilityOverused;
 		public bool infeasibilityOverlap;
 
@@ -188,10 +190,12 @@ namespace DataLayer
 			infeasibilityK_Assigned = false;
 			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
 			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
-			new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
+            new ArrayInitializer().CreateArray(ref YearlyCap_wh, data.General.HospitalWard, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
 			infeasibilityChangesInHospital = false;
 			infeasibilityOverseaAbilityAve = false;
 			infeasibilitySkill = false;
+            infeasibilityYearlyDemand = false;
 		}
 		public string setInfSetting()
 		{
@@ -427,6 +431,7 @@ namespace DataLayer
 								{
 									if (data.Hospital[h].Hospital_dw[d][w])
 									{
+                                        YearlyCap_wh[w][h]++;
 										for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; tt++)
 										{
 											overused_hwt[h][w][tt]++;
@@ -482,7 +487,41 @@ namespace DataLayer
 				}
 			}
 
-			for (int i = 0; i < data.General.Interns; i++)
+            for (int h = 0; h < data.General.Hospitals; h++)
+            {
+                for (int w = 0; w < data.General.HospitalWard; w++)
+                {
+                    YearlyCap_wh[w][h] -= data.Hospital[h].HospitalMaxYearly_w[w];
+                    
+                    if (YearlyCap_wh[w][h] > 0)
+                    {
+                        infeasibilityYearlyDemand = true;
+                        Result += "The hospital " + h + " in ward " + w + " overuesed yearly capacity by " + YearlyCap_wh[w][h] + " position \n";
+                        for (int i = 0; i < data.General.Interns; i++)
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w])
+                                {
+                                    // if we are at time 3 and the duration is 2
+                                    // we have to chack from 3 - 2 + 1 till 3 + 2 -1
+                                    for (int tt = 0; tt < data.General.TimePriods; tt++)
+                                    {
+                                        if (Intern_itdh[i][tt][d][h])
+                                        {
+                                            infeasibleIntern_i[i] = true;
+                                            Result += "Intern " + i + " used the capacity at time " + tt + " till  " + (tt + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]).ToString() + "\n";
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < data.General.Interns; i++)
 			{
 				for (int d = 0; d < data.General.Disciplines; d++)
 				{
@@ -540,7 +579,7 @@ namespace DataLayer
 			MaxMin = 0;
 			MaxAcc = 0;
 			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
-			tw.WriteLine("PP | II | GG | DD | TT | Du | HH | PrD | PrH | PrP | K_G | FH (Schedule)");
+			tw.WriteLine("PP | II | GG | DD | TT | Du | HH | PrD | PrH | PrP | K_G | C_C | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
 				for (int i = 0; i < data.General.Interns; i++)
@@ -571,11 +610,11 @@ namespace DataLayer
 												wieghtedSumInWaiPrf = 0;
 												if (data.Intern[i].OverSea_dt[d][t])
 												{
-													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + "**");
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + "***" + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + data.Discipline[d].CourseCredit_p[p].ToString("000") + " | " + "**");
 												}
 												else
 												{													
-													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | ");
+													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + data.Discipline[d].CourseCredit_p[p].ToString("000") + " | ");
 													for (int r = 0; r < data.General.Region; r++)
 													{
 														if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])

@@ -70,17 +70,19 @@ namespace GeneralMIPAlgorithm
 		public void SetSol()
 		{
 			ILinearNumExpr sol = MIPModel.LinearNumExpr();
-			sol.AddTerm(y_idDh[6][0][4][1], 1);
+			
 			
 
-			sol.AddTerm(s_idth[0][11][00][0], 1);
-			sol.AddTerm(s_idth[0][09][04][0], 1);
-			sol.AddTerm(s_idth[0][08][06][1], 1);
-			sol.AddTerm(s_idth[0][06][11][2], 1);
-			//sol.AddTerm(s_idth[6][8][15][4], 1);
-			//sol.AddTerm(s_idth[6][11][19][0], 1);
-			//sol.AddTerm(w_id[1][1], 1);
-			MIPModel.AddEq(sol, 4);
+			sol.AddTerm(s_idth[00][04][00][00], 1);
+            sol.AddTerm(s_idth[01][03][00][00], 1);
+            sol.AddTerm(s_idth[02][03][00][00], 1);
+            sol.AddTerm(s_idth[03][03][00][00], 1);
+            sol.AddTerm(s_idth[04][04][00][00], 1);
+            sol.AddTerm(s_idth[05][02][00][00], 1);
+            sol.AddTerm(s_idth[06][04][00][00], 1);
+           
+            //sol.AddTerm(w_id[1][1], 1);
+            MIPModel.AddEq(sol, 7);
 		}
 		public void Initial()
 		{
@@ -517,7 +519,7 @@ namespace GeneralMIPAlgorithm
 				AccSl_tr[t] = new INumVar[Regions];
 				for (int r = 0; r < Regions; r++)
 				{
-					AccSl_tr[t][r] = MIPModel.NumVar(0, data.Region[r].AvaAcc_t[t]);
+					AccSl_tr[t][r] = MIPModel.NumVar(0, data.Region[r].AvaAcc_t[t], ACCSL_tr[t][r]);
 				}
 			}
 			DESMin_p = new string[TrainingPr];
@@ -1162,7 +1164,7 @@ namespace GeneralMIPAlgorithm
                 for (int w = 0; w < Wards; w++)
                 {
                     ILinearNumExpr maxDem = MIPModel.LinearNumExpr();
-                    
+
                     for (int t = 0; t < Timepriods; t++)
                     {
                         for (int i = 0; i < Interns; i++)
@@ -1172,13 +1174,13 @@ namespace GeneralMIPAlgorithm
                             {
                                 if (data.Hospital[h].Hospital_dw[d - 1][w])
                                 {
-                                    maxDem.AddTerm(s_idth[i][d][t][h], 1);                                    
+                                    maxDem.AddTerm(s_idth[i][d][t][h], 1);
                                 }
                             }
                         }
                     }
-                    MIPModel.AddLe(maxDem, data.Hospital[h].HospitalMaxYearly_w[w], "MaxYearlyDemand_"+ w + "_" + h);
-                   
+                    MIPModel.AddLe(maxDem, data.Hospital[h].HospitalMaxYearly_w[w], "MaxYearlyDemand_" + w + "_" + h);
+
                 }
             }
 

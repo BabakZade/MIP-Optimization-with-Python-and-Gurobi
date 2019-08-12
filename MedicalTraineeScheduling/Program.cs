@@ -19,7 +19,7 @@ namespace MedicalTraineeScheduling
             //    groupCounter++;
             //    for (int i = 0; i < InstanceSize; i++)
             //    {
-            //        SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("TestCCYD", "" , "G_"+groupCounter);
+            //        SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("TestCCYD", "", "G_" + groupCounter);
             //        WriteInformation TMPinstance = new WriteInformation(insset, allpath.InsGroupLocation + "\\", "Instance_" + i, false);
             //        using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
             //        {
