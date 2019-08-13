@@ -51,8 +51,7 @@ namespace DataLayer
 				}
 				else
 				{
-					isRare = true;
-					
+					isRare = true;					
 				}
 			}
 			howRare = couter / data.General.Hospitals;
