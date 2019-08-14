@@ -46,6 +46,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>C:\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\Microsoft.Office.Interop.Excel.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
@@ -63,6 +68,7 @@
     <Compile Include="DisciplineInfo.cs" />
     <Compile Include="GeneralInfo.cs" />
     <Compile Include="HospitalInfo.cs" />
+    <Compile Include="ImportData.cs" />
     <Compile Include="InstanceSetting.cs" />
     <Compile Include="InternInfo.cs" />
     <Compile Include="OptimalSolution.cs" />

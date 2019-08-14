@@ -3,6 +3,7 @@ using System.Collections;
 using DataLayer;
 using System.IO;
 using System.Diagnostics;
+
 namespace MedicalTraineeScheduling
 {
 	public class Program
@@ -10,7 +11,8 @@ namespace MedicalTraineeScheduling
 		public static int InstanceSize;
 		static void Main(string[] args)
 		{
-
+            ImportData importer = new ImportData();
+            
 			InstanceSize = 5;
 			DataLayer.InstanceSetting inssetting = new InstanceSetting();
             int groupCounter = 0;

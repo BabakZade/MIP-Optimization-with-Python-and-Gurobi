@@ -20,12 +20,6 @@
         <elementListCompartment Id="7eec790f-7e16-4cfd-baba-e7aae9371a76" absoluteBounds="0.765, 4.21, 1.9700000000000002, 1.3309733395775159" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="7ac7b66c-625a-48ab-868e-388efcf417d5" absoluteBounds="3.75, 3.75, 2, 1.4694238504767423">
-      <DataClassMoniker Name="/UGentMSRDataContext/MSRDiscDurationPrInfo" />
-      <nestedChildShapes>
-        <elementListCompartment Id="60bcf93b-d57f-40d8-acdc-25a195343938" absoluteBounds="3.765, 4.21, 1.9700000000000002, 0.90942385047674179" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
     <classShape Id="5f959575-dc60-418c-ba5e-c9869468edc6" absoluteBounds="6.75, 0.75, 2, 1.2586491059263549">
       <DataClassMoniker Name="/UGentMSRDataContext/MSRDiscGroupInfo" />
       <nestedChildShapes>
@@ -144,6 +138,12 @@
       <DataClassMoniker Name="/UGentMSRDataContext/MSRWardHospitalDemandInfo" />
       <nestedChildShapes>
         <elementListCompartment Id="25a4b66e-46cf-4f7d-b2bc-73bc20055b6e" absoluteBounds="9.765, 14.21, 1.9700000000000002, 2.3848470623294511" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="c0f754db-03d8-4c79-8626-80304045ac74" absoluteBounds="3.75, 3.75, 2, 1.6801985950271288">
+      <DataClassMoniker Name="/UGentMSRDataContext/MSRDiscDurationPrInfo" />
+      <nestedChildShapes>
+        <elementListCompartment Id="353451b1-361c-4fb5-959c-883d35a63fd5" absoluteBounds="3.7649999999999997, 4.21, 1.9700000000000002, 1.1201985950271287" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

@@ -25,13 +25,6 @@
       <Column Name="AvailbilityID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
     </Type>
   </Table>
-  <Table Name="dbo.MSRDiscDurationPrInfo" Member="MSRDiscDurationPrInfos">
-    <Type Name="MSRDiscDurationPrInfo">
-      <Column Name="DiscDurationPrID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="DiscplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="TrainginProgramID" Type="System.Int32" DbType="Int" CanBeNull="true" />
-    </Type>
-  </Table>
   <Table Name="dbo.MSRDiscGroupInfo" Member="MSRDiscGroupInfos">
     <Type Name="MSRDiscGroupInfo">
       <Column Name="DiscGroupID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -225,6 +218,14 @@
       <Column Name="WardHospitalDemandPeriod" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="MaxDemHospitalWardYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MinDemHospitalWardYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.MSRDiscDurationPrInfo" Member="MSRDiscDurationPrInfos">
+    <Type Name="MSRDiscDurationPrInfo">
+      <Column Name="DiscDurationPrID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="DiscplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="TrainginProgramID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Duration" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
     </Type>
   </Table>
 </Database>
