@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="UGentMedicalStudentRostering" Class="UGentMSRDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Connection Mode="AppSettings" ConnectionString="Data Source=.;Initial Catalog=UGentMedicalStudentRostering;Integrated Security=True" SettingsObjectName="DataLayer.Properties.Settings" SettingsPropertyName="UGentMedicalStudentRosteringConnectionString" Provider="System.Data.SqlClient" />
+  <Connection Mode="AppSettings" ConnectionString="Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=UGentMedicalStudentRostering;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False" SettingsObjectName="DataLayer.Properties.Settings" SettingsPropertyName="UGentMedicalStudentRosteringConnectionString1" Provider="System.Data.SqlClient" />
   <Table Name="dbo.MSRAbilityIDInfo" Member="MSRAbilityIDInfos">
     <Type Name="MSRAbilityIDInfo">
       <Column Name="AbilityID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -10,19 +10,21 @@
       <Column Name="StudentAbilityID" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
-  <Table Name="dbo.MSRWardInfo" Member="MSRWardInfos">
-    <Type Name="MSRWardInfo">
-      <Column Name="WardID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="WardName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
-    </Type>
-  </Table>
   <Table Name="dbo.MSRAvailablityInfo" Member="MSRAvailablityInfos">
     <Type Name="MSRAvailablityInfo">
       <Column Name="StudentID" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="StudentAvID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="StudentAvID" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MonthID" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="ifAvailable" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="AvailbilityID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.MSRDiscDurationPrInfo" Member="MSRDiscDurationPrInfos">
+    <Type Name="MSRDiscDurationPrInfo">
+      <Column Name="DiscDurationPrID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="DiscplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="TrainginProgramID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Duration" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
     </Type>
   </Table>
   <Table Name="dbo.MSRDiscGroupInfo" Member="MSRDiscGroupInfos">
@@ -220,12 +222,10 @@
       <Column Name="MinDemHospitalWardYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
-  <Table Name="dbo.MSRDiscDurationPrInfo" Member="MSRDiscDurationPrInfos">
-    <Type Name="MSRDiscDurationPrInfo">
-      <Column Name="DiscDurationPrID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="DiscplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="TrainginProgramID" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Duration" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+  <Table Name="dbo.MSRWardInfo" Member="MSRWardInfos">
+    <Type Name="MSRWardInfo">
+      <Column Name="WardID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="WardName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

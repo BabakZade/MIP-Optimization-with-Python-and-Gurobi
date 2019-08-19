@@ -11,14 +11,12 @@
 
 namespace DataLayer
 {
- 
-    using System.Linq;
-    using System.Data.Linq;
+	using System.Data.Linq;
 	using System.Data.Linq.Mapping;
 	using System.Data;
 	using System.Collections.Generic;
 	using System.Reflection;
-	
+	using System.Linq;
 	using System.Linq.Expressions;
 	using System.ComponentModel;
 	using System;
@@ -35,12 +33,12 @@ namespace DataLayer
     partial void InsertMSRAbilityIDInfo(MSRAbilityIDInfo instance);
     partial void UpdateMSRAbilityIDInfo(MSRAbilityIDInfo instance);
     partial void DeleteMSRAbilityIDInfo(MSRAbilityIDInfo instance);
-    partial void InsertMSRWardInfo(MSRWardInfo instance);
-    partial void UpdateMSRWardInfo(MSRWardInfo instance);
-    partial void DeleteMSRWardInfo(MSRWardInfo instance);
     partial void InsertMSRAvailablityInfo(MSRAvailablityInfo instance);
     partial void UpdateMSRAvailablityInfo(MSRAvailablityInfo instance);
     partial void DeleteMSRAvailablityInfo(MSRAvailablityInfo instance);
+    partial void InsertMSRDiscDurationPrInfo(MSRDiscDurationPrInfo instance);
+    partial void UpdateMSRDiscDurationPrInfo(MSRDiscDurationPrInfo instance);
+    partial void DeleteMSRDiscDurationPrInfo(MSRDiscDurationPrInfo instance);
     partial void InsertMSRDiscGroupInfo(MSRDiscGroupInfo instance);
     partial void UpdateMSRDiscGroupInfo(MSRDiscGroupInfo instance);
     partial void DeleteMSRDiscGroupInfo(MSRDiscGroupInfo instance);
@@ -101,13 +99,13 @@ namespace DataLayer
     partial void InsertMSRWardHospitalDemandInfo(MSRWardHospitalDemandInfo instance);
     partial void UpdateMSRWardHospitalDemandInfo(MSRWardHospitalDemandInfo instance);
     partial void DeleteMSRWardHospitalDemandInfo(MSRWardHospitalDemandInfo instance);
-    partial void InsertMSRDiscDurationPrInfo(MSRDiscDurationPrInfo instance);
-    partial void UpdateMSRDiscDurationPrInfo(MSRDiscDurationPrInfo instance);
-    partial void DeleteMSRDiscDurationPrInfo(MSRDiscDurationPrInfo instance);
+    partial void InsertMSRWardInfo(MSRWardInfo instance);
+    partial void UpdateMSRWardInfo(MSRWardInfo instance);
+    partial void DeleteMSRWardInfo(MSRWardInfo instance);
     #endregion
 		
 		public UGentMSRDataContext() : 
-				base(global::DataLayer.Properties.Settings.Default.UGentMedicalStudentRosteringConnectionString, mappingSource)
+				base(global::DataLayer.Properties.Settings.Default.UGentMedicalStudentRosteringConnectionString1, mappingSource)
 		{
 			OnCreated();
 		}
@@ -144,19 +142,19 @@ namespace DataLayer
 			}
 		}
 		
-		public System.Data.Linq.Table<MSRWardInfo> MSRWardInfos
-		{
-			get
-			{
-				return this.GetTable<MSRWardInfo>();
-			}
-		}
-		
 		public System.Data.Linq.Table<MSRAvailablityInfo> MSRAvailablityInfos
 		{
 			get
 			{
 				return this.GetTable<MSRAvailablityInfo>();
+			}
+		}
+		
+		public System.Data.Linq.Table<MSRDiscDurationPrInfo> MSRDiscDurationPrInfos
+		{
+			get
+			{
+				return this.GetTable<MSRDiscDurationPrInfo>();
 			}
 		}
 		
@@ -320,11 +318,11 @@ namespace DataLayer
 			}
 		}
 		
-		public System.Data.Linq.Table<MSRDiscDurationPrInfo> MSRDiscDurationPrInfos
+		public System.Data.Linq.Table<MSRWardInfo> MSRWardInfos
 		{
 			get
 			{
-				return this.GetTable<MSRDiscDurationPrInfo>();
+				return this.GetTable<MSRWardInfo>();
 			}
 		}
 	}
@@ -511,92 +509,6 @@ namespace DataLayer
 		}
 	}
 	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRWardInfo")]
-	public partial class MSRWardInfo : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private int _WardID;
-		
-		private string _WardName;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnWardIDChanging(int value);
-    partial void OnWardIDChanged();
-    partial void OnWardNameChanging(string value);
-    partial void OnWardNameChanged();
-    #endregion
-		
-		public MSRWardInfo()
-		{
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_WardID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public int WardID
-		{
-			get
-			{
-				return this._WardID;
-			}
-			set
-			{
-				if ((this._WardID != value))
-				{
-					this.OnWardIDChanging(value);
-					this.SendPropertyChanging();
-					this._WardID = value;
-					this.SendPropertyChanged("WardID");
-					this.OnWardIDChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_WardName", DbType="NVarChar(50)")]
-		public string WardName
-		{
-			get
-			{
-				return this._WardName;
-			}
-			set
-			{
-				if ((this._WardName != value))
-				{
-					this.OnWardNameChanging(value);
-					this.SendPropertyChanging();
-					this._WardName = value;
-					this.SendPropertyChanged("WardName");
-					this.OnWardNameChanged();
-				}
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-	}
-	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRAvailablityInfo")]
 	public partial class MSRAvailablityInfo : INotifyPropertyChanging, INotifyPropertyChanged
 	{
@@ -605,7 +517,7 @@ namespace DataLayer
 		
 		private System.Nullable<int> _StudentID;
 		
-		private int _StudentAvID;
+		private System.Nullable<int> _StudentAvID;
 		
 		private System.Nullable<int> _MonthID;
 		
@@ -619,7 +531,7 @@ namespace DataLayer
     partial void OnCreated();
     partial void OnStudentIDChanging(System.Nullable<int> value);
     partial void OnStudentIDChanged();
-    partial void OnStudentAvIDChanging(int value);
+    partial void OnStudentAvIDChanging(System.Nullable<int> value);
     partial void OnStudentAvIDChanged();
     partial void OnMonthIDChanging(System.Nullable<int> value);
     partial void OnMonthIDChanged();
@@ -654,8 +566,8 @@ namespace DataLayer
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentAvID", DbType="Int NOT NULL")]
-		public int StudentAvID
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentAvID", DbType="Int")]
+		public System.Nullable<int> StudentAvID
 		{
 			get
 			{
@@ -730,6 +642,140 @@ namespace DataLayer
 					this._AvailbilityID = value;
 					this.SendPropertyChanged("AvailbilityID");
 					this.OnAvailbilityIDChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRDiscDurationPrInfo")]
+	public partial class MSRDiscDurationPrInfo : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _DiscDurationPrID;
+		
+		private System.Nullable<int> _DiscplineID;
+		
+		private System.Nullable<int> _TrainginProgramID;
+		
+		private int _Duration;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnDiscDurationPrIDChanging(int value);
+    partial void OnDiscDurationPrIDChanged();
+    partial void OnDiscplineIDChanging(System.Nullable<int> value);
+    partial void OnDiscplineIDChanged();
+    partial void OnTrainginProgramIDChanging(System.Nullable<int> value);
+    partial void OnTrainginProgramIDChanged();
+    partial void OnDurationChanging(int value);
+    partial void OnDurationChanged();
+    #endregion
+		
+		public MSRDiscDurationPrInfo()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DiscDurationPrID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int DiscDurationPrID
+		{
+			get
+			{
+				return this._DiscDurationPrID;
+			}
+			set
+			{
+				if ((this._DiscDurationPrID != value))
+				{
+					this.OnDiscDurationPrIDChanging(value);
+					this.SendPropertyChanging();
+					this._DiscDurationPrID = value;
+					this.SendPropertyChanged("DiscDurationPrID");
+					this.OnDiscDurationPrIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DiscplineID", DbType="Int")]
+		public System.Nullable<int> DiscplineID
+		{
+			get
+			{
+				return this._DiscplineID;
+			}
+			set
+			{
+				if ((this._DiscplineID != value))
+				{
+					this.OnDiscplineIDChanging(value);
+					this.SendPropertyChanging();
+					this._DiscplineID = value;
+					this.SendPropertyChanged("DiscplineID");
+					this.OnDiscplineIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TrainginProgramID", DbType="Int")]
+		public System.Nullable<int> TrainginProgramID
+		{
+			get
+			{
+				return this._TrainginProgramID;
+			}
+			set
+			{
+				if ((this._TrainginProgramID != value))
+				{
+					this.OnTrainginProgramIDChanging(value);
+					this.SendPropertyChanging();
+					this._TrainginProgramID = value;
+					this.SendPropertyChanged("TrainginProgramID");
+					this.OnTrainginProgramIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Duration", DbType="Int NOT NULL")]
+		public int Duration
+		{
+			get
+			{
+				return this._Duration;
+			}
+			set
+			{
+				if ((this._Duration != value))
+				{
+					this.OnDurationChanging(value);
+					this.SendPropertyChanging();
+					this._Duration = value;
+					this.SendPropertyChanged("Duration");
+					this.OnDurationChanged();
 				}
 			}
 		}
@@ -4275,115 +4321,67 @@ namespace DataLayer
 		}
 	}
 	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRDiscDurationPrInfo")]
-	public partial class MSRDiscDurationPrInfo : INotifyPropertyChanging, INotifyPropertyChanged
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRWardInfo")]
+	public partial class MSRWardInfo : INotifyPropertyChanging, INotifyPropertyChanged
 	{
 		
 		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
 		
-		private int _DiscDurationPrID;
+		private int _WardID;
 		
-		private System.Nullable<int> _DiscplineID;
-		
-		private System.Nullable<int> _TrainginProgramID;
-		
-		private int _Duration;
+		private string _WardName;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
     partial void OnCreated();
-    partial void OnDiscDurationPrIDChanging(int value);
-    partial void OnDiscDurationPrIDChanged();
-    partial void OnDiscplineIDChanging(System.Nullable<int> value);
-    partial void OnDiscplineIDChanged();
-    partial void OnTrainginProgramIDChanging(System.Nullable<int> value);
-    partial void OnTrainginProgramIDChanged();
-    partial void OnDurationChanging(int value);
-    partial void OnDurationChanged();
+    partial void OnWardIDChanging(int value);
+    partial void OnWardIDChanged();
+    partial void OnWardNameChanging(string value);
+    partial void OnWardNameChanged();
     #endregion
 		
-		public MSRDiscDurationPrInfo()
+		public MSRWardInfo()
 		{
 			OnCreated();
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DiscDurationPrID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public int DiscDurationPrID
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_WardID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int WardID
 		{
 			get
 			{
-				return this._DiscDurationPrID;
+				return this._WardID;
 			}
 			set
 			{
-				if ((this._DiscDurationPrID != value))
+				if ((this._WardID != value))
 				{
-					this.OnDiscDurationPrIDChanging(value);
+					this.OnWardIDChanging(value);
 					this.SendPropertyChanging();
-					this._DiscDurationPrID = value;
-					this.SendPropertyChanged("DiscDurationPrID");
-					this.OnDiscDurationPrIDChanged();
+					this._WardID = value;
+					this.SendPropertyChanged("WardID");
+					this.OnWardIDChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DiscplineID", DbType="Int")]
-		public System.Nullable<int> DiscplineID
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_WardName", DbType="NVarChar(50)")]
+		public string WardName
 		{
 			get
 			{
-				return this._DiscplineID;
+				return this._WardName;
 			}
 			set
 			{
-				if ((this._DiscplineID != value))
+				if ((this._WardName != value))
 				{
-					this.OnDiscplineIDChanging(value);
+					this.OnWardNameChanging(value);
 					this.SendPropertyChanging();
-					this._DiscplineID = value;
-					this.SendPropertyChanged("DiscplineID");
-					this.OnDiscplineIDChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TrainginProgramID", DbType="Int")]
-		public System.Nullable<int> TrainginProgramID
-		{
-			get
-			{
-				return this._TrainginProgramID;
-			}
-			set
-			{
-				if ((this._TrainginProgramID != value))
-				{
-					this.OnTrainginProgramIDChanging(value);
-					this.SendPropertyChanging();
-					this._TrainginProgramID = value;
-					this.SendPropertyChanged("TrainginProgramID");
-					this.OnTrainginProgramIDChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Duration", DbType="Int NOT NULL")]
-		public int Duration
-		{
-			get
-			{
-				return this._Duration;
-			}
-			set
-			{
-				if ((this._Duration != value))
-				{
-					this.OnDurationChanging(value);
-					this.SendPropertyChanging();
-					this._Duration = value;
-					this.SendPropertyChanged("Duration");
-					this.OnDurationChanged();
+					this._WardName = value;
+					this.SendPropertyChanged("WardName");
+					this.OnWardNameChanged();
 				}
 			}
 		}
