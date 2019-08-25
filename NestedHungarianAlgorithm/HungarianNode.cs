@@ -878,6 +878,12 @@ namespace NestedHungarianAlgorithm
         public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
         {
             TimeID = startTime;
+            Console.WriteLine("Time " + TimeID.ToString("00") + "Statuse processing");
+            if (TimeID == 5)
+            {
+
+                Console.WriteLine();
+            }
             parentNode = parent;
             if (startTime == 0)
             {

@@ -57,8 +57,12 @@ namespace DataLayer
         public int[][] YearlyCap_wh;
 		public bool infeasibilityOverused;
 		public bool infeasibilityOverlap;
+        public int[] totalK_g;
+        public bool[][] internDiscStatus_id;
+        public bool[][] internAvaStatus_it;
+        public int[][] internGrK_ig;
 
-		public OptimalSolution(AllData data)
+        public OptimalSolution(AllData data)
 		{
 			Initial(data);
 			this.data = data;
@@ -190,6 +194,9 @@ namespace DataLayer
 			infeasibilityK_Assigned = false;
 			new ArrayInitializer().CreateArray(ref infeasibilityK_Assigned_g, data.General.DisciplineGr, false);
 			new ArrayInitializer().CreateArray(ref overLap_dd, data.General.Disciplines, data.General.Disciplines, false);
+            new ArrayInitializer().CreateArray(ref internDiscStatus_id, data.General.Interns, data.General.Disciplines, false);
+            new ArrayInitializer().CreateArray(ref internAvaStatus_it, data.General.Interns, data.General.TimePriods, false);
+            new ArrayInitializer().CreateArray(ref internGrK_ig, data.General.Interns, data.General.DisciplineGr, 0);
             new ArrayInitializer().CreateArray(ref YearlyCap_wh, data.General.HospitalWard, data.General.Hospitals, 0);
             new ArrayInitializer().CreateArray(ref overused_hwt, data.General.Hospitals, data.General.Disciplines, data.General.TimePriods, 0);
 			infeasibilityChangesInHospital = false;
@@ -207,7 +214,7 @@ namespace DataLayer
 			{
 				infeasibleIntern_i[i] = false;
 				int totalK = 0;
-				int[] totalK_g = new int[data.General.DisciplineGr];
+				totalK_g = new int[data.General.DisciplineGr];
 				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{
 					totalK_g[g] = 0;
@@ -349,9 +356,11 @@ namespace DataLayer
 						Result += "The intern " + i + " should fulfill " + data.Intern[i].ShouldattendInGr_g[g] + " but (s)he did  " + totalK_g[g] + " in Group " + g + " \n";
 
 					}
+                    internGrK_ig[i][g] = totalK_g[g];
+                }
+                
 
-				}
-			}
+            }
 
 			for (int i = 0; i < data.General.Interns; i++)
 			{
@@ -427,7 +436,12 @@ namespace DataLayer
 						{
 							if (Intern_itdh[i][t][d][h])
 							{
-								for (int w = 0; w < data.General.HospitalWard; w++)
+                                internDiscStatus_id[i][d] = true;
+                                for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; tt++)
+                                {
+                                    internAvaStatus_it[i][t] = true;
+                                }
+                                for (int w = 0; w < data.General.HospitalWard; w++)
 								{
 									if (data.Hospital[h].Hospital_dw[d][w])
 									{
@@ -451,7 +465,8 @@ namespace DataLayer
 				{
 					for (int w = 0; w < data.General.HospitalWard; w++)
 					{
-						overused_hwt[h][w][t] -= data.Hospital[h].HospitalMaxDem_tw[t][w];
+
+                        overused_hwt[h][w][t] -= data.Hospital[h].HospitalMaxDem_tw[t][w];
 						overused_hwt[h][w][t] -= data.Hospital[h].EmergencyCap_tw[t][w];
 						overused_hwt[h][w][t] -= data.Hospital[h].ReservedCap_tw[t][w];
 						if (overused_hwt[h][w][t] > 0)
@@ -910,6 +925,69 @@ namespace DataLayer
 			}
 			
 			tw.Close();
-		}
+            DemonstraitSolution(Path, Name);
+
+        }
+
+        public void DemonstraitSolution(string Path, string Name)
+        {
+            // infeasibility part
+            StreamWriter demonstration = new StreamWriter(Path + Name + "Demonstration.txt");
+            demonstration.WriteLine("Inforamtion related to the Infeasibility");
+            for (int i = 0; i < data.General.Interns; i++) {
+                for (int g = 0; g < data.General.DisciplineGr; g++)
+                {
+                    if (internGrK_ig[i][g] != data.Intern[i].ShouldattendInGr_g[g])
+                    {
+                        demonstration.WriteLine("The intern " + i + " should fulfill " + data.Intern[i].ShouldattendInGr_g[g] + " but (s)he did  " + internGrK_ig[i][g] + " in Group " + g );
+                        demonstration.Write("Intern Availability: ");
+                        for (int t = 0; t < data.General.TimePriods; t++)
+                        {
+                            if (internAvaStatus_it[i][t])
+                            {
+                                demonstration.Write("-- ");
+                            }
+                            else
+                            {
+                                demonstration.Write("++ ");
+                            }
+                        }
+                        demonstration.WriteLine();
+                        for (int d = 0; d < data.General.Disciplines; d++)
+                        {
+                            if (data.Intern[i].DisciplineList_dg[d][g] && !internDiscStatus_id[i][d])
+                            {
+                                
+
+                                for (int h = 0; h < data.General.Hospitals; h++)
+                                {
+                                    for (int w = 0; w < data.General.HospitalWard; w++)
+                                    {
+                                       
+                                        if (data.Hospital[h].Hospital_dw[d][w])
+                                        {
+                                           
+                                            demonstration.Write("Capcity_hd    " + h.ToString("00") + " " + d.ToString("00") + ": ");
+                                            for (int t = 0; t < data.General.TimePriods; t++)
+                                            {
+                                               
+                                                demonstration.Write((-overused_hwt[h][w][t]).ToString("00") + " ");
+                                            }
+                                            demonstration.Write( " || "+(-YearlyCap_wh[w][h]).ToString("00") + " ");
+                                            demonstration.WriteLine();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                }
+            }
+
+
+            demonstration.Close();
+        }
 	}
 }

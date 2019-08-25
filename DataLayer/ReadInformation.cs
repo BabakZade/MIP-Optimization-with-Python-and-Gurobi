@@ -162,6 +162,7 @@ namespace DataLayer
 			
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
+                
 				line = tw.ReadLine();
 				for (int w = 0; w < data.General.HospitalWard; w++)
 				{
@@ -573,10 +574,11 @@ namespace DataLayer
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
 				data.Region[r].SQLID = int.Parse(line.Substring(0, indexN));
+                line = tw.ReadLine();
 			}
 			line = tw.ReadLine();
 			line = tw.ReadLine();
-			line = tw.ReadLine();
+		
 			for (int i = 0; i < data.General.Region; i++)
 			{
 				for (int d = 0; d < data.General.TimePriods; d++)

@@ -3,6 +3,7 @@ using System.Collections;
 using DataLayer;
 using System.IO;
 using System.Diagnostics;
+using Syncfusion;
 
 namespace MedicalTraineeScheduling
 {
@@ -11,10 +12,13 @@ namespace MedicalTraineeScheduling
 		public static int InstanceSize;
 		static void Main(string[] args)
 		{
-            ImportData importer = new ImportData();
+            
             
 			InstanceSize = 5;
 			DataLayer.InstanceSetting inssetting = new InstanceSetting();
+            //SetAllPathForResult realLife = new DataLayer.SetAllPathForResult("ReallifeUGent", "", "G_" + 1);
+            //ImportData importer = new ImportData(realLife.InsGroupLocation + "\\", "Instance_" + 0);
+            //return;
             int groupCounter = 0;
             //foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
             //{
@@ -167,7 +171,7 @@ namespace MedicalTraineeScheduling
 					{
 						//continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "TestCCYD", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ReallifeUGent", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 1;
 					read.data.AlgSettings.internBasedImpPercentage = 0.5;
 					Stopwatch stopwatch = new Stopwatch();

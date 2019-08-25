@@ -75,6 +75,9 @@ namespace DataLayer
     partial void InsertMSRRegionInfo(MSRRegionInfo instance);
     partial void UpdateMSRRegionInfo(MSRRegionInfo instance);
     partial void DeleteMSRRegionInfo(MSRRegionInfo instance);
+    partial void InsertMSRRosterInfo(MSRRosterInfo instance);
+    partial void UpdateMSRRosterInfo(MSRRosterInfo instance);
+    partial void DeleteMSRRosterInfo(MSRRosterInfo instance);
     partial void InsertMSRStudentDiscPrfInfo(MSRStudentDiscPrfInfo instance);
     partial void UpdateMSRStudentDiscPrfInfo(MSRStudentDiscPrfInfo instance);
     partial void DeleteMSRStudentDiscPrfInfo(MSRStudentDiscPrfInfo instance);
@@ -102,6 +105,9 @@ namespace DataLayer
     partial void InsertMSRWardInfo(MSRWardInfo instance);
     partial void UpdateMSRWardInfo(MSRWardInfo instance);
     partial void DeleteMSRWardInfo(MSRWardInfo instance);
+    partial void InsertTable(Table instance);
+    partial void UpdateTable(Table instance);
+    partial void DeleteTable(Table instance);
     #endregion
 		
 		public UGentMSRDataContext() : 
@@ -254,6 +260,14 @@ namespace DataLayer
 			}
 		}
 		
+		public System.Data.Linq.Table<MSRRosterInfo> MSRRosterInfos
+		{
+			get
+			{
+				return this.GetTable<MSRRosterInfo>();
+			}
+		}
+		
 		public System.Data.Linq.Table<MSRStudentDiscPrfInfo> MSRStudentDiscPrfInfos
 		{
 			get
@@ -323,6 +337,14 @@ namespace DataLayer
 			get
 			{
 				return this.GetTable<MSRWardInfo>();
+			}
+		}
+		
+		public System.Data.Linq.Table<Table> Tables
+		{
+			get
+			{
+				return this.GetTable<Table>();
 			}
 		}
 	}
@@ -2505,6 +2527,164 @@ namespace DataLayer
 		}
 	}
 	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRRosterInfo")]
+	public partial class MSRRosterInfo : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _RosterID;
+		
+		private System.Nullable<int> _StudentID;
+		
+		private System.Nullable<int> _MonthID;
+		
+		private System.Nullable<int> _HospitalID;
+		
+		private System.Nullable<int> _DisciplineID;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnRosterIDChanging(int value);
+    partial void OnRosterIDChanged();
+    partial void OnStudentIDChanging(System.Nullable<int> value);
+    partial void OnStudentIDChanged();
+    partial void OnMonthIDChanging(System.Nullable<int> value);
+    partial void OnMonthIDChanged();
+    partial void OnHospitalIDChanging(System.Nullable<int> value);
+    partial void OnHospitalIDChanged();
+    partial void OnDisciplineIDChanging(System.Nullable<int> value);
+    partial void OnDisciplineIDChanged();
+    #endregion
+		
+		public MSRRosterInfo()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_RosterID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int RosterID
+		{
+			get
+			{
+				return this._RosterID;
+			}
+			set
+			{
+				if ((this._RosterID != value))
+				{
+					this.OnRosterIDChanging(value);
+					this.SendPropertyChanging();
+					this._RosterID = value;
+					this.SendPropertyChanged("RosterID");
+					this.OnRosterIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentID", DbType="Int")]
+		public System.Nullable<int> StudentID
+		{
+			get
+			{
+				return this._StudentID;
+			}
+			set
+			{
+				if ((this._StudentID != value))
+				{
+					this.OnStudentIDChanging(value);
+					this.SendPropertyChanging();
+					this._StudentID = value;
+					this.SendPropertyChanged("StudentID");
+					this.OnStudentIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_MonthID", DbType="Int")]
+		public System.Nullable<int> MonthID
+		{
+			get
+			{
+				return this._MonthID;
+			}
+			set
+			{
+				if ((this._MonthID != value))
+				{
+					this.OnMonthIDChanging(value);
+					this.SendPropertyChanging();
+					this._MonthID = value;
+					this.SendPropertyChanged("MonthID");
+					this.OnMonthIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_HospitalID", DbType="Int")]
+		public System.Nullable<int> HospitalID
+		{
+			get
+			{
+				return this._HospitalID;
+			}
+			set
+			{
+				if ((this._HospitalID != value))
+				{
+					this.OnHospitalIDChanging(value);
+					this.SendPropertyChanging();
+					this._HospitalID = value;
+					this.SendPropertyChanged("HospitalID");
+					this.OnHospitalIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DisciplineID", DbType="Int")]
+		public System.Nullable<int> DisciplineID
+		{
+			get
+			{
+				return this._DisciplineID;
+			}
+			set
+			{
+				if ((this._DisciplineID != value))
+				{
+					this.OnDisciplineIDChanging(value);
+					this.SendPropertyChanging();
+					this._DisciplineID = value;
+					this.SendPropertyChanged("DisciplineID");
+					this.OnDisciplineIDChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MSRStudentDiscPrfInfo")]
 	public partial class MSRStudentDiscPrfInfo : INotifyPropertyChanging, INotifyPropertyChanged
 	{
@@ -2517,7 +2697,7 @@ namespace DataLayer
 		
 		private int _StudentDisciplineID;
 		
-		private System.Nullable<int> _StudentDiscPrfID;
+		private System.Nullable<int> _StudentDiscPrf;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -2529,8 +2709,8 @@ namespace DataLayer
     partial void OnDisciplineIDChanged();
     partial void OnStudentDisciplineIDChanging(int value);
     partial void OnStudentDisciplineIDChanged();
-    partial void OnStudentDiscPrfIDChanging(System.Nullable<int> value);
-    partial void OnStudentDiscPrfIDChanged();
+    partial void OnStudentDiscPrfChanging(System.Nullable<int> value);
+    partial void OnStudentDiscPrfChanged();
     #endregion
 		
 		public MSRStudentDiscPrfInfo()
@@ -2598,22 +2778,22 @@ namespace DataLayer
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentDiscPrfID", DbType="Int")]
-		public System.Nullable<int> StudentDiscPrfID
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentDiscPrf", DbType="Int")]
+		public System.Nullable<int> StudentDiscPrf
 		{
 			get
 			{
-				return this._StudentDiscPrfID;
+				return this._StudentDiscPrf;
 			}
 			set
 			{
-				if ((this._StudentDiscPrfID != value))
+				if ((this._StudentDiscPrf != value))
 				{
-					this.OnStudentDiscPrfIDChanging(value);
+					this.OnStudentDiscPrfChanging(value);
 					this.SendPropertyChanging();
-					this._StudentDiscPrfID = value;
-					this.SendPropertyChanged("StudentDiscPrfID");
-					this.OnStudentDiscPrfIDChanged();
+					this._StudentDiscPrf = value;
+					this.SendPropertyChanged("StudentDiscPrf");
+					this.OnStudentDiscPrfChanged();
 				}
 			}
 		}
@@ -2833,7 +3013,7 @@ namespace DataLayer
 		
 		private int _StudentHospitalID;
 		
-		private System.Nullable<int> _StudentHospPrfID;
+		private System.Nullable<int> _StudentHospPrf;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -2845,8 +3025,8 @@ namespace DataLayer
     partial void OnStudentIDChanged();
     partial void OnStudentHospitalIDChanging(int value);
     partial void OnStudentHospitalIDChanged();
-    partial void OnStudentHospPrfIDChanging(System.Nullable<int> value);
-    partial void OnStudentHospPrfIDChanged();
+    partial void OnStudentHospPrfChanging(System.Nullable<int> value);
+    partial void OnStudentHospPrfChanged();
     #endregion
 		
 		public MSRStudentHospPrfInfo()
@@ -2914,22 +3094,22 @@ namespace DataLayer
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentHospPrfID", DbType="Int")]
-		public System.Nullable<int> StudentHospPrfID
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentHospPrf", DbType="Int")]
+		public System.Nullable<int> StudentHospPrf
 		{
 			get
 			{
-				return this._StudentHospPrfID;
+				return this._StudentHospPrf;
 			}
 			set
 			{
-				if ((this._StudentHospPrfID != value))
+				if ((this._StudentHospPrf != value))
 				{
-					this.OnStudentHospPrfIDChanging(value);
+					this.OnStudentHospPrfChanging(value);
 					this.SendPropertyChanging();
-					this._StudentHospPrfID = value;
-					this.SendPropertyChanged("StudentHospPrfID");
-					this.OnStudentHospPrfIDChanged();
+					this._StudentHospPrf = value;
+					this.SendPropertyChanged("StudentHospPrf");
+					this.OnStudentHospPrfChanged();
 				}
 			}
 		}
@@ -4069,6 +4249,8 @@ namespace DataLayer
 		
 		private System.Nullable<int> _MinDemHospitalWardYear;
 		
+		private System.Nullable<int> _PeriodID;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -4093,6 +4275,8 @@ namespace DataLayer
     partial void OnMaxDemHospitalWardYearChanged();
     partial void OnMinDemHospitalWardYearChanging(System.Nullable<int> value);
     partial void OnMinDemHospitalWardYearChanged();
+    partial void OnPeriodIDChanging(System.Nullable<int> value);
+    partial void OnPeriodIDChanged();
     #endregion
 		
 		public MSRWardHospitalDemandInfo()
@@ -4300,6 +4484,26 @@ namespace DataLayer
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PeriodID", DbType="Int")]
+		public System.Nullable<int> PeriodID
+		{
+			get
+			{
+				return this._PeriodID;
+			}
+			set
+			{
+				if ((this._PeriodID != value))
+				{
+					this.OnPeriodIDChanging(value);
+					this.SendPropertyChanging();
+					this._PeriodID = value;
+					this.SendPropertyChanged("PeriodID");
+					this.OnPeriodIDChanged();
+				}
+			}
+		}
+		
 		public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -4382,6 +4586,164 @@ namespace DataLayer
 					this._WardName = value;
 					this.SendPropertyChanged("WardName");
 					this.OnWardNameChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.[Table]")]
+	public partial class Table : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _RosterID;
+		
+		private System.Nullable<int> _StudentID;
+		
+		private System.Nullable<int> _PeriodID;
+		
+		private System.Nullable<int> _HospitalID;
+		
+		private System.Nullable<int> _DisciplineID;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnRosterIDChanging(int value);
+    partial void OnRosterIDChanged();
+    partial void OnStudentIDChanging(System.Nullable<int> value);
+    partial void OnStudentIDChanged();
+    partial void OnPeriodIDChanging(System.Nullable<int> value);
+    partial void OnPeriodIDChanged();
+    partial void OnHospitalIDChanging(System.Nullable<int> value);
+    partial void OnHospitalIDChanged();
+    partial void OnDisciplineIDChanging(System.Nullable<int> value);
+    partial void OnDisciplineIDChanged();
+    #endregion
+		
+		public Table()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_RosterID", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int RosterID
+		{
+			get
+			{
+				return this._RosterID;
+			}
+			set
+			{
+				if ((this._RosterID != value))
+				{
+					this.OnRosterIDChanging(value);
+					this.SendPropertyChanging();
+					this._RosterID = value;
+					this.SendPropertyChanged("RosterID");
+					this.OnRosterIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_StudentID", DbType="Int")]
+		public System.Nullable<int> StudentID
+		{
+			get
+			{
+				return this._StudentID;
+			}
+			set
+			{
+				if ((this._StudentID != value))
+				{
+					this.OnStudentIDChanging(value);
+					this.SendPropertyChanging();
+					this._StudentID = value;
+					this.SendPropertyChanged("StudentID");
+					this.OnStudentIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PeriodID", DbType="Int")]
+		public System.Nullable<int> PeriodID
+		{
+			get
+			{
+				return this._PeriodID;
+			}
+			set
+			{
+				if ((this._PeriodID != value))
+				{
+					this.OnPeriodIDChanging(value);
+					this.SendPropertyChanging();
+					this._PeriodID = value;
+					this.SendPropertyChanged("PeriodID");
+					this.OnPeriodIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_HospitalID", DbType="Int")]
+		public System.Nullable<int> HospitalID
+		{
+			get
+			{
+				return this._HospitalID;
+			}
+			set
+			{
+				if ((this._HospitalID != value))
+				{
+					this.OnHospitalIDChanging(value);
+					this.SendPropertyChanging();
+					this._HospitalID = value;
+					this.SendPropertyChanged("HospitalID");
+					this.OnHospitalIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DisciplineID", DbType="Int")]
+		public System.Nullable<int> DisciplineID
+		{
+			get
+			{
+				return this._DisciplineID;
+			}
+			set
+			{
+				if ((this._DisciplineID != value))
+				{
+					this.OnDisciplineIDChanging(value);
+					this.SendPropertyChanging();
+					this._DisciplineID = value;
+					this.SendPropertyChanged("DisciplineID");
+					this.OnDisciplineIDChanged();
 				}
 			}
 		}

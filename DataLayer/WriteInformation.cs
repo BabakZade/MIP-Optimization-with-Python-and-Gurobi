@@ -1112,8 +1112,8 @@ namespace DataLayer
 						tw.Write(0 + " ");
 					}
 
-					tw.WriteLine();
-				}
+					
+				}tw.WriteLine();
 			}
 
 			tw.WriteLine();

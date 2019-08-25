@@ -127,12 +127,21 @@
       <Column Name="AccomodationCap" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
+  <Table Name="dbo.MSRRosterInfo" Member="MSRRosterInfos">
+    <Type Name="MSRRosterInfo">
+      <Column Name="RosterID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="StudentID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="MonthID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="HospitalID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="DisciplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
   <Table Name="dbo.MSRStudentDiscPrfInfo" Member="MSRStudentDiscPrfInfos">
     <Type Name="MSRStudentDiscPrfInfo">
       <Column Name="StudentID" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="DisciplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="StudentDisciplineID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="StudentDiscPrfID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="StudentDiscPrf" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.MSRStudentFulfilledDiscInfo" Member="MSRStudentFulfilledDiscInfos">
@@ -150,7 +159,7 @@
       <Column Name="HospitalID" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="StudentID" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="StudentHospitalID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="StudentHospPrfID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="StudentHospPrf" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.MSRStudentInfo" Member="MSRStudentInfos">
@@ -220,12 +229,22 @@
       <Column Name="WardHospitalDemandPeriod" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="MaxDemHospitalWardYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="MinDemHospitalWardYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PeriodID" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.MSRWardInfo" Member="MSRWardInfos">
     <Type Name="MSRWardInfo">
       <Column Name="WardID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="WardName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.[Table]" Member="Tables">
+    <Type Name="Table">
+      <Column Name="RosterID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="StudentID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PeriodID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="HospitalID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="DisciplineID" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

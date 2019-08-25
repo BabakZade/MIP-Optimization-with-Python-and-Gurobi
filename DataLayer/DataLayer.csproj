@@ -55,7 +55,16 @@
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>C:\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <HintPath>C:\Users\BAkba\.nuget\packages\excelpackage\1.0.0\lib\Microsoft.Office.Interop.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="OfficeOpenXml.Core.ExcelPackage">
+      <HintPath>C:\Users\BAkba\.nuget\packages\officeopenxml.core.excelpackage\1.0.0\lib\net46\OfficeOpenXml.Core.ExcelPackage.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.Licensing">
+      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\ASP.NET Core - EJ2\17.2.0.34\NuGetPackages\Syncfusion.Licensing\17.2.0.34\lib\net46\Syncfusion.Licensing.dll</HintPath>
+    </Reference>
+    <Reference Include="Syncfusion.XlsIO.Base">
+      <HintPath>C:\Program Files (x86)\Syncfusion\Essential Studio\ASP.NET Core - EJ2\17.2.0.34\NuGetPackages\Syncfusion.XlsIO.Net.Core\17.2.0.34\lib\net46\Syncfusion.XlsIO.Base.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
