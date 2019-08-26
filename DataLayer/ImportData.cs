@@ -46,6 +46,8 @@ namespace DataLayer
         ArrayList msrStudentHospPrfInfo;
         ArrayList msrRosterInfo;
         ArrayList msrAvailablityInfo;
+        ArrayList msrOverseaInfo;
+
 
         public ImportData(string path, string name)
         {
@@ -75,8 +77,9 @@ namespace DataLayer
             setStudentHospPrfInfo();
             setRosterInfo();
             setAvailabilityInfo();
+            setOverseaInfo();
 
-            
+
         }
 
 
@@ -617,6 +620,39 @@ namespace DataLayer
 
         }
 
+        public void setOverseaInfo()
+        {
+            msrOverseaInfo = new ArrayList();
+            SqlCommand cmd = new SqlCommand();
+            cmd.CommandType = System.Data.CommandType.Text;
+            string commandText = "SELECT * FROM MSROverseaInfo";
+            cmd.CommandText = commandText;
+
+            cmd.Connection = connection;
+            connection.Open();
+            SqlDataReader reader = cmd.ExecuteReader();
+            try
+            {
+                while (reader.Read())
+                {
+                    MSROverseaInfo tmp = new MSROverseaInfo();
+
+                    tmp.OverseaID = reader.GetInt32(reader.GetOrdinal("OverseaID"));
+                    tmp.DisciplineID = reader.GetInt32(reader.GetOrdinal("DisciplineID"));
+                    tmp.MonthID = reader.GetInt32(reader.GetOrdinal("MonthID"));
+                    tmp.StudentID = reader.GetInt32(reader.GetOrdinal("StudentID"));
+                    msrOverseaInfo.Add(tmp);
+                }
+            }
+            finally
+            {
+                reader.Close();
+            }
+
+            connection.Close();
+
+        }
+
         public void setRosterInfo()
         {
             msrRosterInfo = new ArrayList();
@@ -902,6 +938,13 @@ namespace DataLayer
                     }
 
                 }
+            }
+            foreach (MSROverseaInfo over in msrOverseaInfo)
+            {
+                int student = (int)over.StudentID;
+                int disc = (int)over.DisciplineID;
+                int month = (int)over.MonthID - 1 ;
+                tmpinternInfos[student].OverSea_dt[disc][month] = true;
             }
         }
 

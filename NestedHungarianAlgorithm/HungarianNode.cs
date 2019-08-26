@@ -510,6 +510,7 @@ namespace NestedHungarianAlgorithm
         {
             for (int i = 0; i < Interns; i++)
             {
+                
                 for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
                 {
                     
@@ -878,12 +879,8 @@ namespace NestedHungarianAlgorithm
         public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
         {
             TimeID = startTime;
-            Console.WriteLine("Time " + TimeID.ToString("00") + "Statuse processing");
-            if (TimeID == 5)
-            {
+            Console.WriteLine("Time " + TimeID.ToString("00") + " Statuse processing");
 
-                Console.WriteLine();
-            }
             parentNode = parent;
             if (startTime == 0)
             {

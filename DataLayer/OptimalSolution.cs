@@ -439,7 +439,7 @@ namespace DataLayer
                                 internDiscStatus_id[i][d] = true;
                                 for (int tt = t; tt < t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID]; tt++)
                                 {
-                                    internAvaStatus_it[i][t] = true;
+                                    internAvaStatus_it[i][tt] = true;
                                 }
                                 for (int w = 0; w < data.General.HospitalWard; w++)
 								{
