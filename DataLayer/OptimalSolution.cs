@@ -432,7 +432,7 @@ namespace DataLayer
 				{
 					for (int t = 0; t < data.General.TimePriods; t++)
 					{
-						for (int h = 0; h < data.General.Hospitals; h++)
+						for (int h = 0; h < data.General.Hospitals + 1; h++)
 						{
 							if (Intern_itdh[i][t][d][h])
 							{
@@ -441,7 +441,7 @@ namespace DataLayer
                                 {
                                     internAvaStatus_it[i][tt] = true;
                                 }
-                                for (int w = 0; w < data.General.HospitalWard; w++)
+                                for (int w = 0; w < data.General.HospitalWard && h < data.General.Hospitals; w++)
 								{
 									if (data.Hospital[h].Hospital_dw[d][w])
 									{
@@ -970,8 +970,15 @@ namespace DataLayer
                                             demonstration.Write("Capcity_hd    " + h.ToString("00") + " " + d.ToString("00") + ": ");
                                             for (int t = 0; t < data.General.TimePriods; t++)
                                             {
-                                               
-                                                demonstration.Write((-overused_hwt[h][w][t]).ToString("00") + " ");
+                                                if (t + data.Discipline[d].Duration_p[data.Intern[i].ProgramID] < data.General.TimePriods)
+                                                {
+                                                    demonstration.Write((-overused_hwt[h][w][t]).ToString("00") + " ");
+                                                }
+                                                else
+                                                {
+                                                    demonstration.Write("00" + " ");
+                                                }
+                                                
                                             }
                                             demonstration.Write( " || "+(-YearlyCap_wh[w][h]).ToString("00") + " ");
                                             demonstration.WriteLine();
@@ -985,6 +992,9 @@ namespace DataLayer
 
                 }
             }
+
+
+
 
 
             demonstration.Close();

@@ -338,7 +338,9 @@ namespace NestedDynamicProgrammingAlgorithm
 				result = -data.AlgSettings.BigM;
 				return result;
 			}
-			for (int w = 0; w < data.General.HospitalWard; w++)
+            
+
+            for (int w = 0; w < data.General.HospitalWard; w++)
 			{
 				if (data.Hospital[theH].Hospital_dw[theD][w]) 
 				{
@@ -400,7 +402,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			//chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital	
 		MaxProcessedNode = FutureActiveState.Count;
 		
-		Console.WriteLine("Before one disc: " + FutureActiveState.Count);
+		    Console.WriteLine("Before one disc: " + FutureActiveState.Count);
 			// it will not work with unstable demand structure => at t we are in regular demand, t+1 it is reserved demand
 			keepOneDisci(); 
 			Console.WriteLine("After one disc: " + FutureActiveState.Count);
@@ -477,7 +479,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					continue;
 				}
-				for (int l = length; l <= length; l++) 
+				for (int l = 2; l <= length; l++) 
 				{
 					int[] theH = new int[l];
 					
@@ -760,9 +762,10 @@ namespace NestedDynamicProgrammingAlgorithm
 					
 					removeCounter++;
 					StateStage current = (StateStage)FutureActiveState[removeCounter];
+
 					
 					int theDtmp = current.theSchedule_t[stageTime].theDiscipline;
-					if (theDtmp < 0)
+					if (theDtmp < 0 || current.x_Hosp == data.General.Hospitals)
 					{
 						continue;
 					}
@@ -785,7 +788,7 @@ namespace NestedDynamicProgrammingAlgorithm
 					double prfX2 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theDtmp] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theDtmp];
 
 					double demCost = returnDemandCost(state.x_Disc, state.x_Hosp, stageTime, state.x_wait);
-					double tmpdemCost = returnDemandCost(current.x_Disc, current.x_Hosp, stageTime, state.x_wait);
+					double tmpdemCost = returnDemandCost(current.x_Disc, current.x_Hosp, stageTime, current.x_wait);
 
 					double obj1 = -demCost + prfX1 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
 					double obj2 = -tmpdemCost + prfX2 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
@@ -807,8 +810,29 @@ namespace NestedDynamicProgrammingAlgorithm
 						}
 					}
 
+                    // capacity control
 
-					if (theDtmp >= 0 && theDtmp != theD  
+                    double XX = 0;
+                    for (int w = 0; w < data.General.HospitalWard; w++)
+                    {
+                        if (!current.x_wait && data.Hospital[current.x_Hosp].Hospital_dw[current.x_Disc][w])
+                        {
+                            for (int t = stageTime; t < data.General.TimePriods; t++)
+                            {
+                                if (MaxDem_twh[t][w][current.x_Hosp] > 0)
+                                {
+                                    XX++;
+                                }
+                            }
+                        }
+                    }
+                    if (data.General.TimePriods - stageTime > 0 && XX / (data.General.TimePriods - stageTime) < 0.75) // if you can manage it to schedule it somewhere else 
+                    {
+                        continue;
+                    }
+
+
+                    if (theDtmp >= 0 && theDtmp != theD  
 						&& !data.Intern[theIntern].FHRequirment_d[theDtmp] && !data.Discipline[theDtmp].requiredLater_p[data.Intern[theIntern].ProgramID])
 					{
 						FutureActiveState.RemoveAt(removeCounter);

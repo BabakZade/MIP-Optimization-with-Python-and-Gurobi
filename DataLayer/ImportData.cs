@@ -47,6 +47,7 @@ namespace DataLayer
         ArrayList msrRosterInfo;
         ArrayList msrAvailablityInfo;
         ArrayList msrOverseaInfo;
+     
 
 
         public ImportData(string path, string name)
@@ -55,6 +56,7 @@ namespace DataLayer
 
             CreateInstancesRealLife();
             WriteInstance(path,name);
+            CreateTheManualSolution(path, name+"Manaul");
         }
         public void initial()
         {
@@ -918,6 +920,39 @@ namespace DataLayer
 
         }
 
+        public void CreateTheManualSolution(string location, string name)
+        {
+            AllData allData = new AllData();
+            allData.AlgSettings = tmpalgorithmSettings;
+            allData.Discipline = tmpdisciplineInfos;
+            allData.General = tmpGeneral;
+            allData.Hospital = tmphospitalInfos;
+            allData.Intern = tmpinternInfos;
+            allData.Region = tmpRegionInfos;
+            allData.TrainingPr = tmpTrainingPr;
+            OptimalSolution manaual = new OptimalSolution(allData);
+            foreach (MSRRosterInfo roster in msrRosterInfo)
+            {
+                if (roster.DisciplineID != null && roster.HospitalID != 1 && roster.MonthID !=null)
+                {
+                    int i = (int)roster.StudentID - 1;
+                    int t=(int)roster.MonthID - 1;
+                    int d=(int)roster.DisciplineID - 1;
+                    int h=(int)roster.HospitalID - 1;
+                    manaual.Intern_itdh[i][t][d][h] = true;
+                }
+                else if(roster.HospitalID == 1)
+                {
+                    int i = (int)roster.StudentID - 1;
+                    int t = (int)roster.MonthID - 1;
+                    int d = (int)roster.DisciplineID - 1;
+                    int h = tmpGeneral.Hospitals;
+                    manaual.Intern_itdh[i][t][d][h] = true;
+                }
+            }
+
+            manaual.WriteSolution(location, name);
+        }
 
         public void setInternsList()
         {
@@ -931,9 +966,19 @@ namespace DataLayer
                     {
                         if (tmpTrainingPr[tmpinternInfos[i].ProgramID].InvolvedDiscipline_gd[g][d])
                         {
-                            tmpinternInfos[i].DisciplineList_dg[d][g] = true;
-                            tmpinternInfos[i].ShouldattendInGr_g[g] = Kperform[g];
-                            break;
+                            if (true)
+                            {
+                                tmpinternInfos[i].DisciplineList_dg[d][g] = true;
+                                tmpinternInfos[i].ShouldattendInGr_g[g] = Kperform[g];
+                                break;
+                            }
+                            else
+                            {
+                                tmpinternInfos[i].DisciplineList_dg[d][1] = true;
+                                tmpinternInfos[i].ShouldattendInGr_g[1] = Kperform[1];
+                                break;
+                            }
+                            
                         }
                     }
 
@@ -941,8 +986,8 @@ namespace DataLayer
             }
             foreach (MSROverseaInfo over in msrOverseaInfo)
             {
-                int student = (int)over.StudentID;
-                int disc = (int)over.DisciplineID;
+                int student = (int)over.StudentID - 1;
+                int disc = (int)over.DisciplineID - 1;
                 int month = (int)over.MonthID - 1 ;
                 tmpinternInfos[student].OverSea_dt[disc][month] = true;
             }

@@ -15,7 +15,7 @@ namespace MedicalTraineeScheduling
             
             
 			InstanceSize = 5;
-			DataLayer.InstanceSetting inssetting = new InstanceSetting();
+            //DataLayer.InstanceSetting inssetting = new InstanceSetting();
             //SetAllPathForResult realLife = new DataLayer.SetAllPathForResult("ReallifeUGent", "", "G_" + 1);
             //ImportData importer = new ImportData(realLife.InsGroupLocation + "\\", "Instance_" + 0);
             //return;

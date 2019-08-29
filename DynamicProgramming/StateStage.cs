@@ -184,7 +184,7 @@ namespace NestedDynamicProgrammingAlgorithm
 
 			if (isRoot)
 			{
-				for (int h = 0; h < data.General.Hospitals; h++)
+				for (int h = 0; h < data.General.Hospitals && x_Disc>=0; h++)
 				{
 					if (data.Intern[theI].Fulfilled_dhp[x_Disc][h][data.Intern[theI].ProgramID])
 					{
@@ -237,7 +237,7 @@ namespace NestedDynamicProgrammingAlgorithm
 			{
 				possibleStates.Add(this);
 			}
-			else
+			else if(x_Disc >= 0)
 			{
 				for (int g = 0; g < data.General.DisciplineGr; g++)
 				{

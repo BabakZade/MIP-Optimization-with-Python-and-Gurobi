@@ -517,6 +517,7 @@ namespace NestedHungarianAlgorithm
                     // just desire 
                     if (j < TotalAvailablePosition)
                     {
+
                         int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
                         // if the intern is already assigned to this discipline
                         if (discIn < 0)
@@ -1009,6 +1010,7 @@ namespace NestedHungarianAlgorithm
             new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals + 1, false);
             for (int i = 0; i < Interns; i++)
             {
+                
                 int Index = BestSchedule[i] < TotalAvailablePosition + Interns ? BestSchedule[i] : -1;
                 int discIn = -1;
                 // if intern waits 
