@@ -62,6 +62,14 @@ namespace DataLayer
         public bool[][] internAvaStatus_it;
         public int[][] internGrK_ig;
 
+
+        // measurments
+        public double assignedCap_hwt;
+        public double internPrfperMax_i;
+        public double percentInfisibility;
+
+
+
         public OptimalSolution(AllData data)
 		{
 			Initial(data);
@@ -994,7 +1002,7 @@ namespace DataLayer
             }
 
 
-
+            // university measurments 
 
 
             demonstration.Close();

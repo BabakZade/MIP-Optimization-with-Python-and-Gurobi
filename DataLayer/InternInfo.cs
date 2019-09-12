@@ -39,7 +39,8 @@ namespace DataLayer
 		public int wieght_h;
 		public int wieght_w;
 		public int wieght_ch;
-		public int ProgramID;
+        public int wieght_cns;
+        public int ProgramID;
 		public bool[] TransferredTo_r;
 		public bool[][][] Fulfilled_dhp;
 		public bool[][] OverSea_dt;
@@ -86,7 +87,8 @@ namespace DataLayer
 			wieght_h = 0;
 			wieght_w = 0;
 			wieght_ch = 0;
-			ProgramID = -1;
+            wieght_cns = 0;
+            ProgramID = -1;
 			isProspective = true;
 			K_AllDiscipline = 0;
 			overseaReq = false;

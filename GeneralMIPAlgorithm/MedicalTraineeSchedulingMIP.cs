@@ -622,6 +622,8 @@ namespace GeneralMIPAlgorithm
 				for (int d = 1; d < Disciplins; d++)
 				{
 					ILinearNumExpr DiscAssign = MIPModel.LinearNumExpr();
+
+                    // taking course 
 					for (int dd = 0; dd < Disciplins; dd++)
 					{
 						for (int h = 0; h < Hospitals ; h++)
@@ -629,8 +631,29 @@ namespace GeneralMIPAlgorithm
 							DiscAssign.AddTerm(1,y_idDh[i][dd][d][h]);
 						}
 					}
-					int totalFF = 0;
+                    // AKA_dD
+                    for (int D = 1; D < Disciplins; D++)
+                    {
+                        for (int p = 0; p < TrainingPr; p++)
+                        {
+                            if (data.TrainingPr[p].AKA_dD[d-1][D-1])
+                            {
+                                for (int dd = 0; dd < Disciplins; dd++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        DiscAssign.AddTerm(1, y_idDh[i][dd][D][h]);
+                                    }
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    int totalFF = 0;
 					
+
+                    // fullfiled d
 					for (int h = 0; h < Hospitals - 1 ; h++)
 					{
 						for (int p = 0; p < TrainingPr; p++)
@@ -642,7 +665,24 @@ namespace GeneralMIPAlgorithm
 							}
 						}
 					}
-					MIPModel.AddLe(DiscAssign, 1-totalFF, "AssignOnceID_" + i + "_" + d);
+                    // fulfilled AKA_dd
+                    for (int dd = 1; dd < Disciplins; dd++)
+                    {
+                        for (int h = 0; h < Hospitals - 1; h++)
+                        {
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                if (data.Intern[i].Fulfilled_dhp[dd - 1][h][p] && data.TrainingPr[p].AKA_dD[d-1][dd -1])
+                                {
+                                    totalFF++;
+
+                                }
+                            }
+                        }
+                    }
+                    
+
+                    MIPModel.AddLe(DiscAssign, 1-totalFF, "AssignOnceID_" + i + "_" + d);
 				}
 			}
 
@@ -1025,6 +1065,12 @@ namespace GeneralMIPAlgorithm
 							internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.Intern[i].Prf_d[d - 1] * data.Intern[i].wieght_d);
 							internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.Intern[i].Prf_h[h] * data.Intern[i].wieght_h);
 							internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d-1]);
+
+                            // consecutive 
+                            if (dd > 0 && data.TrainingPr[data.Intern[i].ProgramID].cns_dD[dd-1][d-1] > 0)
+                            {
+                                internDes.AddTerm(y_idDh[i][dd][d][h], -(double)data.TrainingPr[data.Intern[i].ProgramID].cns_dD[dd - 1][d - 1] * data.Intern[i].wieght_cns);
+                            }
 						}
 					}
 				}
