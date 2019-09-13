@@ -139,7 +139,9 @@ namespace NestedDynamicProgrammingAlgorithm
 						totalChange = stateInput.totalChange + 1;
 
 					}
-				}
+
+                    Fx += coeff * data.Intern[theI].wieght_cns * data.TrainingPr[data.Intern[theI].ProgramID].cns_dD[stateInput.x_Disc][xInput.x_Disc];
+                }
 			}
 			// we considered this in the DPStage class
 

@@ -784,8 +784,8 @@ namespace NestedDynamicProgrammingAlgorithm
 						continue;
 					}
 
-					double prfX1 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theD] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theD];
-					double prfX2 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theDtmp] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theDtmp];
+					double prfX1 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theD] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theD] + data.Intern[theIntern].wieght_cns * maxConsecutiveness(theD, p);
+					double prfX2 = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[theDtmp] + data.TrainingPr[p].weight_p * data.TrainingPr[p].Prf_d[theDtmp] + data.Intern[theIntern].wieght_cns * maxConsecutiveness(theDtmp, p);
 
 					double demCost = returnDemandCost(state.x_Disc, state.x_Hosp, stageTime, state.x_wait);
 					double tmpdemCost = returnDemandCost(current.x_Disc, current.x_Hosp, stageTime, current.x_wait);
@@ -1374,5 +1374,19 @@ namespace NestedDynamicProgrammingAlgorithm
 
 			return result;
 		}
+
+        public int maxConsecutiveness(int theD, int theP)
+        {
+            int result = 0;
+            for (int dd = 0; dd < data.General.Disciplines; dd++)
+            {
+                if (data.TrainingPr[theP].cns_dD[theD][dd] > result)
+                {
+                    result = data.TrainingPr[theP].cns_dD[theD][dd];
+                }
+            }
+
+            return result;
+        }
 	}
 }

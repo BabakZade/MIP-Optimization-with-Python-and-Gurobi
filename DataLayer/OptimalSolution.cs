@@ -14,7 +14,8 @@ namespace DataLayer
 		public double[] PrHosp_i;
 		public double[] PrWait_i;
 		public double[] PrChang_i;
-		public double[] TrPrPrf;
+        public double[] PrCns_i;
+        public double[] TrPrPrf;
 		public double[] Des_i;
 		public double AveDes;
 		public double[] dp_i;
@@ -93,7 +94,8 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
-			new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref PrCns_i, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
@@ -152,7 +154,8 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
-			new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref PrCns_i, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
@@ -179,7 +182,8 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref PrHosp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrWait_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref PrChang_i, data.General.Interns, 0);
-			new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref PrCns_i, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref TrPrPrf, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref Des_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref dp_i, data.General.Interns, 0);
 			new ArrayInitializer().CreateArray(ref dn_i, data.General.Interns, 0);
@@ -708,23 +712,35 @@ namespace DataLayer
 
 			for (int i = 0; i < data.General.Interns; i++)
 			{
+                int prvD = -1;
 				for (int d = 0; d < data.General.Disciplines; d++)
 				{
 					for (int t = 0; t < data.General.TimePriods; t++)
 					{
 						for (int h = 0; h < data.General.Hospitals + 1; h++)
 						{
+                            int curd = -1;
 							if (Intern_itdh[i][t][d][h] && h < data.General.Hospitals)
 							{
 								PrDisp_i[i] += data.Intern[i].Prf_d[d];
 								PrHosp_i[i] += data.Intern[i].Prf_h[h];
 								TrPrPrf[i] += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+                                curd = d;
 							}
 							else if (Intern_itdh[i][t][d][h])
 							{
 								PrDisp_i[i] += data.Intern[i].Prf_d[d];
 								TrPrPrf[i] += data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
+                                curd = d;
 							}
+                            if (prvD >= 0 && curd >= 0)
+                            {
+                                PrCns_i[i] += data.TrainingPr[data.Intern[i].ProgramID].cns_dD[prvD][curd];                                
+                            }
+                            if (curd >= 0)
+                            {
+                                prvD = curd;
+                            }                            
 						}
 					}
 				}
@@ -862,7 +878,8 @@ namespace DataLayer
 						 + data.Intern[i].wieght_w * PrWait_i[i]
 						 + data.Intern[i].wieght_d * PrDisp_i[i]
 						 + data.Intern[i].wieght_h * PrHosp_i[i]
-						 + data.TrainingPr[data.Intern[i].ProgramID].weight_p * TrPrPrf[i];
+                         + data.Intern[i].wieght_cns * PrCns_i[i]
+                         + data.TrainingPr[data.Intern[i].ProgramID].weight_p * TrPrPrf[i];
 				wieghtedSumInChnPrf += data.Intern[i].wieght_ch * PrChang_i[i];
 				wieghtedSumInWaiPrf += data.Intern[i].wieght_w * PrWait_i[i];
 				AveDes += Des_i[i];
@@ -889,14 +906,14 @@ namespace DataLayer
 				}
 				minimizedDev += (dn_i[i] - dp_i[i]);
 			}
-			tw.WriteLine("III PrD PrH PrW PrC PrP W_d W_h W_w W_c W_p DesI DNi DPi");
+			tw.WriteLine("III PrD PrH PrW PrC PrCn PrP W_d W_h W_w W_c W_cn W_p DesI DNi DPi");
 			for (int i = 0; i < data.General.Interns; i++)
 			{
 				tw.WriteLine(i.ToString("000") + " " + PrDisp_i[i].ToString("000")
 					+ " " + PrHosp_i[i].ToString("000") + " " + PrWait_i[i].ToString("000")
-					+ " " + PrChang_i[i].ToString("000") + " " + TrPrPrf[i].ToString("000") + " " + data.Intern[i].wieght_d.ToString("000")
+					+ " " + PrChang_i[i].ToString("000") + " " + PrCns_i[i].ToString("0000") + " " + TrPrPrf[i].ToString("000") + " " + data.Intern[i].wieght_d.ToString("000")
 					+ " " + data.Intern[i].wieght_h.ToString("000") + " " + data.Intern[i].wieght_w.ToString("00")
-					+ " " + data.Intern[i].wieght_ch.ToString("00") + " " + data.TrainingPr[data.Intern[i].ProgramID].weight_p.ToString("000")
+					+ " " + data.Intern[i].wieght_ch.ToString("00") + " " + data.Intern[i].wieght_cns.ToString("000") + " " + data.TrainingPr[data.Intern[i].ProgramID].weight_p.ToString("000")
 					+ " " + Des_i[i].ToString("0.000") + " " + dn_i[i].ToString("0.00") + " " + dp_i[i].ToString("0.00"));
 			}
 

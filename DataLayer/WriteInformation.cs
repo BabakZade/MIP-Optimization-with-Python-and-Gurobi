@@ -431,7 +431,8 @@ namespace DataLayer
 				tmpinternInfos[i].wieght_d = random_.Next(1, instancesetting.PrfMaxValue);
 				tmpinternInfos[i].wieght_h = random_.Next(1, instancesetting.PrfMaxValue);
 				tmpinternInfos[i].wieght_w = -random_.Next(1, instancesetting.PrfMaxValue);
-			}
+                tmpinternInfos[i].wieght_cns = -random_.Next(1, instancesetting.PrfMaxValue);
+            }
 
 			// create Region info
 			tmpRegionInfos = new RegionInfo[tmpGeneral.Region];
@@ -852,7 +853,8 @@ namespace DataLayer
 					tmpinternInfos[i].wieght_ch = 0;
 				}
 				tmpinternInfos[i].wieght_d = random_.Next(1, instancesetting.PrfMaxValue);
-				tmpinternInfos[i].wieght_h = random_.Next(1, instancesetting.PrfMaxValue);
+                tmpinternInfos[i].wieght_cns = random_.Next(1, instancesetting.PrfMaxValue);
+                tmpinternInfos[i].wieght_h = random_.Next(1, instancesetting.PrfMaxValue);
 				tmpinternInfos[i].wieght_w = -random_.Next(1, instancesetting.PrfMaxValue);
 				// real case
 				tmpinternInfos[i].ShouldattendInGr_g[0] = 7;
@@ -1175,7 +1177,7 @@ namespace DataLayer
 			tw.WriteLine(strline);
 			for (int i = 0; i < tmpGeneral.Interns; i++)
 			{
-				tw.WriteLine(i + " " + tmpinternInfos[i].ProgramID + " " + tmpinternInfos[i].isProspective + " " + tmpinternInfos[i].wieght_d + " " + tmpinternInfos[i].wieght_h + " " + tmpinternInfos[i].wieght_ch + " " + tmpinternInfos[i].wieght_w);
+				tw.WriteLine(i + " " + tmpinternInfos[i].ProgramID + " " + tmpinternInfos[i].isProspective + " " + tmpinternInfos[i].wieght_d + " " + tmpinternInfos[i].wieght_h + " " + tmpinternInfos[i].wieght_ch + " " + tmpinternInfos[i].wieght_w + " " + tmpinternInfos[i].wieght_cns);
 
 			}
 
@@ -1897,28 +1899,32 @@ namespace DataLayer
 
 		public void ChangeDesCoeff(string location, string name)
 		{
-			string[] nameCoeff = new string[] { "W_h", "W_d", "W_p", "W_c", "W_w" };
+			string[] nameCoeff = new string[] { "W_h", "W_d", "W_p", "W_c", "W_w", "W_cs" };
 			string[] level = new string[4] { "00", "01", "05", "10" };
-			int[][] weight = new int[20][]{new int[]{0 , 1 , 1 , 1 , 1 },
-										   new int[]{1 , 1 , 1 , 1 , 1 },
-										   new int[]{5 , 1 , 1 , 1 , 1 },
-										   new int[]{10 , 1 , 1 , 1 , 1},
-										   new int[]{1 , 0 , 1 , 1 , 1 },
-										   new int[]{1 , 1 , 1 , 1 , 1 },
-										   new int[]{1 , 5 , 1 , 1 , 1 },
-										   new int[]{1 , 10 , 1 , 1 , 1},
-										   new int[]{1 , 1 , 0 , 1 , 1 },
-										   new int[]{1 , 1 , 1 , 1 , 1 },
-										   new int[]{1 , 1 , 5 , 1 , 1 },
-										   new int[]{1 , 1 , 10 , 1 , 1},
-										   new int[]{1 , 1 , 1 , 0 , 1 },
-										   new int[]{1 , 1 , 1 , 1 , 1 },
-										   new int[]{1 , 1 , 1 , 5 , 1 },
-										   new int[]{1 , 1 , 1 , 10 , 1},
-										   new int[]{1 , 1 , 1 , 1 , 0 },
-										   new int[]{1 , 1 , 1 , 1 , 1 },
-										   new int[]{1 , 1 , 1 , 1 , 5 },
-										   new int[]{1 , 1 , 1 , 1 , 10}};
+			int[][] weight = new int[][]{new int[]{0 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{5 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{10 , 1 , 1 , 1 , 1, 1},
+										   new int[]{1 , 0 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 5 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 10 , 1 , 1 , 1, 1},
+										   new int[]{1 , 1 , 0 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 5 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 10 , 1 , 1, 1},
+										   new int[]{1 , 1 , 1 , 0 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 5 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 10 , 1, 1},
+										   new int[]{1 , 1 , 1 , 1 , 0 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 1 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 5 , 1},
+										   new int[]{1 , 1 , 1 , 1 , 10, 1},
+                                           new int[]{1 , 1 , 1 , 1 , 1 , 0},
+                                           new int[]{1 , 1 , 1 , 1 , 1 , 1},
+                                           new int[]{1 , 1 , 1 , 1 , 1 , 5},
+                                           new int[]{1 , 1 , 1 , 1 , 1 , 10}};
 			for (int i = 0; i < nameCoeff.Count(); i++)
 			{
 				for (int l = 0; l < level.Count(); l++)
@@ -1933,7 +1939,8 @@ namespace DataLayer
 						tmpinternInfos[ii].wieght_d = weight[i * level.Count() + l][1];
 						tmpinternInfos[ii].wieght_ch = -weight[i * level.Count() + l][3];
 						tmpinternInfos[ii].wieght_w = -weight[i * level.Count() + l][4];
-					}
+                        tmpinternInfos[ii].wieght_cns = -weight[i * level.Count() + l][5];
+                    }
 					string NewLoc = location + nameCoeff[i] + level[l] + "\\";
 					if (!Directory.Exists(NewLoc))
 					{

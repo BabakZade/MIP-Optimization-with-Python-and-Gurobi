@@ -588,13 +588,18 @@ namespace NestedHungarianAlgorithm
                                 //CostMatrix_i_whDem[i][j] -= data.AlgSettings.MotivationBM;
                             }
 
-                            //Change
+                            //Change and Consecutive 
                             if (!isRoot)
                             {
                                 int prHosp = parentNode.LastPosition_i[i].HIndex;
+                                int prDisc = parentNode.LastPosition_i[i].dIndex;
                                 if (prHosp != ((PositionMap)MappingTable[j]).HIndex)
                                 {
                                     CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_ch;
+                                }
+                                if (prDisc >=0)
+                                {
+                                    CostMatrix_i_whDem[i][j] += coeff * data.Intern[i].wieght_cns * data.TrainingPr[data.Intern[i].ProgramID].cns_dD[prDisc][discIn];
                                 }
                             }
                             // if interns list is longer than availble time the we have to devide the preferences to duration of the discipline
@@ -1224,8 +1229,12 @@ namespace NestedHungarianAlgorithm
                             durAve = false;
                         }
                     }
+
+                    double prfObj = data.Intern[theI].Prf_d[d] * data.Intern[theI].wieght_d 
+                        + maxConsecutiveness(d, data.Intern[theI].ProgramID) * data.Intern[theI].wieght_cns
+                        + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d] * data.TrainingPr[data.Intern[theI].ProgramID].weight_p;
                     if (durAve && !assigned && !requiresDis &&
-                        MaxObj <= (data.Intern[theI].Prf_d[d] * data.Intern[theI].wieght_d + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d] * data.TrainingPr[data.Intern[theI].ProgramID].weight_p))
+                        MaxObj <= prfObj)
                     {
                         MaxObj = data.Intern[theI].Prf_d[d] + data.TrainingPr[data.Intern[theI].ProgramID].Prf_d[d];
                         discInd = d;
@@ -1336,6 +1345,7 @@ namespace NestedHungarianAlgorithm
                                 if (data.Hospital[h].Hospital_dw[d][w])
                                 {
                                     tmpDiscPrf += data.Intern[i].wieght_d * data.Intern[i].Prf_d[d];
+                                    tmpDiscPrf += data.Intern[i].wieght_cns * maxConsecutiveness(d, data.Intern[i].ProgramID);
                                     tmpDiscPrf += data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[d];
                                 }
                                 if (tmpDiscPrf > MaxDiscPrf)
@@ -1446,6 +1456,20 @@ namespace NestedHungarianAlgorithm
                 preprocessCapacity_d[d] = cap / preprocessCapacity_d[d];
             }
 
+        }
+
+        public int maxConsecutiveness(int theD, int theP)
+        {
+            int result = 0;
+            for (int dd = 0; dd < data.General.Disciplines; dd++)
+            {
+                if (data.TrainingPr[theP].cns_dD[theD][dd] > result)
+                {
+                    result = data.TrainingPr[theP].cns_dD[theD][dd];
+                }
+            }
+
+            return result;
         }
 
     }

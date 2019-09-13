@@ -886,6 +886,7 @@ namespace DataLayer
                 tmpinternInfos[i].wieght_h = (int)((MSRStudentInfo)msrStudentInfo[i]).WeightHospPrf;
                 tmpinternInfos[i].wieght_w = -(int)((MSRStudentInfo)msrStudentInfo[i]).WeightWait;
                 
+
             }
 
             // create Region info
@@ -1271,11 +1272,11 @@ namespace DataLayer
 
 
             //write Intern info		
-            strline = "// InternName Program isProspective W_disc W_hosp W_change W_wait  [i][w]";
+            strline = "// InternName Program isProspective W_disc W_hosp W_change W_wait W_cns  [i][w]";
             tw.WriteLine(strline);
             for (int i = 0; i < tmpGeneral.Interns; i++)
             {
-                tw.WriteLine(i + " " + tmpinternInfos[i].ProgramID + " " + tmpinternInfos[i].isProspective + " " + tmpinternInfos[i].wieght_d + " " + tmpinternInfos[i].wieght_h + " " + tmpinternInfos[i].wieght_ch + " " + tmpinternInfos[i].wieght_w);
+                tw.WriteLine(i + " " + tmpinternInfos[i].ProgramID + " " + tmpinternInfos[i].isProspective + " " + tmpinternInfos[i].wieght_d + " " + tmpinternInfos[i].wieght_h + " " + tmpinternInfos[i].wieght_ch + " " + tmpinternInfos[i].wieght_w + " " + tmpinternInfos[i].wieght_cns);
 
             }
 

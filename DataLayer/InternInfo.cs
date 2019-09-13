@@ -145,7 +145,16 @@ namespace DataLayer
 							AbsMaxDesire = (double)(Prf_d[d] * wieght_d
 										+ Prf_h[h] * wieght_h
 										+ allData.TrainingPr[ProgramID].weight_p * allData.TrainingPr[ProgramID].Prf_d[d]) / allData.Discipline[d].CourseCredit_p[ProgramID];
-							if (overS)
+                            int Maxcns = 0;
+                            for (int dd = 0; dd < Disciplines; dd++)
+                            {
+                                if (allData.TrainingPr[ProgramID].cns_dD[d][dd] > Maxcns)
+                                {
+                                    Maxcns = allData.TrainingPr[ProgramID].cns_dD[d][dd];
+                                }
+                            }
+                            AbsMaxDesire += wieght_cns * Maxcns;
+                            if (overS)
 							{
                                 AbsMaxDesire -= (double)(Prf_h[h] * wieght_h) / allData.Discipline[d].CourseCredit_p[ProgramID];
 							}
@@ -269,6 +278,7 @@ namespace DataLayer
 		{
 
 			int totalDiscList = 0;
+            
 			for (int d = 0; d < allData.General.Disciplines; d++)
 			{
 				for (int g = 0; g < allData.General.DisciplineGr; g++)
@@ -340,7 +350,8 @@ namespace DataLayer
             int totalAssignment = 0;
 			int tmpKAll = K_AllDiscipline;
 			int[] tmpK_g = new int[allData.General.DisciplineGr];
-			for (int g = 0; g < allData.General.DisciplineGr; g++)
+            bool[] disStatus = new bool[allData.General.Disciplines];
+            for (int g = 0; g < allData.General.DisciplineGr; g++)
 			{
 				tmpK_g[g] = ShouldattendInGr_g[g];
 			}
@@ -349,6 +360,7 @@ namespace DataLayer
 			for (int d = 0; d < allData.General.Disciplines; d++)
 			{
 				bool overS = false;
+                disStatus[d] = false;
 				for (int t = 0; t < allData.General.TimePriods; t++)
 				{
 					if (OverSea_dt[d][t])
@@ -373,7 +385,8 @@ namespace DataLayer
 					{
 						tmpKAll -= allData.Discipline[d].CourseCredit_p[ProgramID];
 						MaxPrf += allData.Discipline[d].CourseCredit_p[ProgramID] * ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
-						removeDisciplineFromList(allData, d);
+                        disStatus[d] = true;
+                        removeDisciplineFromList(allData, d);
                         totalAssignment++;
 					}
 					// now the requiremnets 
@@ -405,7 +418,8 @@ namespace DataLayer
 							{
 								tmpKAll-= allData.Discipline[d].CourseCredit_p[ProgramID];
 								MaxPrf += allData.Discipline[d].CourseCredit_p[ProgramID] * ((DesirePos)sortedPrf[c]).AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
-								removeDisciplineFromList(allData, d);
+                                disStatus[d] = true;
+                                removeDisciplineFromList(allData, d);
                                 totalAssignment++;
                                 // find the group
                                 for (int g = 0; g < allData.General.DisciplineGr; g++)
@@ -443,7 +457,8 @@ namespace DataLayer
 					tmpKAll-= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
 					tmpK_g[GrIndex]-= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
 					MaxPrf += allData.Discipline[tmp.theD].CourseCredit_p[ProgramID] * tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
-					removeDisciplineFromList(allData, tmp.theD);
+                    disStatus[tmp.theD] = true;
+                    removeDisciplineFromList(allData, tmp.theD);
                     totalAssignment++;
 				}
 				else
@@ -471,7 +486,8 @@ namespace DataLayer
 				{
 					tmpKAll -= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
 					MaxPrf += allData.Discipline[tmp.theD].CourseCredit_p[ProgramID] * tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
-					removeDisciplineFromList(allData, tmp.theD);
+                    disStatus[tmp.theD] = true;
+                    removeDisciplineFromList(allData, tmp.theD);
                     totalAssignment++;
 				}
 				else
@@ -485,6 +501,9 @@ namespace DataLayer
 			{
 				MaxPrf -= wieght_ch * (totalAssignment - 1) * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
 			}
+
+
+            // consecutive
 		}
 
 		public void removeDisciplineFromList(AllData allData, int theD)
@@ -492,11 +511,12 @@ namespace DataLayer
 			int c = 0;
 			while (c < sortedPrf.Count)
 			{
-				if (((DesirePos)sortedPrf[c]).theD == theD)
+                // same discipline or AKA
+				if (((DesirePos)sortedPrf[c]).theD == theD || allData.TrainingPr[ProgramID].AKA_dD[((DesirePos)sortedPrf[c]).theD][theD])
 				{
 					sortedPrf.RemoveAt(c);
 					c--;
-				}
+                }
 				c++;
 			}
 		}

@@ -1175,8 +1175,20 @@ namespace NestedHungarianAlgorithm
 			}
 		}
 
+        public int maxConsecutiveness(int theD, int theP)
+        {
+            int result = 0;
+            for (int dd = 0; dd < data.General.Disciplines; dd++)
+            {
+                if (data.TrainingPr[theP].cns_dD[theD][dd] > result)
+                {
+                    result = data.TrainingPr[theP].cns_dD[theD][dd];
+                }
+            }
 
-		public void setSolution(string Name)
+            return result;
+        }
+        public void setSolution(string Name)
 		{
 			Global = new OptimalSolution(data);
 			for (int i = 0; i < Interns; i++)
