@@ -149,17 +149,53 @@ namespace DataLayer
 				
 			}
 			line = tw.ReadLine();
+            line = tw.ReadLine();
+            if (line.Contains("Also"))
+            {
+                for (int p = 0; p < data.General.TrainingPr; p++)
+                {
+                    line = tw.ReadLine();
+                    for (int dd = 0; dd < data.General.Disciplines; dd++)
+                    {
+                        for (int d = 0; d < data.General.Disciplines; d++)
+                        {
+                            indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                            data.TrainingPr[p].AKA_dD[dd][d] = int.Parse(line.Substring(0, indexN)) == 1;
+                            line = line.Substring(indexN + 1);
+                            indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                        }
+                        line = tw.ReadLine();
+                    }
+
+                }
+
+                line = tw.ReadLine();
+                line = tw.ReadLine();
+
+                for (int p = 0; p < data.General.TrainingPr; p++)
+                {
+                    line = tw.ReadLine();
+                    for (int dd = 0; dd < data.General.Disciplines; dd++)
+                    {
+                        for (int d = 0; d < data.General.Disciplines; d++)
+                        {
+                            indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                            data.TrainingPr[p].cns_dD[dd][d] = int.Parse(line.Substring(0, indexN));
+                            line = line.Substring(indexN + 1);
+                            indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                        }
+                        line = tw.ReadLine();
+                    }
+
+                }
+            }
 
 			// Create and write Hospital Info 
 			data.Hospital = new HospitalInfo[data.General.Hospitals];
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
 				data.Hospital[h] = new HospitalInfo(data.General.Disciplines, data.General.TimePriods, data.General.HospitalWard, data.General.Region);
-			}
-
-			
-			line = tw.ReadLine();
-			
+			}			
 			for (int h = 0; h < data.General.Hospitals; h++)
 			{
                 

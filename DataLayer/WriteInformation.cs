@@ -196,6 +196,31 @@ namespace DataLayer
 				}
 			}
 
+            // AKA and consecutive
+            for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+            {
+                for (int d = 0; d < tmpGeneral.Disciplines; d++)
+                {
+                    for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+                    {
+                        if (d == dd)
+                        {
+                            continue;
+                        }
+                        if (random_.NextDouble() > 0.9)
+                        {
+                            tmpTrainingPr[p].AKA_dD[d][dd] = true;
+                            tmpTrainingPr[p].AKA_dD[dd][d] = true;
+                        }
+                        if (random_.NextDouble() > 0.9 && !tmpTrainingPr[p].AKA_dD[d][dd])
+                        {
+                            tmpTrainingPr[p].cns_dD[d][dd] = 1;
+                            tmpTrainingPr[p].cns_dD[dd][d] = 1;
+                        }
+                    }
+                }
+            }
+
 			// Create Hospital Info 
 			tmphospitalInfos = new HospitalInfo[tmpGeneral.Hospitals];
 			for (int h = 0; h < tmpGeneral.Hospitals; h++)
@@ -952,8 +977,44 @@ namespace DataLayer
 			}
 			tw.WriteLine();
 
-			// write Hospital Info 
-			strline = "// Involved discipline in ward in hospital [h]  =>[w][d]";
+            strline = "// Also Known As  [p]: [d][D]";
+            tw.WriteLine(strline);
+            for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+            {
+                strline = "// Program  " + p;
+                tw.WriteLine(strline);
+                for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+                {
+                    for (int d = 0; d < tmpGeneral.Disciplines; d++)
+                    {
+                        tw.Write((tmpTrainingPr[p].AKA_dD[d][dd] == true ? 1 : 0).ToString() + " ");
+                    }
+                    tw.WriteLine();
+                }
+
+            }
+            tw.WriteLine();
+
+            strline = "// Consecutive  [p]: [d][D]";
+            tw.WriteLine(strline);
+            for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+            {
+                strline = "// Program  " + p;
+                tw.WriteLine(strline);
+                for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+                {
+                    for (int d = 0; d < tmpGeneral.Disciplines; d++)
+                    {
+                        tw.Write((tmpTrainingPr[p].cns_dD[d][dd]).ToString() + " ");
+                    }
+                    tw.WriteLine();
+                }
+
+            }
+            tw.WriteLine();
+
+            // write Hospital Info 
+            strline = "// Involved discipline in ward in hospital [h]  =>[w][d]";
 			tw.WriteLine(strline);
 			for (int h = 0; h < tmpGeneral.Hospitals; h++)
 			{
@@ -1502,7 +1563,14 @@ namespace DataLayer
 								}
 							}
 						}
-						
+                        // AKA 
+                        for (int dd = 0; dd < tmpGeneral.Disciplines && cando; dd++)
+                        {
+                            if (tmpTrainingPr[tmpinternInfos[i].ProgramID].AKA_dD[dd][disIndex] && discipline_id[i][dd])
+                            {
+                                cando = false;
+                            }
+                        }
 						int Hindex = random.Next(0, tmpGeneral.Hospitals);
 						// check if there is a ward for this discipline in this hospital
 						infinityLoop = 0;
