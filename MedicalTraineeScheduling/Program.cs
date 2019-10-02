@@ -12,7 +12,7 @@ namespace MedicalTraineeScheduling
 		public static int InstanceSize;
 		static void Main(string[] args)
 		{
-            
+            JsonFunction jf = new JsonFunction();
             
 			InstanceSize = 5;
             //DataLayer.InstanceSetting inssetting = new InstanceSetting();
