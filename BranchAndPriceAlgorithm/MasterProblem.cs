@@ -23,6 +23,7 @@ namespace BranchAndPriceAlgorithm
         public ArrayList DataColumn;
         public int all_const;
         public int ColumnID;
+        public int preIterationColumnID;
 
 
         //output
@@ -75,7 +76,7 @@ namespace BranchAndPriceAlgorithm
             Hospitals = data.General.Hospitals;
             Timepriods = data.General.TimePriods;
             TrainingPr = data.General.TrainingPr;
-
+            preIterationColumnID = 0;
             ColumnID = 0;
         }
 
@@ -611,7 +612,7 @@ namespace BranchAndPriceAlgorithm
                                 {
                                     if (data.Hospital[h].InToRegion_r[r])
                                     {
-                                        for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
+                                        for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
                                             if (theColumn.S_tdh[tt][d][h])
                                             {
@@ -643,7 +644,7 @@ namespace BranchAndPriceAlgorithm
                                 {
                                     if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[i].isProspective)
                                     {
-                                        for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
+                                        for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
                                             if (theColumn.S_tdh[tt][d][h])
                                             {
@@ -676,7 +677,7 @@ namespace BranchAndPriceAlgorithm
                                 {
                                     if (data.Hospital[h].Hospital_dw[d][w])
                                     {
-                                        for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
+                                        for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
                                             if (theColumn.S_tdh[tt][d][h])
                                             {
@@ -827,6 +828,10 @@ namespace BranchAndPriceAlgorithm
                     tw.WriteLine(X_var[i].ToString() + " = {0} reduced Cost: {1} Intern: {2}", xval, xRC, ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern);
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xRC = xRC;
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
+                    if (i - counter > preIterationColumnID)
+                    {
+                        ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_ij" + "[" + ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern + "][" + i + "]");
+                    }
                     AverageReducedCost += xRC;
                     if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
                     {
@@ -840,8 +845,8 @@ namespace BranchAndPriceAlgorithm
                         TotalContinuesVar++;
                     }
                 }
-                TotalIntVar = TotalIntVar - TotalContinuesVar;               
-
+                TotalIntVar = TotalIntVar - TotalContinuesVar;
+                preIterationColumnID = ColumnID;
                 tw.Close();
             }
         }
