@@ -6,6 +6,7 @@ using ILOG.CPLEX;
 using System.Collections;
 using System.IO;
 using System.Diagnostics;
+using DataLayer;
 
 namespace BranchAndPriceAlgorithm
 {
@@ -15,13 +16,13 @@ namespace BranchAndPriceAlgorithm
         public Cplex RMP;
         public IObjective RMPObj;
         public IRange[] RMPRange;
-        public int ID;
         public double[] pi;       
 
         public ArrayList X_var;
         public ArrayList X_Data;
         public ArrayList DataColumn;
         public int all_const;
+        public int ColumnID;
 
 
         //output
@@ -43,6 +44,61 @@ namespace BranchAndPriceAlgorithm
         #endregion
 
 
+        public int Interns;
+        public int Disciplins;
+        public int Hospitals;
+        public int Timepriods;
+        public int TrainingPr;
+        public int Wards;
+        public int Regions;
+        public int DisciplineGr;
+        public AllData data;
+        public MasterProblem(AllData InputData, string InsName)
+        {
+            data = InputData;
+            initial();
+            initialCplexVar();
+            createModelAndIdividualVar(data.allPath.OutPutGr, InsName);
+            solveRMP(data.allPath.OutPutGr, InsName);
+        }
+
+        public void initial()
+        {
+            Interns = data.General.Interns;
+
+          
+            Disciplins = data.General.Disciplines;
+            Wards = data.General.HospitalWard;
+            Regions = data.General.Region;
+            DisciplineGr = data.General.DisciplineGr;
+
+            Hospitals = data.General.Hospitals;
+            Timepriods = data.General.TimePriods;
+            TrainingPr = data.General.TrainingPr;
+
+            ColumnID = 0;
+        }
+
+        public void initialCplexVar()
+        {
+            all_const = Interns + Timepriods * Regions + 2 * Timepriods * Wards * Hospitals + Interns * TrainingPr;
+            RMPRange = new IRange[all_const];
+
+            X_var = new ArrayList();
+        }
+
+        public void createModelAndIdividualVar(string Location, string InsName)
+        {
+            CreateModel(Location,InsName);
+            addDummyColumn();
+            addRegionSl();
+            addMinDemSl();
+            addRes();
+            addEmr();
+            addMinDesire();
+        }
+
+
         public void save_dual()
         {
             pi = new double[all_const];
@@ -57,7 +113,7 @@ namespace BranchAndPriceAlgorithm
 
         }
 
-        public void CreateModel()
+        public void CreateModel(string Location, string InsName)
         {
             try
             {
@@ -67,42 +123,81 @@ namespace BranchAndPriceAlgorithm
                 RMP = new Cplex();
 
                 // Empty Objective 
-                RMPObj = RMP.AddMinimize();
+                RMPObj = RMP.AddMaximize();
 
                 // Empty Constraint 
 
                 // Constraint 2
-                for (int d = 0; d < Days; d++)
+                for (int i = 0; i < Interns; i++)
                 {
-                    for (int r = 0; r < Rooms; r++)
+                    Constraint_Name = constNumberInTXT + "_" + "InternAss_" + i;
+                    RMPRange[Constraint_Counter] = RMP.AddRange(1, 1, Constraint_Name);
+                    Constraint_Counter++;
+                }
+                constNumberInTXT++;
+                // Constraint 3 
+                for (int r = 0; r < Regions; r++)
+                {
+                    for (int t = 0; t < Timepriods; t++)
                     {
-                        Constraint_Name = constNumberInTXT + "_" + "OneDayRoom_" + d + "_" + r;
-                        RMPRange[Constraint_Counter] = RMP.AddRange(0, 0, Constraint_Name);
+                        Constraint_Name = constNumberInTXT + "_" + "RegionAssTR_" + r + "_" + t;
+                        RMPRange[Constraint_Counter] = RMP.AddRange(data.Region[r].AvaAcc_t[t], double.MaxValue, Constraint_Name);
                         Constraint_Counter++;
                     }
                 }
                 constNumberInTXT++;
-                // Constraint 3 
-                for (int n = 0; n < Nurses; n++)
+                // Constraint 4 
+
+                for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int d = 0; d < Days; d++)
+                    for (int w = 0; w < Wards; w++)
                     {
-                        for (int t = 0; t < TimeSlot; t++)
+                        for (int h = 0; h < Hospitals; h++)
                         {
-                            Constraint_Name = constNumberInTXT + "_" + "AccupiedNurse_" + n + "_" + d + "_" + t;
-                            RMPRange[Constraint_Counter] = RMP.AddRange(double.MinValue, 0, Constraint_Name);
+                            Constraint_Name = constNumberInTXT + "_" + "MinDemtwh_" + t + "_" + w + "_" + h;
+                            RMPRange[Constraint_Counter] = RMP.AddRange(data.Hospital[h].HospitalMinDem_tw[t][w], data.Hospital[h].HospitalMinDem_tw[t][w], Constraint_Name);
                             Constraint_Counter++;
                         }
                     }
                 }
+                
                 constNumberInTXT++;
-                // constraint 4
+                // Constraint 5 
+
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            Constraint_Name = constNumberInTXT + "_" + "MaxDemtwh_" + t + "_" + w + "_" + h;
+                            RMPRange[Constraint_Counter] = RMP.AddRange(double.MinValue,data.Hospital[h].HospitalMaxDem_tw[t][w], Constraint_Name);
+                            Constraint_Counter++;
+                        }
+                    }
+                }
+
+                constNumberInTXT++;
+                // Constraint 6
+                for (int p = 0; p < TrainingPr; p++)
+                {
+                    for (int i = 0; i < Interns; i++)
+                    {
+
+                        Constraint_Name = constNumberInTXT + "_" + "MinDesPI_" + p + "_" + i;
+                        RMPRange[Constraint_Counter] = RMP.AddRange(double.MinValue, 0, Constraint_Name);
+                        Constraint_Counter++;
+                    }
+                }
+                
+               
+
                 #region Setting
-                //RMP.ExportModel("RMPModel.lp");
+                RMP.ExportModel(Location + InsName + "RMP.lp");
                 RMP.SetParam(Cplex.DoubleParam.EpRHS, 1e-9);
                 RMP.SetParam(Cplex.DoubleParam.EpOpt, 1e-9);
                 //RMP.SetParam(Cplex.IntParam.Threads, 3);
-                RMP.SetParam(Cplex.DoubleParam.TiLim, Program.g_d.MasterTime);
+                RMP.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.MasterTime);
                 RMP.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
                 //RMP.SetParam(Cplex.IntParam.Conflict.Display, 2);
                 //RMP.SetParam(Cplex.IntParam.ConflictDisplay, 2);
@@ -116,6 +211,641 @@ namespace BranchAndPriceAlgorithm
                 System.Console.WriteLine("Concert exception '" + e + "' caught");
             }
         }
+
+        public void addDummyColumn()
+        {
+            for (int ii = 0; ii < Interns; ii++)
+            {
+
+                try
+                {
+                    //Objective 
+                    Column new_col = RMP.Column(RMPObj, -data.AlgSettings.BigM);
+
+                    int Constraint_Counter = 0;
+                    // Constraint 2
+                    for (int i = 0; i < Interns; i++)
+                    {
+                        if (i == ii)
+                        {
+                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                        }
+                        Constraint_Counter++;
+                    }
+
+                    X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "InternDummyVar_" + ii));
+
+                }
+                catch (ILOG.Concert.Exception e)
+                {
+
+                    System.Console.WriteLine("Concert exception '" + e + "' caught");
+                }
+
+            }
+        }
+
+        public void addRegionSl()
+        {
+            for (int rr = 0; rr < Regions; rr++)
+            {
+                for (int tt = 0; tt < Timepriods; tt++)
+                {
+                    try
+                    {
+                        //Objective 
+                        double objCoeff = 0;
+                        for (int p = 0; p < TrainingPr; p++)
+                        {
+                            objCoeff += data.TrainingPr[p].CoeffObj_NotUsedAcc;
+                        }
+                        Column new_col = RMP.Column(RMPObj, -objCoeff);
+
+                        int Constraint_Counter = Interns;
+                        // Constraint 3
+                        for (int r = 0; r < Regions; r++)
+                        {
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                if (r == rr && t == tt)
+                                {
+                                    new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                                }
+                                Constraint_Counter++;
+                            }
+                        }
+
+                        X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "RegSl_rt_" + rr +"_"+ tt));
+
+                    }
+                    catch (ILOG.Concert.Exception e)
+                    {
+
+                        System.Console.WriteLine("Concert exception '" + e + "' caught");
+                    }
+                }
+            }
+           
+        }
+
+        public void addMinDemSl()
+        {
+            for (int tt = 0; tt < Timepriods; tt++)
+            {
+                for (int ww = 0; ww < Wards; ww++)
+                {
+                    for (int hh = 0; hh < Hospitals; hh++)
+                    {
+                        try
+                        {
+                            //Objective 
+                            double objCoeff = 0;
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                objCoeff += data.TrainingPr[p].CoeffObj_MINDem;
+                            }
+                            Column new_col = RMP.Column(RMPObj, -objCoeff);
+
+                            int Constraint_Counter = Interns;
+                            // Constraint 3
+                            for (int r = 0; r < Regions; r++)
+                            {
+                                for (int t = 0; t < Timepriods; t++)
+                                {
+                                    Constraint_Counter++;
+
+                                }
+                            }
+                            // Constraint 4 
+
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        if (t == tt && ww == w && h == hh)
+                                        {
+                                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                                        }
+                                        Constraint_Counter++;
+                                    }
+                                }
+                            }
+
+                            X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "MinSl_twh" + tt + "_" + ww + "_" + hh));
+
+                        }
+                        catch (ILOG.Concert.Exception e)
+                        {
+
+                            System.Console.WriteLine("Concert exception '" + e + "' caught");
+                        }
+                    }
+                }
+            }
+            
+        }
+
+        public void addRes()
+        {
+            for (int tt = 0; tt < Timepriods; tt++)
+            {
+                for (int ww = 0; ww < Wards; ww++)
+                {
+                    for (int hh = 0; hh < Hospitals; hh++)
+                    {
+                        try
+                        {
+                            //Objective 
+                            double objCoeff = 0;
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                objCoeff += data.TrainingPr[p].CoeffObj_ResCap;
+                            }
+                            Column new_col = RMP.Column(RMPObj, -objCoeff);
+
+                            int Constraint_Counter = Interns;
+                            // Constraint 3
+                            for (int r = 0; r < Regions; r++)
+                            {
+                                for (int t = 0; t < Timepriods; t++)
+                                {
+                                    Constraint_Counter++;
+
+                                }
+                            }
+
+                            // Constraint 4 
+
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        Constraint_Counter++;
+
+                                    }
+                                }
+                            }
+
+                            // Constraint 5
+
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        if (t == tt && ww == w && h == hh)
+                                        {
+                                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], -1));
+                                        }
+                                        Constraint_Counter++;
+                                    }
+                                }
+                            }
+
+                            X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "Res_twh" + tt + "_" + ww + "_" + hh));
+
+                        }
+                        catch (ILOG.Concert.Exception e)
+                        {
+
+                            System.Console.WriteLine("Concert exception '" + e + "' caught");
+                        }
+                    }
+                }
+            }
+
+        }
+
+        public void addEmr()
+        {
+            for (int tt = 0; tt < Timepriods; tt++)
+            {
+                for (int ww = 0; ww < Wards; ww++)
+                {
+                    for (int hh = 0; hh < Hospitals; hh++)
+                    {
+                        try
+                        {
+                            //Objective 
+                            double objCoeff = 0;
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                objCoeff += data.TrainingPr[p].CoeffObj_EmrCap;
+                            }
+                            Column new_col = RMP.Column(RMPObj, -objCoeff);
+
+                            int Constraint_Counter = Interns;
+                            // Constraint 3
+                            for (int r = 0; r < Regions; r++)
+                            {
+                                for (int t = 0; t < Timepriods; t++)
+                                {
+                                    Constraint_Counter++;
+
+                                }
+                            }
+
+                            // Constraint 4 
+
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        Constraint_Counter++;
+
+                                    }
+                                }
+                            }
+
+                            // Constraint 5
+
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        if (t == tt && ww == w && h == hh)
+                                        {
+                                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], -1));
+                                        }
+                                        Constraint_Counter++;
+                                    }
+                                }
+                            }
+
+                            X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "Emr_twh" + tt + "_" + ww + "_" + hh));
+
+                        }
+                        catch (ILOG.Concert.Exception e)
+                        {
+
+                            System.Console.WriteLine("Concert exception '" + e + "' caught");
+                        }
+                    }
+                }
+            }
+
+        }
+
+        public void addMinDesire()
+        {
+            for (int pp = 0; pp < TrainingPr; pp++)
+            {
+                try
+                {
+                    //Objective 
+                    double objCoeff = 0;
+
+                    objCoeff = data.TrainingPr[pp].CoeffObj_MinDesi;
+                    
+                    Column new_col = RMP.Column(RMPObj, objCoeff);
+
+                    int Constraint_Counter = Interns;
+                    // Constraint 3
+                    for (int r = 0; r < Regions; r++)
+                    {
+                        for (int t = 0; t < Timepriods; t++)
+                        {
+                            Constraint_Counter++;
+
+                        }
+                    }
+
+                    // Constraint 4 
+
+                    for (int t = 0; t < Timepriods; t++)
+                    {
+                        for (int w = 0; w < Wards; w++)
+                        {
+                            for (int h = 0; h < Hospitals; h++)
+                            {
+                                Constraint_Counter++;
+
+                            }
+                        }
+                    }
+
+                    // Constraint 5
+
+                    for (int t = 0; t < Timepriods; t++)
+                    {
+                        for (int w = 0; w < Wards; w++)
+                        {
+                            for (int h = 0; h < Hospitals; h++)
+                            {
+                                Constraint_Counter++;
+                            }
+                        }
+                    }
+
+                    // Constraint 6
+                    for (int p = 0; p < TrainingPr; p++)
+                    {
+                        for (int i = 0; i < Interns; i++)
+                        {
+                            if (p == pp)
+                            {
+                                new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                            }
+                            
+                            
+                            Constraint_Counter++;
+                        }
+                    }
+                    X_var.Add(RMP.NumVar(new_col, double.MinValue, double.MaxValue, "MinDesire_" + pp ));
+
+                }
+                catch (ILOG.Concert.Exception e)
+                {
+
+                    System.Console.WriteLine("Concert exception '" + e + "' caught");
+                }
+            }
+
+
+        }
+
+
+        public void addColumn(ColumnInternBasedDecomposition theColumn)
+        {
+
+            try
+            {
+                ColumnID++;
+                //Objective 
+                double objCoeff = 0;
+                int theP = data.Intern[theColumn.theIntern].ProgramID;
+                objCoeff = data.TrainingPr[theP].CoeffObj_MinDesi;
+
+                Column new_col = RMP.Column(RMPObj, objCoeff);
+
+                int Constraint_Counter = 0;
+                // Constraint 2
+                for (int i = 0; i < Interns; i++)
+                {
+                    if (i == theColumn.theIntern)
+                    {
+                        new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                    }
+
+                    Constraint_Counter++;
+                }
+                // Constraint 3
+                for (int r = 0; r < Regions; r++)
+                {
+                    for (int t = 0; t < Timepriods; t++)
+                    {
+                        if (data.Intern[theColumn.theIntern].TransferredTo_r[r])
+                        {
+                            for (int d = 0; d < Disciplins; d++)
+                            {
+                                for (int h = 0; h < Hospitals; h++)
+                                {
+                                    if (data.Hospital[h].InToRegion_r[r])
+                                    {
+                                        for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
+                                        {
+                                            if (theColumn.S_tdh[tt][d][h])
+                                            {
+                                                new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                                            }
+
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                        Constraint_Counter++;
+
+                    }
+                }
+
+                // Constraint 4 
+
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            for (int i = 0; i < Interns; i++)
+                            {
+                                for (int d = 0; d < Disciplins; d++)
+                                {
+                                    if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[i].isProspective)
+                                    {
+                                        for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
+                                        {
+                                            if (theColumn.S_tdh[tt][d][h])
+                                            {
+                                                new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                                            }
+
+                                        }
+                                    }
+
+
+                                }
+                            }
+                            Constraint_Counter++;
+
+                        }
+                    }
+                }
+
+                // Constraint 5
+
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            for (int i = 0; i < Interns; i++)
+                            {
+                                for (int d = 0; d < Disciplins; d++)
+                                {
+                                    if (data.Hospital[h].Hospital_dw[d][w])
+                                    {
+                                        for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
+                                        {
+                                            if (theColumn.S_tdh[tt][d][h])
+                                            {
+                                                new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
+                                            }
+
+                                        }
+                                    }
+
+
+                                }
+                            }
+                            Constraint_Counter++;
+                        }
+                    }
+                }
+
+                // Constraint 6
+                for (int p = 0; p < TrainingPr; p++)
+                {
+                    for (int i = 0; i < Interns; i++)
+                    {
+                        if (p == theP && theColumn.theIntern == i)
+                        {
+                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], -theColumn.desire));
+                        }
+
+
+                        Constraint_Counter++;
+                    }
+                }
+                X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "Xij_" + theColumn.theIntern + "_" + ColumnID));
+                DataColumn.Add(theColumn);
+            }
+            catch (ILOG.Concert.Exception e)
+            {
+
+                System.Console.WriteLine("Concert exception '" + e + "' caught");
+            }
+        }
+
+        public void solveRMP(string Location, string InsName)
+        {
+            try
+            {
+                RMP.ExportModel(Location + InsName + "RMP.lp");
+                if (RMP.Solve())
+                {
+                    Benefit = RMP.ObjValue;
+                    Console.WriteLine(RMP.GetStatus());
+                    model_status = (RMP.GetStatus()).ToString();                   
+                    display(Location,InsName);
+                    save_dual();
+                   
+
+                }
+                model_status = (RMP.GetStatus()).ToString();
+            }
+            catch (ILOG.Concert.Exception e)
+            {
+
+                System.Console.WriteLine("Concert exception '" + e + "' caught");
+            }
+        }
+        public void display(string Location, string InsName)
+        {
+            TotalIntVar = 0;
+            TotalContinuesVar = 0;
+            AvariageValue = 0;
+            AverageReducedCost = 0;
+            is_mip = true;
+
+
+            using (StreamWriter tw = new StreamWriter(Location+ InsName + "VarStatus.txt", true))
+            {
+                
+                X_IsMIP = true;
+                Console.WriteLine("####################this is Master##################");
+                Console.WriteLine();
+                Console.WriteLine("************Cost: {0} , Status: {1}*********", RMP.ObjValue, RMP.GetStatus());
+                Console.WriteLine();
+                tw.WriteLine("Cost: {0} , Status: {1}", RMP.ObjValue, RMP.GetStatus());
+                //Console.WriteLine(masterModel.IsMIP());
+
+                int counter = 0;
+                for (int i = 0; i < Interns; i++)
+                {
+                    tw.WriteLine("Dummy_[" + i + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                    counter++;
+                }
+
+                for (int r = 0; r < Regions; r++)
+                {
+                    for (int t = 0; t < Timepriods; t++)
+                    {
+                        tw.WriteLine("RegSlrt_[" + r +"]["+ t + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                        counter++;
+                    }
+                }
+
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            tw.WriteLine("MinSltwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                            counter++;
+                        }
+                    }
+                }
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            tw.WriteLine("Restwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                            counter++;
+                        }
+                    }
+                }
+
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            tw.WriteLine("Emrtwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                            counter++;
+                        }
+                    }
+                }
+
+                for (int p = 0; p < TrainingPr; p++)
+                {
+                    tw.WriteLine("MinDes_[" + p + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                    counter++;
+                }
+                for (int i = counter; i < X_var.Count; i++)
+                {
+                    double xval = RMP.GetValue((INumVar)X_var[i]);
+                    
+                    double xRC = RMP.GetReducedCost((INumVar)X_var[i]);
+                   
+                    //Console.WriteLine("X_{0}= {1}",i+1,masterModel.GetValue((INumVar)pat_NumVar[i]));
+                    tw.WriteLine(X_var[i].ToString() + " = {0} reduced Cost: {1} Intern: {2}", xval, xRC, ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern);
+                    ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xRC = xRC;
+                    ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
+                    AverageReducedCost += xRC;
+                    if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
+                    {
+                        AvariageValue += xval;
+                        TotalIntVar++;
+                    }
+                    if (RMP.GetValue((INumVar)X_var[i]) < 1 - +data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + +data.AlgSettings.RHSepsi)
+                    {
+                        is_mip = false;
+                        X_IsMIP = false;
+                        TotalContinuesVar++;
+                    }
+                }
+                TotalIntVar = TotalIntVar - TotalContinuesVar;               
+
+                tw.Close();
+            }
+        }
+
 
     }
 }

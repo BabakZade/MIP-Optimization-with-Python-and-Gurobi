@@ -420,11 +420,15 @@ namespace DataLayer
 				line = line.Substring(indexN + 1);
 				indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-				data.Intern[i].wieght_w = int.Parse(line.Substring(0, indexN));
-                line = line.Substring(indexN + 1);
-                indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
+                data.Intern[i].wieght_w = int.Parse(line.Substring(0, indexN));
+                if (indexN != line.Count())
+                {
+                    line = line.Substring(indexN + 1);
+                    indexN = (line.IndexOf(" ") > 0) ? line.IndexOf(" ") : line.Length;
 
-                data.Intern[i].wieght_cns = int.Parse(line.Substring(0, indexN));
+                    data.Intern[i].wieght_cns = int.Parse(line.Substring(0, indexN));
+                }
+                
 
                 line = tw.ReadLine();
 			}

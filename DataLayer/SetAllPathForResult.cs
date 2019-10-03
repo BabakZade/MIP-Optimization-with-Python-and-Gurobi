@@ -7,7 +7,10 @@ namespace DataLayer
 	public class SetAllPathForResult
 	{
 		public string OutPutLocation;
-		public string InstanceLocation;
+        public string OutPutGr;
+        public string ColumnLoc;
+
+        public string InstanceLocation;
 		public string ExprimentLocation;
 		public string InsGroupLocation;
 		public string CurrentDir;
@@ -15,19 +18,6 @@ namespace DataLayer
 		{
 			
 			CurrentDir = System.IO.Directory.GetCurrentDirectory() + "\\" + Expriment + "\\";
-			if (Methodology !="")
-			{
-				ExprimentLocation = CurrentDir + "\\" + Methodology + "\\";
-				if (!Directory.Exists(ExprimentLocation))
-				{
-					Directory.CreateDirectory(ExprimentLocation);
-				}
-				OutPutLocation = ExprimentLocation + "Result\\";
-				if (!Directory.Exists(OutPutLocation))
-				{
-					Directory.CreateDirectory(OutPutLocation);
-				}
-			}
 			
 			InstanceLocation = CurrentDir + "Instance\\";
 			if (!Directory.Exists(InstanceLocation))
@@ -42,9 +32,31 @@ namespace DataLayer
 					Directory.CreateDirectory(InsGroupLocation);
 				}
             }
-			
+            if (Methodology != "")
+            {
+                ExprimentLocation = CurrentDir + "\\" + Methodology + "\\";
+                if (!Directory.Exists(ExprimentLocation))
+                {
+                    Directory.CreateDirectory(ExprimentLocation);
+                }
+                OutPutLocation = ExprimentLocation  + "Result\\";
+                if (!Directory.Exists(OutPutLocation))
+                {
+                    Directory.CreateDirectory(OutPutLocation);
+                }
+                OutPutGr = ExprimentLocation + InsGroupName + "\\";
+                if (!Directory.Exists(OutPutLocation))
+                {
+                    Directory.CreateDirectory(OutPutGr);
+                }
+                ColumnLoc = ExprimentLocation + InsGroupName + "\\" + "Column\\";
+                if (!Directory.Exists(ColumnLoc))
+                {
+                    Directory.CreateDirectory(ColumnLoc);
+                }
+            }
 
-		}
+        }
 
 	}
 }
