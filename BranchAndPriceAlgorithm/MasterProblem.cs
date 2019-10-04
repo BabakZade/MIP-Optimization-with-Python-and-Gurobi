@@ -748,9 +748,7 @@ namespace BranchAndPriceAlgorithm
             is_mip = true;
 
 
-            using (StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + InsName + "VarStatus.txt", true))
-            {
-                
+                StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + InsName + "VarStatus.txt");
                 X_IsMIP = true;
                 Console.WriteLine("####################this is Master##################");
                 Console.WriteLine();
@@ -827,7 +825,7 @@ namespace BranchAndPriceAlgorithm
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
                     if (i - counter > preIterationColumnID)
                     {
-                        ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_ij" + "[" + ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern + "][" + (i - counter) + "]");
+                        ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_j" + "[" + (i - counter) + "]");
                     }
                     AverageReducedCost += xRC;
                     if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
@@ -835,7 +833,7 @@ namespace BranchAndPriceAlgorithm
                         AvariageValue += xval;
                         TotalIntVar++;
                     }
-                    if (RMP.GetValue((INumVar)X_var[i]) < 1 - +data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
+                    if (RMP.GetValue((INumVar)X_var[i]) < 1 - data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
                     {
                         is_mip = false;
                         X_IsMIP = false;
@@ -845,7 +843,7 @@ namespace BranchAndPriceAlgorithm
                 TotalIntVar = TotalIntVar - TotalContinuesVar;
                 preIterationColumnID = ColumnID;
                 tw.Close();
-            }
+            
         }
 
 

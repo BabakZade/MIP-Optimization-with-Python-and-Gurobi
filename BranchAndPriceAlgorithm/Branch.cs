@@ -7,7 +7,30 @@ namespace BranchAndPriceAlgorithm
     public class Branch
     {
 
+        // left child =0 right child =1, left means the branch is equal to 0, right means equal to 1
+        public bool branch_status;
 
+
+        // General Info
+        public int BrPrDisc; // BrPrDisc => BrDisc
+        public int BrDisc;
+        public Branch()
+        {
+            BrPrDisc = -1;
+            BrDisc = -1;
+            branch_status = false;
+           
+        }
+        public Branch(Branch copy_member)
+        {
+            branch_status = copy_member.branch_status;
+            BrPrDisc = copy_member.BrPrDisc;
+            BrDisc = copy_member.BrDisc;
+        }
+
+        public string displayMe() {
+            return BrPrDisc + "=>" + BrDisc;
+        }
 
         public void WriteXML(string Path)
         {

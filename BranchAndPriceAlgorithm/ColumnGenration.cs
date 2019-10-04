@@ -28,7 +28,7 @@ namespace BranchAndPriceAlgorithm
         public long writingX;
 
         public MasterProblem RMP;
-        SubProblem SPMIP;
+        
         public double[] dual;
         public bool isNodeFeasible;
 
@@ -43,7 +43,7 @@ namespace BranchAndPriceAlgorithm
         public int DisciplineGr;
         public AllData data;
 
-        public ColumnGenration(DataLayer.AllData allData, string insName)
+        public ColumnGenration(DataLayer.AllData allData, ArrayList FathersColumn, ArrayList AllBranches, string insName)
         {
             data = allData;
             initial();
@@ -51,10 +51,9 @@ namespace BranchAndPriceAlgorithm
         }
 
         public void SolveCG(string insName)
-        {
-            
+        {            
             double lagrangian_LB;
-            double ben = -1;
+           
             subMIP_time = 0;
           
 
@@ -132,9 +131,8 @@ namespace BranchAndPriceAlgorithm
 
             tmp1 = 0;
             tmp2 = 0;
-            using (StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + insName + "Dual.txt", true))
-            {
 
+            StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + insName + "Dual.txt", true);
                 for (int i = 0; i < dual.Length; i++)
                 {
                     if (tmp2 == i)
@@ -151,13 +149,13 @@ namespace BranchAndPriceAlgorithm
 
                 }
                 tw.Close();
-            }
+            
         }
 
         public void display_time(string insName)
         {
-            using (StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + insName + "timeCG.txt", true))
-            {
+
+            StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + insName + "timeCG.txt", true);
                 tw.WriteLine("{0} \t milisecond for master", master_Time);
                 tw.WriteLine("{0} \t milisecond for sub exact", subMIP_time);
                 tw.WriteLine("{0} \t number of column by sub exact", count_MIP);
@@ -166,7 +164,7 @@ namespace BranchAndPriceAlgorithm
                 tw.WriteLine("{0} \t benefit", RMP.Benefit);
 
                 tw.Close();
-            }
+            
         }
 
         public bool SolveSubProblem(double[] dual, string insName)
