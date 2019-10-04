@@ -25,6 +25,7 @@ namespace BranchAndPriceAlgorithm
         public INumVar dn;
         public INumVar MinPD;
         public INumVar MaxND;
+        public IIntVar internVar;   
         public int theIntern;
         public double constantRC;
 
@@ -364,9 +365,11 @@ namespace BranchAndPriceAlgorithm
             
             
                 dn = MIPModel.NumVar(0,
-                    int.MaxValue, dN);            
+                    int.MaxValue, dN);
+            internVar = MIPModel.IntVar(1,
+                    1, "TheIntern_"+theIntern);
 
-         
+
 
             MinPD = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MinP");
             MaxND = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MaxN");
@@ -923,13 +926,14 @@ namespace BranchAndPriceAlgorithm
 
 
                 int Constraint_Counter = 0;
-                constantRC = 0;
+                
                 // Constraint 2
                 for (int i = 0; i < Interns; i++)
                 {
                     if (i == theIntern)
                     {
-                        constantRC += dual[Constraint_Counter];
+                        TmpRC.AddTerm(-dual[Constraint_Counter], internVar);
+                        
                     }
                     Constraint_Counter++;
                 }
@@ -944,7 +948,7 @@ namespace BranchAndPriceAlgorithm
                         {
                             for (int d = 1; d < Disciplins; d++)
                             {
-                                for (int h = 0; h < Hospitals; h++)
+                                for (int h = 0; h < Hospitals-1; h++)
                                 {
                                     if (data.Hospital[h].InToRegion_r[r])
                                     {
@@ -968,7 +972,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int w = 0; w < Wards; w++)
                     {
-                        for (int h = 0; h < Hospitals; h++)
+                        for (int h = 0; h < Hospitals-1; h++)
                         {
                             for (int i = 0; i < Interns; i++)
                             {
@@ -1000,7 +1004,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int w = 0; w < Wards; w++)
                     {
-                        for (int h = 0; h < Hospitals; h++)
+                        for (int h = 0; h < Hospitals-1; h++)
                         {
                             for (int i = 0; i < Interns; i++)
                             {
@@ -1039,6 +1043,9 @@ namespace BranchAndPriceAlgorithm
                         Constraint_Counter++;
                     }
                 }
+
+                MIPModel.Maximize(TmpRC, "ReducedCost_"+theIntern);
+                MIPModel.AddGe(TmpRC, 2 * data.AlgSettings.RCepsi); // feasibility problem
             }
             catch (ILOG.Concert.Exception e)
             {

@@ -12,8 +12,8 @@ namespace BranchAndPriceAlgorithm
         public double desire;
         public double xRC;
         public double xVal;
-        public double objectivefunction;
-
+        public double objectivefunction;       
+        
         public void initial(int timePeriod, int discipline, int hospital)
         {
             theIntern = -1;
@@ -24,6 +24,139 @@ namespace BranchAndPriceAlgorithm
             xVal = 0;
             objectivefunction = 0;
         }
+
+        public double setReducedCost(double[] dual, DataLayer.AllData data)
+        {
+            double reducedcost = 0;
+
+            reducedcost += data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi * desire;          
+
+
+            int Constraint_Counter = 0;
+
+            // Constraint 2
+            for (int i = 0; i < data.General.Interns; i++)
+            {
+                if (i == theIntern)
+                {
+                    reducedcost -= dual[Constraint_Counter];
+                }
+                Constraint_Counter++;
+            }
+
+            // Constraint 3 
+            for (int r = 0; r < data.General.Region; r++)
+            {
+                for (int t = 0; t < data.General.TimePriods; t++)
+                {
+
+                    if (data.Intern[theIntern].TransferredTo_r[r])
+                    {
+                        for (int d = 0; d < data.General.Disciplines; d++)
+                        {
+                            for (int h = 0; h < data.General.Hospitals; h++)
+                            {
+                                if (data.Hospital[h].InToRegion_r[r])
+                                {
+                                    int theP = data.Intern[theIntern].ProgramID;
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
+                                    {
+                                        if (S_tdh[t][d][h])
+                                        {
+                                            reducedcost -= dual[Constraint_Counter];
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    Constraint_Counter++;
+                }
+            }
+
+            // Constraint 4 
+
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int w = 0; w < data.General.HospitalWard; w++)
+                {
+                    for (int h = 0; h < data.General.Hospitals; h++)
+                    {
+                        for (int i = 0; i < data.General.Interns; i++)
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[i].isProspective)
+                                {
+                                    int theP = data.Intern[theIntern].ProgramID;
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
+                                    {
+                                        if (S_tdh[t][d][h])
+                                        {
+                                            reducedcost -= dual[Constraint_Counter];
+                                        }
+                                    }
+                                }
+
+
+                            }
+                        }
+                        Constraint_Counter++;
+
+                    }
+                }
+            }
+
+            // Constraint 5
+
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int w = 0; w < data.General.HospitalWard; w++)
+                {
+                    for (int h = 0; h < data.General.Hospitals; h++)
+                    {
+                        for (int i = 0; i < data.General.Interns; i++)
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w])
+                                {
+                                    int theP = data.Intern[theIntern].ProgramID;
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
+                                    {
+                                        if (S_tdh[t][d][h])
+                                        {
+                                            reducedcost -= dual[Constraint_Counter];
+                                        }
+                                    }
+                                }
+
+
+                            }
+                        }
+                        Constraint_Counter++;
+
+                    }
+                }
+            }
+
+            // Constraint 6
+            for (int p = 0; p < data.General.TrainingPr; p++)
+            {
+                for (int i = 0; i < data.General.Interns; i++)
+                {
+                    int theP = data.Intern[theIntern].ProgramID;
+                    if (p == theP && theIntern == i)
+                    {
+                        reducedcost += dual[Constraint_Counter] * desire;                       
+                    }
+                    Constraint_Counter++;
+                }
+            }
+            return reducedcost;
+        }
+
         public void WriteXML(string Path)
         {
             Path = Path + "Info.xml";
