@@ -61,7 +61,7 @@ namespace BranchAndPriceAlgorithm
                                     int theP = data.Intern[theIntern].ProgramID;
                                     for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                     {
-                                        if (S_tdh[t][d][h])
+                                        if (S_tdh[tt][d][h])
                                         {
                                             reducedcost -= dual[Constraint_Counter];
                                         }
@@ -83,16 +83,14 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals; h++)
                     {
-                        for (int i = 0; i < data.General.Interns; i++)
-                        {
                             for (int d = 0; d < data.General.Disciplines; d++)
                             {
-                                if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[i].isProspective)
+                                if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[theIntern].isProspective)
                                 {
                                     int theP = data.Intern[theIntern].ProgramID;
                                     for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                     {
-                                        if (S_tdh[t][d][h])
+                                        if (S_tdh[tt][d][h])
                                         {
                                             reducedcost -= dual[Constraint_Counter];
                                         }
@@ -100,7 +98,7 @@ namespace BranchAndPriceAlgorithm
                                 }
 
 
-                            }
+                            
                         }
                         Constraint_Counter++;
 
@@ -116,8 +114,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals; h++)
                     {
-                        for (int i = 0; i < data.General.Interns; i++)
-                        {
+                        
                             for (int d = 0; d < data.General.Disciplines; d++)
                             {
                                 if (data.Hospital[h].Hospital_dw[d][w])
@@ -125,7 +122,7 @@ namespace BranchAndPriceAlgorithm
                                     int theP = data.Intern[theIntern].ProgramID;
                                     for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                     {
-                                        if (S_tdh[t][d][h])
+                                        if (S_tdh[tt][d][h])
                                         {
                                             reducedcost -= dual[Constraint_Counter];
                                         }
@@ -134,7 +131,7 @@ namespace BranchAndPriceAlgorithm
 
 
                             }
-                        }
+                        
                         Constraint_Counter++;
 
                     }

@@ -59,14 +59,14 @@ namespace BranchAndPriceAlgorithm
             data = InputData;
             initial();
             initialCplexVar();
-            createModelAndIdividualVar(data.allPath.OutPutGr, InsName);
-            solveRMP(data.allPath.OutPutGr, InsName);
+            createModelAndIdividualVar(InsName);
+            solveRMP(InsName);
         }
 
         public void initial()
         {
             Interns = data.General.Interns;
-
+            DataColumn = new ArrayList();
           
             Disciplins = data.General.Disciplines;
             Wards = data.General.HospitalWard;
@@ -88,9 +88,9 @@ namespace BranchAndPriceAlgorithm
             X_var = new ArrayList();
         }
 
-        public void createModelAndIdividualVar(string Location, string InsName)
+        public void createModelAndIdividualVar( string InsName)
         {
-            CreateModel(Location,InsName);
+            CreateModel(InsName);
             addDummyColumn();
             addRegionSl();
             addMinDemSl();
@@ -114,7 +114,7 @@ namespace BranchAndPriceAlgorithm
 
         }
 
-        public void CreateModel(string Location, string InsName)
+        public void CreateModel(string InsName)
         {
             try
             {
@@ -156,7 +156,7 @@ namespace BranchAndPriceAlgorithm
                         for (int h = 0; h < Hospitals; h++)
                         {
                             Constraint_Name = constNumberInTXT + "_" + "MinDemtwh_" + t + "_" + w + "_" + h;
-                            RMPRange[Constraint_Counter] = RMP.AddRange(data.Hospital[h].HospitalMinDem_tw[t][w], data.Hospital[h].HospitalMinDem_tw[t][w], Constraint_Name);
+                            RMPRange[Constraint_Counter] = RMP.AddRange(data.Hospital[h].HospitalMinDem_tw[t][w], double.MaxValue, Constraint_Name);
                             Constraint_Counter++;
                         }
                     }
@@ -194,7 +194,7 @@ namespace BranchAndPriceAlgorithm
                
 
                 #region Setting
-                RMP.ExportModel(Location + InsName + "RMP.lp");
+                RMP.ExportModel(data.allPath.OutPutGr + InsName + "RMP.lp");
                 RMP.SetParam(Cplex.DoubleParam.EpRHS, 1e-9);
                 RMP.SetParam(Cplex.DoubleParam.EpOpt, 1e-9);
                 //RMP.SetParam(Cplex.IntParam.Threads, 3);
@@ -586,7 +586,7 @@ namespace BranchAndPriceAlgorithm
                 int theP = data.Intern[theColumn.theIntern].ProgramID;
                 objCoeff = data.TrainingPr[theP].CoeffObj_MinDesi;
 
-                Column new_col = RMP.Column(RMPObj, objCoeff);
+                Column new_col = RMP.Column(RMPObj, objCoeff * theColumn.desire);
 
                 int Constraint_Counter = 0;
                 // Constraint 2
@@ -638,11 +638,9 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < Hospitals; h++)
                         {
-                            for (int i = 0; i < Interns; i++)
-                            {
                                 for (int d = 0; d < Disciplins; d++)
                                 {
-                                    if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[i].isProspective)
+                                    if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[theColumn.theIntern].isProspective)
                                     {
                                         for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
@@ -655,7 +653,7 @@ namespace BranchAndPriceAlgorithm
                                     }
 
 
-                                }
+                                
                             }
                             Constraint_Counter++;
 
@@ -671,8 +669,7 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < Hospitals; h++)
                         {
-                            for (int i = 0; i < Interns; i++)
-                            {
+                            
                                 for (int d = 0; d < Disciplins; d++)
                                 {
                                     if (data.Hospital[h].Hospital_dw[d][w])
@@ -689,7 +686,7 @@ namespace BranchAndPriceAlgorithm
 
 
                                 }
-                            }
+                            
                             Constraint_Counter++;
                         }
                     }
@@ -719,17 +716,17 @@ namespace BranchAndPriceAlgorithm
             }
         }
 
-        public void solveRMP(string Location, string InsName)
+        public void solveRMP( string InsName)
         {
             try
             {
-                RMP.ExportModel(Location + InsName + "RMP.lp");
+                RMP.ExportModel(data.allPath.OutPutGr + InsName + "RMP.lp");
                 if (RMP.Solve())
                 {
                     Benefit = RMP.ObjValue;
                     Console.WriteLine(RMP.GetStatus());
                     model_status = (RMP.GetStatus()).ToString();                   
-                    display(Location,InsName);
+                    display(InsName);
                     save_dual();
                    
 
@@ -742,7 +739,7 @@ namespace BranchAndPriceAlgorithm
                 System.Console.WriteLine("Concert exception '" + e + "' caught");
             }
         }
-        public void display(string Location, string InsName)
+        public void display( string InsName)
         {
             TotalIntVar = 0;
             TotalContinuesVar = 0;
@@ -751,7 +748,7 @@ namespace BranchAndPriceAlgorithm
             is_mip = true;
 
 
-            using (StreamWriter tw = new StreamWriter(Location+ InsName + "VarStatus.txt", true))
+            using (StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + InsName + "VarStatus.txt", true))
             {
                 
                 X_IsMIP = true;
@@ -830,7 +827,7 @@ namespace BranchAndPriceAlgorithm
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
                     if (i - counter > preIterationColumnID)
                     {
-                        ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_ij" + "[" + ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern + "][" + i + "]");
+                        ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_ij" + "[" + ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern + "][" + (i - counter) + "]");
                     }
                     AverageReducedCost += xRC;
                     if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
@@ -838,7 +835,7 @@ namespace BranchAndPriceAlgorithm
                         AvariageValue += xval;
                         TotalIntVar++;
                     }
-                    if (RMP.GetValue((INumVar)X_var[i]) < 1 - +data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + +data.AlgSettings.RHSepsi)
+                    if (RMP.GetValue((INumVar)X_var[i]) < 1 - +data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
                     {
                         is_mip = false;
                         X_IsMIP = false;

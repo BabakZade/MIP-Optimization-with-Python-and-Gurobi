@@ -21,8 +21,6 @@ namespace BranchAndPriceAlgorithm
         public INumVar[] w_d;
         public INumVar[] ch_d;
         public INumVar des;
-        public INumVar dp;
-        public INumVar dn;
         public INumVar MinPD;
         public INumVar MaxND;
         public IIntVar internVar;   
@@ -34,8 +32,6 @@ namespace BranchAndPriceAlgorithm
         public string[] W_d;
         public string[] Ch_d;
         public string Des;
-        public string dP;
-        public string dN;
 
 
 
@@ -47,7 +43,10 @@ namespace BranchAndPriceAlgorithm
         public int Wards;
         public int Regions;
         public int DisciplineGr;
-        public SubProblem(AllData InputData, double[] dual, int theIntern, string InsName, bool CPLEXFirstNode, int NewTimeLimit)
+
+        public ColumnInternBasedDecomposition theColumn;
+
+        public SubProblem(AllData InputData, double[] dual, int theIntern, string InsName)
         {
             data = InputData;
             this.theIntern = theIntern;
@@ -58,8 +57,7 @@ namespace BranchAndPriceAlgorithm
             Initial();
             InitialMIPVar();
             setReducedCost(dual);
-            CreateModel();
-            solve_MIPmodel(InsName);
+            CreateModel();            
         }
         public void SetSol()
         {
@@ -351,21 +349,6 @@ namespace BranchAndPriceAlgorithm
                 des = MIPModel.NumVar(-int.MaxValue,
                     int.MaxValue, Des);
             
-
-           
-                dP = "dP_[" + theIntern + "]";
-            
-            
-                dp = MIPModel.NumVar(0,
-                    int.MaxValue, dP);
-            
-
-           
-                dN = "dN_[" + theIntern + "]";
-            
-            
-                dn = MIPModel.NumVar(0,
-                    int.MaxValue, dN);
             internVar = MIPModel.IntVar(1,
                     1, "TheIntern_"+theIntern);
 
@@ -955,7 +938,7 @@ namespace BranchAndPriceAlgorithm
                                         int theP = data.Intern[theIntern].ProgramID;
                                         for (int tt = Math.Max(0, t - data.Discipline[d - 1].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
-                                            TmpRC.AddTerm(-dual[Constraint_Counter], s_dth[d][t][h]);   
+                                            TmpRC.AddTerm(-dual[Constraint_Counter], s_dth[d][tt][h]);   
                                         }
                                     }
 
@@ -974,16 +957,14 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < Hospitals-1; h++)
                         {
-                            for (int i = 0; i < Interns; i++)
-                            {
                                 for (int d = 1; d < Disciplins; d++)
                                 {
-                                    if (data.Hospital[h].Hospital_dw[d-1][w] && data.Intern[i].isProspective)
+                                    if (data.Hospital[h].Hospital_dw[d-1][w] && data.Intern[theIntern].isProspective)
                                     {
                                         int theP = data.Intern[theIntern].ProgramID;
                                         for (int tt = Math.Max(0, t - data.Discipline[d-1].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
-                                            TmpRC.AddTerm(-dual[Constraint_Counter], s_dth[d][t][h]);
+                                            TmpRC.AddTerm(-dual[Constraint_Counter], s_dth[d][tt][h]);
                                             
 
                                         }
@@ -991,7 +972,7 @@ namespace BranchAndPriceAlgorithm
 
 
                                 }
-                            }
+                            
                             Constraint_Counter++;
 
                         }
@@ -1006,8 +987,6 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < Hospitals-1; h++)
                         {
-                            for (int i = 0; i < Interns; i++)
-                            {
                                 for (int d = 1; d < Disciplins; d++)
                                 {
                                     if (data.Hospital[h].Hospital_dw[d-1][w])
@@ -1015,7 +994,7 @@ namespace BranchAndPriceAlgorithm
                                         int theP = data.Intern[theIntern].ProgramID;
                                         for (int tt = Math.Max(0, t - data.Discipline[d-1].Duration_p[theP] + 1); tt <= t; tt++)
                                         {
-                                            TmpRC.AddTerm(-dual[Constraint_Counter], s_dth[d][t][h]);
+                                            TmpRC.AddTerm(-dual[Constraint_Counter], s_dth[d][tt][h]);
 
 
                                         }
@@ -1023,7 +1002,7 @@ namespace BranchAndPriceAlgorithm
 
 
                                 }
-                            }
+                            
                             Constraint_Counter++;
 
                         }
@@ -1044,8 +1023,8 @@ namespace BranchAndPriceAlgorithm
                     }
                 }
 
-                MIPModel.Maximize(TmpRC, "ReducedCost_"+theIntern);
-                MIPModel.AddGe(TmpRC, 2 * data.AlgSettings.RCepsi); // feasibility problem
+                MIPModel.AddMaximize(TmpRC, "ReducedCost_"+theIntern);
+                MIPModel.AddGe(TmpRC, 2 * data.AlgSettings.RCepsi, "RCconstraint_" + theIntern); // feasibility problem
             }
             catch (ILOG.Concert.Exception e)
             {
@@ -1057,67 +1036,63 @@ namespace BranchAndPriceAlgorithm
 
 
 
-        public ColumnInternBasedDecomposition solve_MIPmodel(string InsName)
+        /// <summary>
+        /// this function returns true if there is at least one column
+        /// </summary>
+        /// <returns>true if there is a suitable list </returns>
+        public bool KeepGoing(string InsName)
         {
-            ColumnInternBasedDecomposition theColumn = new ColumnInternBasedDecomposition();
+            theColumn = new ColumnInternBasedDecomposition();
             theColumn.initial(data.General.TimePriods, data.General.Disciplines, Hospitals); // we need hospital + 1 for oversea, In the masterproblem we do not need to check it
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //*************set program
-            MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "SP.lp");
+           // MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "SP.lp");
             MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
             MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
             MIPModel.SetParam(Cplex.IntParam.Threads, 3);
             MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.SubTime);
             MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
-            try
+            if (!MIPModel.Solve())
             {
-                SolutionFound = true;
-                // sp solve the first node
-                MIPModel.SetParam(Cplex.LongParam.IntSolLim, 1);
-                
-
-                if (MIPModel.Solve())
-                {
-                    stopwatch.Stop();
-                    ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                    theColumn.theIntern = theIntern;
-                    theColumn.objectivefunction = MIPModel.GetObjValue();
-                    int totalChange = 0;
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        totalChange += (int)MIPModel.GetValue(ch_d[d]);
-                    }
-                    theColumn.totalChange = totalChange;
-                    for (int t = 0; t < Timepriods; t++)
-                    {
-                        for (int d = 1; d < Disciplins; d++)
-                        {
-                            for (int h = 0; h < Hospitals; h++)
-                            {
-                                if (MIPModel.GetValue(s_dth[d][t][h]) > 1 - 0.5)
-                                {
-                                    theColumn.S_tdh[t][d-1][h] = true;
-                                   
-
-                                }
-                            }
-                        }
-                    }                  
-                }
-
-                MIPModel.End();
-
-                return theColumn;
+                return false;
             }
-            catch (ILOG.Concert.Exception e)
+            else
+
             {
                 stopwatch.Stop();
                 ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                SolutionFound = false;
-                System.Console.WriteLine("Concert exception '" + e + "' caught");
+                theColumn.theIntern = theIntern;
+                theColumn.objectivefunction = MIPModel.GetObjValue();
+                theColumn.desire = MIPModel.GetValue(des);
+                int totalChange = 0;
+                for (int d = 1; d < Disciplins; d++)
+                {
+                    totalChange += (int)MIPModel.GetValue(ch_d[d]);
+                }
+                theColumn.totalChange = totalChange;
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int d = 1; d < Disciplins; d++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            if (MIPModel.GetValue(s_dth[d][t][h]) > 1 - 0.5)
+                            {
+                                theColumn.S_tdh[t][d - 1][h] = true;
+
+
+                            }
+                        }
+                    }
+                }
             }
-            return theColumn;
+
+
+            MIPModel.End();
+            System.GC.Collect();
+
+            return true;
         }
     }
 }
