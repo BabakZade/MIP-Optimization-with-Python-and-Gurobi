@@ -46,18 +46,18 @@ namespace BranchAndPriceAlgorithm
 
         public ColumnInternBasedDecomposition theColumn;
 
-        public SubProblem(AllData InputData, double[] dual, int theIntern, string InsName)
+        public SubProblem(AllData InputData, ArrayList AllBranches, double[] dual, int theIntern, string InsName)
         {
             data = InputData;
             this.theIntern = theIntern;
-            MIPalgorithem(dual, InsName);
+            MIPalgorithem(AllBranches, dual, InsName);
         }
-        public void MIPalgorithem(double[] dual, string InsName)
+        public void MIPalgorithem(ArrayList AllBranches, double[] dual, string InsName)
         {
             Initial();
             InitialMIPVar();
             setReducedCost(dual);
-            CreateModel();            
+            CreateModel(AllBranches);            
         }
         public void SetSol()
         {
@@ -358,7 +358,7 @@ namespace BranchAndPriceAlgorithm
             MaxND = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MaxN");
         }
 
-        public void CreateModel()
+        public void CreateModel(ArrayList AllBranches)
         {
             // Discipline List  
             for (int i = 0; i < Interns; i++)
@@ -898,7 +898,28 @@ namespace BranchAndPriceAlgorithm
                 MIPModel.AddEq(internDes, 0, "DesI" + i);
             }
 
-            
+            // Branches
+            foreach (Branch item in AllBranches)
+            {
+                if (item.branch_status)
+                {
+                    ILinearNumExpr rightbr = MIPModel.LinearNumExpr();
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        rightbr.AddTerm(y_dDh[item.BrPrDisc+1][item.BrDisc + 1][h],1);
+                    }
+                    MIPModel.AddEq(rightbr, 1, "RightBr_" + item.BrPrDisc + "-" + item.BrDisc);
+                }
+                else
+                {
+                    ILinearNumExpr leftbr = MIPModel.LinearNumExpr();
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        leftbr.AddTerm(y_dDh[item.BrPrDisc + 1][item.BrDisc + 1][h], 1);
+                    }
+                    MIPModel.AddEq(leftbr, 0, "LeftBr_" + item.BrPrDisc + "-" + item.BrDisc);
+                }
+            }
         }
         public void setReducedCost(double[] dual)
         {

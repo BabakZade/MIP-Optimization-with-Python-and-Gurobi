@@ -47,10 +47,10 @@ namespace BranchAndPriceAlgorithm
         {
             data = allData;
             initial();
-            SolveCG(insName);
+            SolveCG(AllBranches,insName);
         }
 
-        public void SolveCG(string insName)
+        public void SolveCG(ArrayList AllBranches , string insName)
         {            
             double lagrangian_LB;
            
@@ -72,7 +72,7 @@ namespace BranchAndPriceAlgorithm
 
 
             int counter = 0;
-            while (SolveSubProblem(dual, insName))
+            while (SolveSubProblem(AllBranches, dual, insName))
             {
                 Iteration++;
                 Stopwatch sw1 = new Stopwatch();
@@ -167,7 +167,7 @@ namespace BranchAndPriceAlgorithm
             
         }
 
-        public bool SolveSubProblem(double[] dual, string insName)
+        public bool SolveSubProblem(ArrayList AllBranches, double[] dual, string insName)
         {
 
             int totalColumn = 0;
@@ -177,7 +177,7 @@ namespace BranchAndPriceAlgorithm
             for (int i = 0; i < Interns; i++)
             {
                 GC.Collect();
-                SubProblem sp = new SubProblem(data, dual, i, insName);
+                SubProblem sp = new SubProblem(data, AllBranches, dual, i, insName);
                 if (sp.KeepGoing(insName))
                 {
                     totalColumn++;

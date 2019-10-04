@@ -846,6 +846,47 @@ namespace BranchAndPriceAlgorithm
             
         }
 
+        public void addAllFatherColumn(ArrayList FatherColumn, ArrayList AllBranches)
+        {
+            bool[] columnStatus= new bool[FatherColumn.Count];
+            int counter = -1;
+            
+            foreach (ColumnInternBasedDecomposition item in FatherColumn)
+            {
+                counter++;
+                columnStatus[counter] = true;
+                foreach (Branch tmpBR in AllBranches)
+                {
+                    // if it is right branch 
+                    if (tmpBR.branch_status)
+                    {
+                        if (!item.Y_dD[tmpBR.BrPrDisc][tmpBR.BrDisc])
+                        {
+                            columnStatus[counter] = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (item.Y_dD[tmpBR.BrPrDisc][tmpBR.BrDisc])
+                        {
+                            columnStatus[counter] = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            counter = -1;
+            foreach (ColumnInternBasedDecomposition item in FatherColumn)
+            {
+                counter++;
+                if (columnStatus[counter])
+                {
+                    addColumn(item);
+                }
+            }
+        }
 
     }
 }

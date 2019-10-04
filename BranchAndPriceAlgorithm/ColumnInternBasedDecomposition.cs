@@ -12,7 +12,8 @@ namespace BranchAndPriceAlgorithm
         public double desire;
         public double xRC;
         public double xVal;
-        public double objectivefunction;       
+        public double objectivefunction;
+        public bool[][] Y_dD;
         
         public void initial(int timePeriod, int discipline, int hospital)
         {
