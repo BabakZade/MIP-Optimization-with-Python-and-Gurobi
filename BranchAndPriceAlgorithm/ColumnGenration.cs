@@ -47,17 +47,17 @@ namespace BranchAndPriceAlgorithm
         {
             data = allData;
             initial();
-            SolveCG(AllBranches,insName);
+            SolveCG(AllBranches, FathersColumn ,insName);
         }
 
-        public void SolveCG(ArrayList AllBranches , string insName)
+        public void SolveCG(ArrayList AllBranches, ArrayList FathersColumn, string insName)
         {            
             double lagrangian_LB;
            
             subMIP_time = 0;
           
 
-            RMP = new MasterProblem(data, insName);
+            RMP = new MasterProblem(data, FathersColumn, insName);
 
             BestSolution = RMP.RMP.ObjValue;
 
@@ -126,7 +126,7 @@ namespace BranchAndPriceAlgorithm
         {
             int tmp1, tmp2;
             int[] cons = {
-                Interns , Timepriods * Regions , Timepriods * Wards * Hospitals,Timepriods * Wards * Hospitals,  Interns * TrainingPr
+                Interns , Timepriods * Regions , Timepriods * Wards * Hospitals,Timepriods * Wards * Hospitals,  Interns
             };
 
             tmp1 = 0;

@@ -1031,18 +1031,17 @@ namespace BranchAndPriceAlgorithm
                 }
 
                 // Constraint 6
-                for (int p = 0; p < TrainingPr; p++)
-                {
+                
                     for (int i = 0; i < Interns; i++)
                     {
                         int theP = data.Intern[theIntern].ProgramID;
-                        if (p == theP && theIntern == i)
+                        if (data.Intern[i].ProgramID == theP && theIntern == i)
                         {
                             TmpRC.AddTerm(+dual[Constraint_Counter], des);
                         }
                         Constraint_Counter++;
                     }
-                }
+                
 
                 MIPModel.AddMaximize(TmpRC, "ReducedCost_"+theIntern);
                 MIPModel.AddGe(TmpRC, 2 * data.AlgSettings.RCepsi, "RCconstraint_" + theIntern); // feasibility problem

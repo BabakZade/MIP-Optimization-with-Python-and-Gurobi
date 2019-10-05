@@ -642,13 +642,7 @@ namespace DataLayer
 												else
 												{													
 													tw.WriteLine(p.ToString("00") + " | " + i.ToString("00") + " | " + g.ToString("00") + " | " + d.ToString("00") + " | " + t.ToString("00") + " | " + (data.Discipline[d].Duration_p[p]).ToString("00") + " | " + h.ToString("00") + " | " + data.Intern[i].Prf_d[d].ToString("000") + " | " + data.Intern[i].Prf_h[h].ToString("000") + " | " + data.TrainingPr[p].Prf_d[d].ToString("000") + " | " + data.Intern[i].ShouldattendInGr_g[g].ToString("000") + " | " + data.Discipline[d].CourseCredit_p[p].ToString("000") + " | ");
-													for (int r = 0; r < data.General.Region; r++)
-													{
-														if (data.Intern[i].TransferredTo_r[r] && data.Hospital[h].InToRegion_r[r])
-														{
-															NotUsesAcc[r][t]++;
-														}
-													}
+													
 												}
 												
 											}
@@ -662,6 +656,34 @@ namespace DataLayer
 				}
 			}
 			MaxDisier /= data.General.Interns;
+
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int r = 0; r < data.General.Region; r++)
+                {
+                    for (int h = 0; h < data.General.Hospitals; h++)
+                    {
+                        if (data.Hospital[h].InToRegion_r[r])
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                for (int i = 0; i < data.General.Interns; i++)
+                                {
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1); tt <= t; tt++)
+                                    {
+                                        if (Intern_itdh[i][tt][d][h] && data.Intern[i].TransferredTo_r[r])
+                                        {
+                                            NotUsesAcc[r][t]++;
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+            }
 			for (int r = 0; r < data.General.Region; r++)
 			{
 				for (int t = 0; t < data.General.TimePriods; t++)
@@ -800,11 +822,19 @@ namespace DataLayer
 							{
 								for (int i = 0; i < data.General.Interns; i++)
 								{
-									if (Intern_itdh[i][t][d][h])
-									{
-										Assigned_twh[t][w][h]++;
-										filledDem++;
-									}
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1); tt <= t; tt++)
+                                    {
+                                        if (Intern_itdh[i][tt][d][h])
+                                        {
+                                            Assigned_twh[t][w][h]++;
+                                            
+                                        }
+                                        if (Intern_itdh[i][tt][d][h] &&  data.Intern[i].isProspective)
+                                        {
+                                            filledDem++;
+                                        }
+                                    }
+									
 								}
 							}
 						}
@@ -1024,5 +1054,47 @@ namespace DataLayer
 
             demonstration.Close();
         }
-	}
+
+
+        public void readSol(AllData data, string path, string name)
+        {
+            StreamReader sr = new StreamReader(path + name + "OptSol.txt");
+            OptimalSolution optimal = new OptimalSolution(data);
+            int PP; int II; int GG; int DD; int TT; int Du; int HH; int PrD; int PrH; int PrP; int K_G; int C_C;
+            string line = sr.ReadLine();
+            while (line.Contains("|"))
+            {
+                int index = line.IndexOf("|");
+                PP = Convert.ToInt32(line.Substring(0, index));
+
+                line = line.Substring(index + 1);
+                index = line.IndexOf("|");
+                II = Convert.ToInt32(line.Substring(0, index));
+
+                line = line.Substring(index + 1);
+                index = line.IndexOf("|");
+                GG = Convert.ToInt32(line.Substring(0, index));
+
+                line = line.Substring(index + 1);
+                index = line.IndexOf("|");
+                DD = Convert.ToInt32(line.Substring(0, index));
+
+                line = line.Substring(index + 1);
+                index = line.IndexOf("|");
+                TT = Convert.ToInt32(line.Substring(0, index));
+
+                line = line.Substring(index + 1);
+                index = line.IndexOf("|");
+                Du = Convert.ToInt32(line.Substring(0, index));
+
+                line = line.Substring(index + 1);
+                index = line.IndexOf("|");
+                HH = Convert.ToInt32(line.Substring(0, index));
+                optimal.Intern_itdh[II][TT][DD][HH] = true;
+                line = sr.ReadLine();
+            }
+
+            optimal.WriteSolution(path, name+"New");
+        }
+    }
 }

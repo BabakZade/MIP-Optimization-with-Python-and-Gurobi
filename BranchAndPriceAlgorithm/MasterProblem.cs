@@ -54,12 +54,14 @@ namespace BranchAndPriceAlgorithm
         public int Regions;
         public int DisciplineGr;
         public AllData data;
-        public MasterProblem(AllData InputData, string InsName)
+        public MasterProblem(AllData InputData, ArrayList FathersColumn, string InsName)
         {
             data = InputData;
             initial();
             initialCplexVar();
             createModelAndIdividualVar(InsName);
+            addAllFatherColumn(FathersColumn);
+            setSol(200);
             solveRMP(InsName);
         }
 
@@ -82,7 +84,7 @@ namespace BranchAndPriceAlgorithm
 
         public void initialCplexVar()
         {
-            all_const = Interns + Timepriods * Regions + 2 * Timepriods * Wards * Hospitals + Interns * TrainingPr;
+            all_const = Interns + Timepriods * Regions + 2 * Timepriods * Wards * Hospitals + Interns;
             RMPRange = new IRange[all_const];
 
             X_var = new ArrayList();
@@ -180,16 +182,15 @@ namespace BranchAndPriceAlgorithm
 
                 constNumberInTXT++;
                 // Constraint 6
-                for (int p = 0; p < TrainingPr; p++)
-                {
-                    for (int i = 0; i < Interns; i++)
+               
+               for (int i = 0; i < Interns; i++)
                     {
 
-                        Constraint_Name = constNumberInTXT + "_" + "MinDesPI_" + p + "_" + i;
+                        Constraint_Name = constNumberInTXT + "_" + "MinDesPI_" + data.Intern[i].ProgramID + "_" + i;
                         RMPRange[Constraint_Counter] = RMP.AddRange(double.MinValue, 0, Constraint_Name);
                         Constraint_Counter++;
-                    }
-                }
+                   }
+                
                 
                
 
@@ -548,11 +549,10 @@ namespace BranchAndPriceAlgorithm
                     }
 
                     // Constraint 6
-                    for (int p = 0; p < TrainingPr; p++)
-                    {
+                   
                         for (int i = 0; i < Interns; i++)
                         {
-                            if (p == pp)
+                            if (data.Intern[i].ProgramID == pp)
                             {
                                 new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
                             }
@@ -560,7 +560,7 @@ namespace BranchAndPriceAlgorithm
                             
                             Constraint_Counter++;
                         }
-                    }
+                    
                     X_var.Add(RMP.NumVar(new_col, double.MinValue, double.MaxValue, "MinDesire_" + pp ));
 
                 }
@@ -573,7 +573,6 @@ namespace BranchAndPriceAlgorithm
 
 
         }
-
 
         public void addColumn(ColumnInternBasedDecomposition theColumn)
         {
@@ -638,22 +637,22 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < Hospitals; h++)
                         {
-                                for (int d = 0; d < Disciplins; d++)
+                            for (int d = 0; d < Disciplins; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[theColumn.theIntern].isProspective)
                                 {
-                                    if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[theColumn.theIntern].isProspective)
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                     {
-                                        for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
+                                        if (theColumn.S_tdh[tt][d][h])
                                         {
-                                            if (theColumn.S_tdh[tt][d][h])
-                                            {
-                                                new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
-                                            }
-
+                                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
                                         }
+
                                     }
+                                }
 
 
-                                
+
                             }
                             Constraint_Counter++;
 
@@ -669,43 +668,41 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < Hospitals; h++)
                         {
-                            
-                                for (int d = 0; d < Disciplins; d++)
+
+                            for (int d = 0; d < Disciplins; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w])
                                 {
-                                    if (data.Hospital[h].Hospital_dw[d][w])
+                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
                                     {
-                                        for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[theP] + 1); tt <= t; tt++)
+                                        if (theColumn.S_tdh[tt][d][h])
                                         {
-                                            if (theColumn.S_tdh[tt][d][h])
-                                            {
-                                                new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
-                                            }
-
+                                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], 1));
                                         }
+
                                     }
-
-
                                 }
-                            
+
+
+                            }
+
                             Constraint_Counter++;
                         }
                     }
                 }
 
                 // Constraint 6
-                for (int p = 0; p < TrainingPr; p++)
+                for (int i = 0; i < Interns; i++)
                 {
-                    for (int i = 0; i < Interns; i++)
+                    if (data.Intern[i].ProgramID == theP && theColumn.theIntern == i)
                     {
-                        if (p == theP && theColumn.theIntern == i)
-                        {
-                            new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], -theColumn.desire));
-                        }
-
-
-                        Constraint_Counter++;
+                        new_col = new_col.And(RMP.Column(RMPRange[Constraint_Counter], -theColumn.desire));
                     }
+
+
+                    Constraint_Counter++;
                 }
+
                 X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "Xij_" + theColumn.theIntern + "_" + ColumnID));
                 DataColumn.Add(theColumn);
             }
@@ -739,6 +736,7 @@ namespace BranchAndPriceAlgorithm
                 System.Console.WriteLine("Concert exception '" + e + "' caught");
             }
         }
+
         public void display( string InsName)
         {
             TotalIntVar = 0;
@@ -823,7 +821,7 @@ namespace BranchAndPriceAlgorithm
                     tw.WriteLine(X_var[i].ToString() + " = {0} reduced Cost: {1} Intern: {2}", xval, xRC, ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern);
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xRC = xRC;
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
-                    if (i - counter > preIterationColumnID)
+                    if (i - counter >= preIterationColumnID)
                     {
                         ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_j" + "[" + (i - counter) + "]");
                     }
@@ -887,6 +885,19 @@ namespace BranchAndPriceAlgorithm
                 }
             }
         }
+
+        public void setSol(int totalNumberOfColumn)
+        {
+            for (int i = 0; i < totalNumberOfColumn; i++)
+            {
+                if (File.Exists(data.allPath.ColumnLoc + "X_j[" + i.ToString() + "]Info.xml"))
+                {
+                    ColumnInternBasedDecomposition column = new ColumnInternBasedDecomposition().ReadXML(data.allPath.ColumnLoc + "X_j[" + i.ToString() + "]Info.xml");
+                    addColumn(column);
+                }                
+            }
+        }
+
 
     }
 }

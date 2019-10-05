@@ -293,6 +293,17 @@ namespace DataLayer
                 line = tw.ReadLine();
                 line = tw.ReadLine();
             }
+            else
+            {
+                for (int h = 0; h < data.General.Hospitals; h++)
+                {
+                    for (int d = 0; d < data.General.HospitalWard; d++)
+                    {
+                        data.Hospital[h].HospitalMaxYearly_w[d] = data.General.Interns * data.General.TimePriods;
+                        
+                    }
+                }
+            }
             if (line.Contains("Yearly")) // yearly min demand
             {
                 for (int h = 0; h < data.General.Hospitals; h++)

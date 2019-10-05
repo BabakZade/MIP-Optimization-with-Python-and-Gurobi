@@ -15,7 +15,7 @@ namespace BranchAndPriceAlgorithm
         public bool is_mip;
 
         
-        public double optimalSol;
+        public double Upperbound;
 
         public long ElappsedTime;
 
@@ -31,7 +31,7 @@ namespace BranchAndPriceAlgorithm
         public Node(DataLayer.AllData allData, string insName)
         {
             data = allData;
-            optimalSol = -1; 
+            Upperbound = -1; 
             BranchCounter_i = new int[allData.General.Interns];
             for (int i = 0; i < allData.General.Interns; i++)
             {
@@ -90,10 +90,7 @@ namespace BranchAndPriceAlgorithm
         }
         public void setBounds()
         {
-            if (is_mip)
-            {
-                optimalSol = NodeCG.BestSolution;
-            }
+            Upperbound = NodeCG.BestSolution;
             
         }
 
