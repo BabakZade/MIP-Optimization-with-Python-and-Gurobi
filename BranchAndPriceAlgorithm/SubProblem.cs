@@ -55,9 +55,9 @@ namespace BranchAndPriceAlgorithm
         public void MIPalgorithem(ArrayList AllBranches, double[] dual, string InsName)
         {
             Initial();
-            InitialMIPVar();
+            InitialMIPVar(AllBranches);
             setReducedCost(dual);
-            CreateModel(AllBranches);            
+            CreateModel();            
         }
         public void SetSol()
         {
@@ -80,7 +80,7 @@ namespace BranchAndPriceAlgorithm
             Timepriods = data.General.TimePriods;
             TrainingPr = data.General.TrainingPr;
         }
-        public void InitialMIPVar()
+        public void InitialMIPVar(ArrayList AllBranches)
         {
 
             MIPModel = new Cplex();
@@ -215,10 +215,28 @@ namespace BranchAndPriceAlgorithm
                         }
                     }
                 }
-            
 
-           
-                S_dth = new string[Disciplins][][];
+
+            // Branches
+            foreach (Branch item in AllBranches)
+            {
+                if (item.BrIntern == theIntern)
+                {
+                    if (item.branch_status)
+                    {
+                        y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital] = MIPModel.IntVar(1, 1, Y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                        MIPModel.Add(y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                    }
+                    else
+                    {
+                        y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital] = MIPModel.IntVar(0, 0, Y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                        MIPModel.Add(y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                    }
+                }
+                
+            }
+
+            S_dth = new string[Disciplins][][];
                 for (int d = 0; d < Disciplins; d++)
                 {
                     S_dth[d] = new string[Timepriods][];
@@ -358,7 +376,7 @@ namespace BranchAndPriceAlgorithm
             MaxND = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MaxN");
         }
 
-        public void CreateModel(ArrayList AllBranches)
+        public void CreateModel()
         {
             // Discipline List  
             for (int i = 0; i < Interns; i++)
@@ -898,28 +916,6 @@ namespace BranchAndPriceAlgorithm
                 MIPModel.AddEq(internDes, 0, "DesI" + i);
             }
 
-            // Branches
-            foreach (Branch item in AllBranches)
-            {
-                if (item.branch_status)
-                {
-                    ILinearNumExpr rightbr = MIPModel.LinearNumExpr();
-                    for (int h = 0; h < Hospitals; h++)
-                    {
-                        rightbr.AddTerm(y_dDh[item.BrPrDisc+1][item.BrDisc + 1][h],1);
-                    }
-                    MIPModel.AddEq(rightbr, 1, "RightBr_" + item.BrPrDisc + "-" + item.BrDisc);
-                }
-                else
-                {
-                    ILinearNumExpr leftbr = MIPModel.LinearNumExpr();
-                    for (int h = 0; h < Hospitals; h++)
-                    {
-                        leftbr.AddTerm(y_dDh[item.BrPrDisc + 1][item.BrDisc + 1][h], 1);
-                    }
-                    MIPModel.AddEq(leftbr, 0, "LeftBr_" + item.BrPrDisc + "-" + item.BrDisc);
-                }
-            }
         }
         public void setReducedCost(double[] dual)
         {
@@ -1044,7 +1040,7 @@ namespace BranchAndPriceAlgorithm
                 
 
                 MIPModel.AddMaximize(TmpRC, "ReducedCost_"+theIntern);
-                MIPModel.AddGe(TmpRC, 2 * data.AlgSettings.RCepsi, "RCconstraint_" + theIntern); // feasibility problem
+                MIPModel.AddGe(TmpRC, 3 * data.AlgSettings.RCepsi, "RCconstraint_" + theIntern); // feasibility problem
             }
             catch (ILOG.Concert.Exception e)
             {
@@ -1060,51 +1056,34 @@ namespace BranchAndPriceAlgorithm
         /// this function returns true if there is at least one column
         /// </summary>
         /// <returns>true if there is a suitable list </returns>
-        public bool KeepGoing(string InsName)
+        public bool KeepGoing(double[] dual, string InsName)
         {
+            bool flag = true;
             theColumn = new ColumnInternBasedDecomposition();
             theColumn.initial(data.General.TimePriods, data.General.Disciplines, Hospitals); // we need hospital + 1 for oversea, In the masterproblem we do not need to check it
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //*************set program
            // MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "SP.lp");
-            MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
+            MIPModel.SetParam(Cplex.DoubleParam.EpRHS, 0.00000001);
             MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
             MIPModel.SetParam(Cplex.IntParam.Threads, 3);
             MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.SubTime);
             MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
             if (!MIPModel.Solve())
             {
-                return false;
+                flag = false;
             }
             else
 
             {
                 stopwatch.Stop();
                 ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                theColumn.theIntern = theIntern;
-                theColumn.objectivefunction = MIPModel.GetObjValue();
-                theColumn.desire = MIPModel.GetValue(des);
-                int totalChange = 0;
-                for (int d = 1; d < Disciplins; d++)
+                setColumn();
+                
+                if (theColumn.setReducedCost(dual,data) < data.AlgSettings.RCepsi)
                 {
-                    totalChange += (int)MIPModel.GetValue(ch_d[d]);
-                }
-                theColumn.totalChange = totalChange;
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            if (MIPModel.GetValue(s_dth[d][t][h]) > 1 - 0.5)
-                            {
-                                theColumn.S_tdh[t][d - 1][h] = true;
-
-
-                            }
-                        }
-                    }
+                    flag = false;
                 }
             }
 
@@ -1112,7 +1091,50 @@ namespace BranchAndPriceAlgorithm
             MIPModel.End();
             System.GC.Collect();
 
-            return true;
+            return flag;
+        }
+
+        public void setColumn()
+        {
+            theColumn.theIntern = theIntern;
+            theColumn.objectivefunction = MIPModel.GetObjValue();
+            theColumn.desire = MIPModel.GetValue(des);
+            int totalChange = 0;
+            for (int d = 1; d < Disciplins; d++)
+            {
+                totalChange += (int)MIPModel.GetValue(ch_d[d]);
+            }
+            theColumn.totalChange = totalChange;
+            for (int t = 0; t < Timepriods; t++)
+            {
+                for (int d = 1; d < Disciplins; d++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        if (MIPModel.GetValue(s_dth[d][t][h]) > 1 - 0.5)
+                        {
+                            theColumn.S_tdh[t][d - 1][h] = true;
+
+
+                        }
+                    }
+                }
+            }
+
+            for (int d = 0; d < Disciplins; d++)
+            {
+                for (int dd = 1; dd < Disciplins; dd++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        if (MIPModel.GetValue(y_dDh[d][dd][h]) > 0.5)
+                        {
+                                theColumn.Y_dDh[d][dd][h] = true;
+                                                       
+                        }
+                    }
+                }
+            }
         }
     }
 }

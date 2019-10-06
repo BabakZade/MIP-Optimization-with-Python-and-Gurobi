@@ -13,12 +13,13 @@ namespace BranchAndPriceAlgorithm
         public double xRC;
         public double xVal;
         public double objectivefunction;
-        public bool[][] Y_dD;
+        public bool[][][] Y_dDh;
         
         public void initial(int timePeriod, int discipline, int hospital)
         {
             theIntern = -1;
             new DataLayer.ArrayInitializer().CreateArray(ref S_tdh, timePeriod, discipline, hospital, false);
+            new DataLayer.ArrayInitializer().CreateArray(ref Y_dDh, discipline + 1, discipline + 1, hospital, false);
             totalChange = 0;
             desire = 0;
             xRC = 0;
@@ -139,19 +140,16 @@ namespace BranchAndPriceAlgorithm
                 }
             }
 
-            // Constraint 6
-            for (int p = 0; p < data.General.TrainingPr; p++)
-            {
-                for (int i = 0; i < data.General.Interns; i++)
+            // Constraint 6   
+            for (int i = 0; i < data.General.Interns; i++)
                 {
-                    int theP = data.Intern[theIntern].ProgramID;
-                    if (p == theP && theIntern == i)
+                    if (theIntern == i)
                     {
                         reducedcost += dual[Constraint_Counter] * desire;                       
                     }
                     Constraint_Counter++;
                 }
-            }
+            
             return reducedcost;
         }
 

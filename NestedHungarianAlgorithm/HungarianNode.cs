@@ -276,8 +276,8 @@ namespace NestedHungarianAlgorithm
                         DemRes_wth[d][t][h] = data.Hospital[h].ReservedCap_tw[t][d];
                         DemEmr_wth[d][t][h] = data.Hospital[h].EmergencyCap_tw[t][d];
 
-                        DemRes_wth[d][t][h] = 0;
-                        DemEmr_wth[d][t][h] = 0; // we consider this capacity only in the dynamic programming the
+                        //DemRes_wth[d][t][h] = 0;
+                        //DemEmr_wth[d][t][h] = 0; // we consider this capacity only in the dynamic programming the
 
                         if (isRoot)
                         {

@@ -57,7 +57,7 @@ namespace BranchAndPriceAlgorithm
             subMIP_time = 0;
           
 
-            RMP = new MasterProblem(data, FathersColumn, insName);
+            RMP = new MasterProblem(data, FathersColumn, AllBranches, insName);
 
             BestSolution = RMP.RMP.ObjValue;
 
@@ -132,7 +132,7 @@ namespace BranchAndPriceAlgorithm
             tmp1 = 0;
             tmp2 = 0;
 
-            StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + insName + "Dual.txt", true);
+            StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + insName + "Dual.txt");
                 for (int i = 0; i < dual.Length; i++)
                 {
                     if (tmp2 == i)
@@ -178,10 +178,9 @@ namespace BranchAndPriceAlgorithm
             {
                 GC.Collect();
                 SubProblem sp = new SubProblem(data, AllBranches, dual, i, insName);
-                if (sp.KeepGoing(insName))
+                if (sp.KeepGoing(dual,insName))
                 {
                     totalColumn++;
-
                     RMP.addColumn(sp.theColumn);                    
                 }
             }

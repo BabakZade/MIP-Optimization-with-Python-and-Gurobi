@@ -669,7 +669,9 @@ namespace DataLayer
                             {
                                 for (int i = 0; i < data.General.Interns; i++)
                                 {
-                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1); tt <= t; tt++)
+                                    int strt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1);
+                                    strt = t;
+                                    for (int tt = strt; tt <= t; tt++)
                                     {
                                         if (Intern_itdh[i][tt][d][h] && data.Intern[i].TransferredTo_r[r])
                                         {
@@ -822,7 +824,9 @@ namespace DataLayer
 							{
 								for (int i = 0; i < data.General.Interns; i++)
 								{
-                                    for (int tt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1); tt <= t; tt++)
+                                    int strt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1);
+                                    strt = t; // we keep doing this
+                                    for (int tt = strt; tt <= t; tt++)
                                     {
                                         if (Intern_itdh[i][tt][d][h])
                                         {
@@ -1056,12 +1060,18 @@ namespace DataLayer
         }
 
 
-        public void readSol(AllData data, string path, string name)
+        public OptimalSolution readSol(AllData data, string path, string name)
         {
             StreamReader sr = new StreamReader(path + name + "OptSol.txt");
             OptimalSolution optimal = new OptimalSolution(data);
             int PP; int II; int GG; int DD; int TT; int Du; int HH; int PrD; int PrH; int PrP; int K_G; int C_C;
             string line = sr.ReadLine();
+            bool du = false;
+            if (line.Contains("Du"))
+            {
+                du = true;
+            }
+            line = sr.ReadLine();
             while (line.Contains("|"))
             {
                 int index = line.IndexOf("|");
@@ -1083,9 +1093,13 @@ namespace DataLayer
                 index = line.IndexOf("|");
                 TT = Convert.ToInt32(line.Substring(0, index));
 
-                line = line.Substring(index + 1);
-                index = line.IndexOf("|");
-                Du = Convert.ToInt32(line.Substring(0, index));
+                if (du)
+                {
+                    line = line.Substring(index + 1);
+                    index = line.IndexOf("|");
+                    Du = Convert.ToInt32(line.Substring(0, index));
+                }
+
 
                 line = line.Substring(index + 1);
                 index = line.IndexOf("|");
@@ -1095,6 +1109,7 @@ namespace DataLayer
             }
 
             optimal.WriteSolution(path, name+"New");
+            return optimal;
         }
     }
 }

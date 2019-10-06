@@ -12,24 +12,29 @@ namespace BranchAndPriceAlgorithm
 
 
         // General Info
+        public int BrIntern;
         public int BrPrDisc; // BrPrDisc => BrDisc
         public int BrDisc;
+        public int BrHospital;
         public Branch()
         {
             BrPrDisc = -1;
             BrDisc = -1;
             branch_status = false;
-           
+            BrHospital = -1;
+            BrIntern = -1;
         }
         public Branch(Branch copy_member)
         {
             branch_status = copy_member.branch_status;
             BrPrDisc = copy_member.BrPrDisc;
             BrDisc = copy_member.BrDisc;
+            BrHospital = copy_member.BrHospital;
+            BrIntern = copy_member.BrIntern;
         }
 
         public string displayMe() {
-            return BrPrDisc + "=>" + BrDisc;
+            return BrIntern+": "+ BrPrDisc + "=>" + BrDisc + "@ "+BrHospital;
         }
 
         public void WriteXML(string Path)

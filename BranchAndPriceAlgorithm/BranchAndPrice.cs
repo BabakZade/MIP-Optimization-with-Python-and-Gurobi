@@ -13,6 +13,7 @@ namespace BranchAndPriceAlgorithm
         public ArrayList active_list;
 
         public double upper_bound;
+        public double best_sol;
 
 
         public int active_list_count;
@@ -101,7 +102,7 @@ namespace BranchAndPriceAlgorithm
 
         public void Branching(string insName)
         {
-            if (((Node)active_list[0]).Upperbound - optimalSol.Obj > -data.AlgSettings.RCepsi)
+            if (((Node)active_list[0]).Upperbound - best_sol < data.AlgSettings.RCepsi)
             {
                 active_list.RemoveAt(0);
                 return;
@@ -161,10 +162,13 @@ namespace BranchAndPriceAlgorithm
         {
            
             // update upperbound
-            if (theNode.is_mip && theNode.Upperbound >= upper_bound)
+            if (theNode.is_mip)
+            {
+                setOptimalSol(theNode, insName);
+            }
+            if (theNode.Upperbound >= upper_bound)
             {
                 upper_bound = theNode.Upperbound;
-                setOptimalSol(theNode, insName);
             }
 
             int pos = -1;
@@ -228,7 +232,7 @@ namespace BranchAndPriceAlgorithm
             foreach (ColumnInternBasedDecomposition clmn in theNode.NodeCG.RMP.DataColumn)
             {
                 counter++;
-                if (clmn.xVal <= 0)
+                if (clmn.xVal < data.AlgSettings.RCepsi || clmn.xVal > 1 - data.AlgSettings.RCepsi)
                 {
                     continue;
                 }
@@ -278,14 +282,11 @@ namespace BranchAndPriceAlgorithm
                 }
                 for (int i = 0; i < data.General.Interns; i++)
                 {
-                    if (internColumn[i] == 1) // it is already integer
-                    {
-                        continue;
-                    }
                     for (int t = 0; t < data.General.TimePriods; t++)
                     {
                         for (int h = 0; h < data.General.Hospitals; h++)
                         {
+                            
                             count += s_itdh[i][t][d][h] * internColumn[i];
                         }
                     }
@@ -297,22 +298,27 @@ namespace BranchAndPriceAlgorithm
                 }
             }
 
-            brnch.BrDisc = discIndex;
+            brnch.BrDisc = discIndex + 1;
             // find pre discipline 
-            for (int d = 0; d < data.General.Disciplines; d++)
+            for (int d = 0; d < data.General.Disciplines + 1; d++)
             {
-                if (((ColumnInternBasedDecomposition)theNode.NodeCG.RMP.DataColumn[columnIndex]).Y_dD[d][discIndex])
+                for (int h = 0; h < data.General.Hospitals; h++)
                 {
-                    brnch.BrPrDisc = d;
-                    break;
+                    if (((ColumnInternBasedDecomposition)theNode.NodeCG.RMP.DataColumn[columnIndex]).Y_dDh[d][brnch.BrDisc][h])
+                    {
+                        brnch.BrPrDisc = d;
+                        brnch.BrHospital = h;
+                        break;
+                    }
                 }
+                
             }
             return brnch;
         }
 
         public void setOptimalSol(Node theNode, string insName)
         {
-            if (theNode.Upperbound > optimalSol.Obj)
+            if (theNode.Upperbound > best_sol)
             {
                 
                 optimalSol = new OptimalSolution(data);
@@ -335,6 +341,7 @@ namespace BranchAndPriceAlgorithm
 
                 }
                 optimalSol.WriteSolution(data.allPath.OutPutGr, "BPOpt"+ insName);
+                best_sol = theNode.Upperbound;
             }
         }
 

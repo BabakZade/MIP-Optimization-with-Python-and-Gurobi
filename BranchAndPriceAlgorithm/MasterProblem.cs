@@ -54,14 +54,14 @@ namespace BranchAndPriceAlgorithm
         public int Regions;
         public int DisciplineGr;
         public AllData data;
-        public MasterProblem(AllData InputData, ArrayList FathersColumn, string InsName)
+        public MasterProblem(AllData InputData, ArrayList FathersColumn, ArrayList AllBranches, string InsName)
         {
             data = InputData;
             initial();
             initialCplexVar();
             createModelAndIdividualVar(InsName);
-            addAllFatherColumn(FathersColumn);
-            setSol(200);
+            addAllFatherColumn(FathersColumn, AllBranches);
+            //setSol(37);
             solveRMP(InsName);
         }
 
@@ -108,6 +108,10 @@ namespace BranchAndPriceAlgorithm
             try
             {
                 RMP.GetDuals(RMPRange).CopyTo(pi, 0);
+                for (int i = 0; i < pi.Length; i++)
+                {
+                    pi[i] = Math.Round(pi[i], 6);
+                }
             }
             catch (ILOG.Concert.Exception e)
             {
@@ -858,7 +862,7 @@ namespace BranchAndPriceAlgorithm
                     // if it is right branch 
                     if (tmpBR.branch_status)
                     {
-                        if (!item.Y_dD[tmpBR.BrPrDisc][tmpBR.BrDisc])
+                        if (item.theIntern == tmpBR.BrIntern && !item.Y_dDh[tmpBR.BrPrDisc][tmpBR.BrDisc][tmpBR.BrHospital])
                         {
                             columnStatus[counter] = false;
                             break;
@@ -866,7 +870,7 @@ namespace BranchAndPriceAlgorithm
                     }
                     else
                     {
-                        if (item.Y_dD[tmpBR.BrPrDisc][tmpBR.BrDisc])
+                        if (item.theIntern == tmpBR.BrIntern && item.Y_dDh[tmpBR.BrPrDisc][tmpBR.BrDisc][tmpBR.BrHospital])
                         {
                             columnStatus[counter] = false;
                             break;
