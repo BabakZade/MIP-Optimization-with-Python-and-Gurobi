@@ -5,6 +5,7 @@ using System.IO;
 using System.Diagnostics;
 using DataLayer;
 
+
 namespace BranchAndPriceAlgorithm
 {
     public class BranchAndPrice
@@ -23,11 +24,16 @@ namespace BranchAndPriceAlgorithm
         public bool upper_wrong;
 
         public long ElappsedTime;
+        public long master_Time;
+        public long subMIP_time;
         public bool is_mip;
      
 
         public int totalNumberOfColumn;
         public int totalCreatedColumn;
+        public bool[][][][] BrnchHistory_yidDh;
+        ArrayList allBranches;
+        
         AllData data;
 
         public BranchAndPrice(DataLayer.AllData allData, string insName)
@@ -37,17 +43,18 @@ namespace BranchAndPriceAlgorithm
 
         public void Algorithem(DataLayer.AllData allData, string insName)
         {
-            Initialize(allData) ;
+            Initialize(allData,insName) ;
             branch_and_price(insName);
         }
 
-        public void Initialize(DataLayer.AllData allData)
+        public void Initialize(DataLayer.AllData allData, string insName)
         {
             data = allData;
             optimalSol = new OptimalSolution(data);
-            
             active_list = new ArrayList();
-
+            new ArrayInitializer().CreateArray(ref BrnchHistory_yidDh, data.General.Interns, data.General.Disciplines+1, data.General.Disciplines + 1, data.General.Hospitals, false);
+            allBranches = new ArrayList();
+            allBranches.Add(new Branch()); // adding the root
         }
 
         public void branch_and_price( string insName)
@@ -66,9 +73,10 @@ namespace BranchAndPriceAlgorithm
             
             totalNumberOfColumn = root.NodeCG.RMP.DataColumn.Count;
             totalCreatedColumn = root.NodeCG.RMP.DataColumn.Count;
-
+            master_Time = root.NodeCG.master_Time;
+            subMIP_time = root.NodeCG.subMIP_time;
             is_mip = false;
-
+            ((Branch)allBranches[0]).BrObj = root.Upperbound;
             // add root to tree	
             if (root.is_mip)
             {
@@ -107,7 +115,12 @@ namespace BranchAndPriceAlgorithm
                 active_list.RemoveAt(0);
                 return;
             }
-
+            Branch lastBr = new Branch();
+            if (((Node)active_list[0]).branch_trace.Count > 0)
+            {
+                lastBr = (Branch)((Node)active_list[0]).branch_trace[0];
+            }
+            
 
             Branch left_node;
             Branch right_node;
@@ -118,16 +131,18 @@ namespace BranchAndPriceAlgorithm
             right_node = new Branch(left_node);
             left_node.branch_status = false;
             right_node.branch_status = true;
-
-
+            left_node.BrID = lastBr.BrID * 2 + 1;
+            right_node.BrID = left_node.BrID + 1;
+            
             Node tmp_left = new Node(data, (Node)active_list[0], left_node, insName);
 
-
+            putInActiveListInOrder(tmp_left, insName);
             ElappsedTime += tmp_left.ElappsedTime;
             
             totalNumberOfColumn += tmp_left.NodeCG.RMP.DataColumn.Count;
             totalCreatedColumn += tmp_left.NodeCG.count_MIP;
-
+            master_Time += tmp_left.NodeCG.master_Time;
+            subMIP_time += tmp_left.NodeCG.subMIP_time;
 
             tmp_left.fatherNodeId = ((Node)active_list[0]).Node_id;
             tmp_left.Node_id = 2 * tmp_left.fatherNodeId + 1;
@@ -135,12 +150,21 @@ namespace BranchAndPriceAlgorithm
 
             Node tmp_right = new Node(data, (Node)active_list[0], right_node, insName);
 
-            
+            left_node.BrObj = tmp_left.Upperbound;
+            right_node.BrObj = tmp_right.Upperbound;
+            left_node.BrMIP = tmp_left.is_mip;
+            right_node.BrMIP = tmp_right.is_mip;
+            allBranches.Add(left_node);
+            allBranches.Add(right_node);
+            new DrawBranchingTree(allBranches, data.allPath.OutPutGr, insName);
+
             ElappsedTime += tmp_right.ElappsedTime;
            
             totalNumberOfColumn += tmp_right.NodeCG.RMP.DataColumn.Count;
             totalCreatedColumn += tmp_right.NodeCG.count_MIP;
-            
+            master_Time += tmp_right.NodeCG.master_Time;
+            subMIP_time += tmp_right.NodeCG.subMIP_time;
+
             tmp_right.level = ((Node)active_list[0]).level + 1;
             tmp_right.fatherNodeId = ((Node)active_list[0]).Node_id;
             tmp_right.Node_id = 2 * tmp_right.fatherNodeId + 1;
@@ -151,7 +175,7 @@ namespace BranchAndPriceAlgorithm
                 tree_level = tmp_left.level;
             }
 
-            putInActiveListInOrder(tmp_left, insName);
+            
             
             putInActiveListInOrder(tmp_right, insName);
             active_list_count = active_list.Count;
@@ -244,6 +268,18 @@ namespace BranchAndPriceAlgorithm
                         {
                             if (clmn.S_tdh[t][d][h])
                             {
+                                int prD = -1;
+                                for (int dd = 0; dd < data.General.Disciplines + 1; dd++)
+                                {
+                                    if (clmn.Y_dDh[dd][d+1][h])
+                                    {
+                                        prD = dd;
+                                    }
+                                }
+                                if (BrnchHistory_yidDh[clmn.theIntern][prD][d+1][h])
+                                {
+                                    continue;
+                                }
                                 s_itdh[clmn.theIntern][t][d][h]++;
                             }
                         }
@@ -286,7 +322,6 @@ namespace BranchAndPriceAlgorithm
                     {
                         for (int h = 0; h < data.General.Hospitals; h++)
                         {
-                            
                             count += s_itdh[i][t][d][h] * internColumn[i];
                         }
                     }
@@ -297,7 +332,7 @@ namespace BranchAndPriceAlgorithm
                     }
                 }
             }
-
+            brnch.BrIntern = internIndex;
             brnch.BrDisc = discIndex + 1;
             // find pre discipline 
             for (int d = 0; d < data.General.Disciplines + 1; d++)
@@ -313,6 +348,7 @@ namespace BranchAndPriceAlgorithm
                 }
                 
             }
+            BrnchHistory_yidDh[brnch.BrIntern][brnch.BrPrDisc][brnch.BrDisc][brnch.BrHospital] = true;
             return brnch;
         }
 

@@ -30,6 +30,7 @@ namespace BranchAndPriceAlgorithm
         public double setReducedCost(double[] dual, DataLayer.AllData data)
         {
             double reducedcost = 0;
+            desire = (int)desire;
 
             reducedcost += data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi * desire;          
 

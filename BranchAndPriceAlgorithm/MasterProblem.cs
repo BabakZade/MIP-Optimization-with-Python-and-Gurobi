@@ -827,7 +827,7 @@ namespace BranchAndPriceAlgorithm
                     ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
                     if (i - counter >= preIterationColumnID)
                     {
-                        ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_j" + "[" + (i - counter) + "]");
+                        //((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_j" + "[" + (i - counter) + "]");
                     }
                     AverageReducedCost += xRC;
                     if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)

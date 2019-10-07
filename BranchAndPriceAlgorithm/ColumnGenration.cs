@@ -76,12 +76,13 @@ namespace BranchAndPriceAlgorithm
             {
                 Iteration++;
                 Stopwatch sw1 = new Stopwatch();
+                sw1.Start();
                 counter++;
                 RMP.solveRMP(insName);
                 sw1.Stop();
-                master_Time += sw1.ElapsedMilliseconds;
+                master_Time += sw1.ElapsedMilliseconds/1000;
                 sw1.Reset();
-                double whole_time = master_Time + subMIP_time;
+               
                 dual = RMP.pi;
                 display_dual(dual,insName);
                 BestSolution = RMP.Benefit;
@@ -184,6 +185,9 @@ namespace BranchAndPriceAlgorithm
                     RMP.addColumn(sp.theColumn);                    
                 }
             }
+            sw.Stop();
+            count_MIP+= totalColumn;
+            subMIP_time += sw.ElapsedMilliseconds / 1000;
             if (totalColumn>0)
             {
                 return true;

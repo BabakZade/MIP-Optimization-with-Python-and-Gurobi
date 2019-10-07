@@ -6,7 +6,7 @@ namespace BranchAndPriceAlgorithm
 {
     public class Branch
     {
-
+        public long BrID;
         // left child =0 right child =1, left means the branch is equal to 0, right means equal to 1
         public bool branch_status;
 
@@ -16,6 +16,10 @@ namespace BranchAndPriceAlgorithm
         public int BrPrDisc; // BrPrDisc => BrDisc
         public int BrDisc;
         public int BrHospital;
+
+        // info
+        public double BrObj;
+        public bool BrMIP;
         public Branch()
         {
             BrPrDisc = -1;
@@ -23,6 +27,9 @@ namespace BranchAndPriceAlgorithm
             branch_status = false;
             BrHospital = -1;
             BrIntern = -1;
+            BrID = 0; // the root branch ID is zero
+            BrObj = 0;
+            BrMIP = false;
         }
         public Branch(Branch copy_member)
         {
@@ -31,6 +38,9 @@ namespace BranchAndPriceAlgorithm
             BrDisc = copy_member.BrDisc;
             BrHospital = copy_member.BrHospital;
             BrIntern = copy_member.BrIntern;
+            BrID = copy_member.BrID;
+            BrObj = copy_member.BrObj;
+            BrMIP = copy_member.BrMIP;
         }
 
         public string displayMe() {

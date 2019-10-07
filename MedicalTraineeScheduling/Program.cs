@@ -13,7 +13,6 @@ namespace MedicalTraineeScheduling
 		static void Main(string[] args)
 		{
             JsonFunction jf = new JsonFunction();
-            
 			InstanceSize = 5;
             //DataLayer.InstanceSetting inssetting = new InstanceSetting();
             //SetAllPathForResult realLife = new DataLayer.SetAllPathForResult("ReallifeUGent", "", "G_" + 1);
@@ -164,7 +163,7 @@ namespace MedicalTraineeScheduling
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ResourcePool", "BaP", "");
             for (int g = 0; g < 9 ; g++)
 			{
-				for (int i = 0; i < InstanceSize; i++)
+				for (int i = 1; i < InstanceSize; i++)
 				{
 					groupCounter++;
 					if (groupCounter < 31)
@@ -176,12 +175,24 @@ namespace MedicalTraineeScheduling
 					read.data.AlgSettings.internBasedImpPercentage = 0.5;
 					Stopwatch stopwatch = new Stopwatch();
 					stopwatch.Start();
-                    new BranchAndPriceAlgorithm.BranchAndPrice(read.data, "Ins_" + i);
+                    BranchAndPriceAlgorithm.BranchAndPrice bp = new BranchAndPriceAlgorithm.BranchAndPrice(read.data, "Ins_" + i);
 					//MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
 					//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString(), false, 7200);
-					NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
+					//NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
 					stopwatch.Stop();
 					int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+
+                    using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                    {
+                        string output = i + "\t" + time
+                            + "\t" + bp.optimalSol.Obj + "\t" + bp.optimalSol.AveDes + "\t" + String.Join(" \t ", bp.optimalSol.MinDis)
+                            + "\t" + bp.optimalSol.EmrDemand + "\t" + bp.optimalSol.ResDemand
+                            + "\t" + bp.optimalSol.SlackDem + "\t" + bp.optimalSol.NotUsedAccTotal
+                        // bandp metric
+                        +"\t" + bp.subMIP_time + "\t" + bp.master_Time + "\t" + bp.totalCreatedColumn + "\t" + bp.totalNumberOfColumn + "\t" + bp.branch_counter;
+                        file.WriteLine(output);
+                    }
+
                     //using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
                     //{
 
@@ -216,7 +227,7 @@ namespace MedicalTraineeScheduling
                     //	}
                     //	file.WriteLine(output);
                     //}
-                    
+
                 }
 
             }
