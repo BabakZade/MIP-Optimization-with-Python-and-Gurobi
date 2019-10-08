@@ -13,7 +13,7 @@ namespace BranchAndPriceAlgorithm
         public long level;
         public long fatherNodeId;
         public bool is_mip;
-
+        public OptimalSolution optimalsolution;
         
         public double Upperbound;
 
@@ -91,6 +91,29 @@ namespace BranchAndPriceAlgorithm
         public void setBounds()
         {
             Upperbound = NodeCG.BestSolution;
+            if (is_mip)
+            {
+                optimalsolution = new OptimalSolution(data);
+                foreach (ColumnInternBasedDecomposition item in NodeCG.RMP.DataColumn)
+                {
+                    if (item.xVal > 1 - data.AlgSettings.RCepsi)
+                    {
+                        for (int t = 0; t < data.General.TimePriods; t++)
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                for (int h = 0; h < data.General.Hospitals + 1; h++)
+                                {
+                                    optimalsolution.Intern_itdh[item.theIntern][t][d][h] = item.S_tdh[t][d][h];
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+                
+            }
             
         }
 

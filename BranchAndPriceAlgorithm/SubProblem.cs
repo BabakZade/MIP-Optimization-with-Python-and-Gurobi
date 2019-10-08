@@ -217,24 +217,7 @@ namespace BranchAndPriceAlgorithm
                 }
 
 
-            // Branches
-            foreach (Branch item in AllBranches)
-            {
-                if (item.BrIntern == theIntern)
-                {
-                    if (item.branch_status)
-                    {
-                        y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital] = MIPModel.IntVar(1, 1, Y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
-                        MIPModel.Add(y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
-                    }
-                    else
-                    {
-                        y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital] = MIPModel.IntVar(0, 0, Y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
-                        MIPModel.Add(y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
-                    }
-                }
-                
-            }
+            
 
             S_dth = new string[Disciplins][][];
                 for (int d = 0; d < Disciplins; d++)
@@ -286,10 +269,46 @@ namespace BranchAndPriceAlgorithm
                         }
                     }
                 }
-            
 
-           
-                W_d = new string[Disciplins];
+
+            // Branches
+            foreach (Branch item in AllBranches)
+            {
+                if (item.BrIntern == theIntern)
+                {
+                    if (item.branch_status)
+                    {
+                        if (item.BrTypePrecedence)
+                        {
+                            y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital] = MIPModel.IntVar(1, 1, Y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                            MIPModel.Add(y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                        }
+                        if (item.BrTypeStartTime)
+                        {
+                            s_dth[item.BrDisc][item.BrTime][item.BrHospital] = MIPModel.IntVar(1, 1, S_dth[item.BrDisc][item.BrTime][item.BrHospital]);
+                            MIPModel.Add(s_dth[item.BrDisc][item.BrTime][item.BrHospital]);
+                        }
+                    }
+                    else
+                    {
+                        if (item.BrTypePrecedence)
+                        {
+                            y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital] = MIPModel.IntVar(0, 0, Y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                            MIPModel.Add(y_dDh[item.BrPrDisc][item.BrDisc][item.BrHospital]);
+                        }
+                        if (item.BrTypeStartTime)
+                        {
+                            s_dth[item.BrDisc][item.BrTime][item.BrHospital] = MIPModel.IntVar(0, 0, S_dth[item.BrDisc][item.BrTime][item.BrHospital]);
+                            MIPModel.Add(s_dth[item.BrDisc][item.BrTime][item.BrHospital]);
+                        }
+
+                    }
+                }
+
+            }
+
+
+            W_d = new string[Disciplins];
                 for (int d = 0; d < Disciplins; d++)
                 {
                     W_d[d] = "W_d[" + theIntern + "][" + d + "]";

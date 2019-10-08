@@ -160,7 +160,7 @@ namespace MedicalTraineeScheduling
             //	}
 
             //}
-            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ResourcePool", "BaP", "");
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "BaP", "");
             for (int g = 0; g < 9 ; g++)
 			{
 				for (int i = 1; i < InstanceSize; i++)
@@ -170,7 +170,7 @@ namespace MedicalTraineeScheduling
 					{
 						//continue;
 					}
-					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ResourcePool", "BaP", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+					ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "Complexity", "BaP", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
 					read.data.AlgSettings.bucketBasedImpPercentage = 1;
 					read.data.AlgSettings.internBasedImpPercentage = 0.5;
 					Stopwatch stopwatch = new Stopwatch();

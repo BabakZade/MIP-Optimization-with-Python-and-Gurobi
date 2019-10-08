@@ -6,16 +6,34 @@ namespace BranchAndPriceAlgorithm
 {
     public class Branch
     {
+        
+
         public long BrID;
+
         // left child =0 right child =1, left means the branch is equal to 0, right means equal to 1
         public bool branch_status;
 
+        // branching type
+        public bool BrTypePrecedence;
+        public bool BrTypeStartTime;
+        public bool BrTypeMinDemand;
+        public bool BrTypeResDemand;
+        public bool BrTypeEmrDemand;
 
-        // General Info
+
+        // General Info BrPrecedence
         public int BrIntern;
         public int BrPrDisc; // BrPrDisc => BrDisc
         public int BrDisc;
         public int BrHospital;
+
+        // General Info start time
+        public int BrTime; // the rest is availble
+
+
+        // General Info demand
+        public double BrDemVal;
+        public int BrWard;
 
         // info
         public double BrObj;
@@ -30,6 +48,14 @@ namespace BranchAndPriceAlgorithm
             BrID = 0; // the root branch ID is zero
             BrObj = 0;
             BrMIP = false;
+            BrTypePrecedence = false;
+            BrTypeStartTime = false;
+            BrTime = -1;
+            BrTypeMinDemand = false;
+            BrTypeResDemand = false;
+            BrTypeEmrDemand = false;
+            BrDemVal = -1;
+            BrWard = -1;
         }
         public Branch(Branch copy_member)
         {
@@ -41,6 +67,14 @@ namespace BranchAndPriceAlgorithm
             BrID = copy_member.BrID;
             BrObj = copy_member.BrObj;
             BrMIP = copy_member.BrMIP;
+            BrTypePrecedence = copy_member.BrTypePrecedence;
+            BrTypeStartTime = copy_member.BrTypeStartTime;
+            BrTime = copy_member.BrTime;
+            BrTypeMinDemand = copy_member.BrTypeMinDemand;
+            BrTypeResDemand = copy_member.BrTypeResDemand;
+            BrTypeEmrDemand = copy_member.BrTypeEmrDemand;
+            BrDemVal = copy_member.BrDemVal;
+            BrWard = copy_member.BrWard;
         }
 
         public string displayMe() {

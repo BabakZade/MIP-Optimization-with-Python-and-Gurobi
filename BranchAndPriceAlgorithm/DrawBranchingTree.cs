@@ -9,11 +9,30 @@ namespace BranchAndPriceAlgorithm
     {
         public int pos;
         public string[] info;
-        
+        public Print[] dashBranch;
+
         public Print(int pos, string[] info)
         {
             this.pos = pos;
             this.info = info;
+            dashBranch = null;
+        }
+        public Print(int pos, string[] info, int dashLength)
+        {
+            this.pos = pos;
+            this.info = info;
+            dashBranch = new Print[dashLength];
+            
+            for (int j = 0; j < dashLength; j++)
+            {
+                string br = "/";
+                for (int i = 0; i <= j-1; i++)
+                {
+                    br += "  ";
+                }
+                br += "\\";
+                dashBranch[j] = new Print(pos,new string[] { br});
+            }
         }
     }
     public class DrawBranchingTree
@@ -60,11 +79,18 @@ namespace BranchAndPriceAlgorithm
             }
 
             treeLevel = (int)Math.Ceiling(Math.Log(maxID, 2));
-            
-            maxWidth = (int)Math.Pow(2, treeLevel + 2);
-            if (maxWidth < 64)
+            if (treeLevel > 5)
             {
-                maxWidth = 64;
+                branchingTree = new StreamWriter(path + "BranchingHistory" + insName + ".txt",true);
+                branchingTree.WriteLine("=================================");
+                branchingTree.WriteLine("Huge tree Not possible to display");
+                branchingTree.Close();
+                return;
+            }
+            maxWidth = (int)Math.Pow(2, treeLevel + 3);
+            if (maxWidth < 128)
+            {
+                maxWidth = 128;
             }
             branchingTree = new StreamWriter(path + "BranchingHistory" + insName + ".txt");
             printTree();
@@ -84,7 +110,7 @@ namespace BranchAndPriceAlgorithm
             int counter = 0;
             printingbuffer = new ArrayList();
             int newWidth = maxWidth / 2;
-            printingbuffer.Add(new Print(newWidth, new string[] { "id,MIP","val", "i,dd,d,", "h,F/T" }));
+            printingbuffer.Add(new Print(newWidth, new string[] { "id Brtype","val", "i-h", "dd-d/d-t/w-t", "MIP/Val" }, (int)((double)maxWidth / (int)Math.Pow(2, level + 1))));
             printbuffer();
             while (true)
             {
@@ -136,30 +162,149 @@ namespace BranchAndPriceAlgorithm
                     int place = position * widthofposition;
                     if (listNumber[j] == ((Branch)sortedBranches[counter]).BrID)
                     {
-                        string info = (((Branch)sortedBranches[counter]).BrID % 100) + ",";
+                        string info1 = "";
+                        string info2 = "";
+                        string info3 = "";
+                        string info4 = "";
+                        string info5 = "";
                         if (((Branch)sortedBranches[counter]).BrMIP)
                         {
-                            info += "," + "T";
+                            info5 += "MIP";
                         }
                         else
                         {
-                            info += "," + "F";
+                            info5 += " ";
                         }
-                        string info1 =    ((Branch)sortedBranches[counter]).BrObj.ToString() ;
-                        string info2 = ((Branch)sortedBranches[counter]).BrIntern + ","
-                                            + ((Branch)sortedBranches[counter]).BrPrDisc + ","
-                                            + ((Branch)sortedBranches[counter]).BrDisc;
-                                            
-                        string info3 =  ((Branch)sortedBranches[counter]).BrHospital.ToString();
-                        if (((Branch)sortedBranches[counter]).branch_status)
+                        if (((Branch)sortedBranches[counter]).BrTypePrecedence)
                         {
-                            info3 += "," + "T";
+                            info1 = ((Branch)sortedBranches[counter]).BrID % 100 + " Pr";
+
+                            info2 = ((Branch)sortedBranches[counter]).BrObj.ToString();
+                            info3 = ((Branch)sortedBranches[counter]).BrIntern + "-"
+                                         + ((Branch)sortedBranches[counter]).BrHospital;
+
+                            info4 = ((Branch)sortedBranches[counter]).BrPrDisc + "-"
+                                         + ((Branch)sortedBranches[counter]).BrDisc;
+                            info5 = "";
+                            if (((Branch)sortedBranches[counter]).BrMIP)
+                            {
+                                info5 += "MIP";
+                            }
+                            else
+                            {
+                                info5 += " ";
+                            }
                         }
-                        else
+
+                        if (((Branch)sortedBranches[counter]).BrTypeStartTime)
                         {
-                            info3 += "," + "F";
+                            info1 = ((Branch)sortedBranches[counter]).BrID % 100 + " St";
+
+                            info2 = ((Branch)sortedBranches[counter]).BrObj.ToString();
+                            info3 = ((Branch)sortedBranches[counter]).BrIntern + "-"
+                                         + ((Branch)sortedBranches[counter]).BrHospital;
+
+                            info4 = ((Branch)sortedBranches[counter]).BrDisc + "-"
+                                         + ((Branch)sortedBranches[counter]).BrTime;
+                            info5 = "";
+                            if (((Branch)sortedBranches[counter]).BrMIP)
+                            {
+                                info5 += "MIP";
+                            }
+                            else
+                            {
+                                info5 += " ";
+                            }
                         }
-                        printingbuffer.Add(new Print(place, new string[] {info, info1, info2, info3}));
+
+                        if (((Branch)sortedBranches[counter]).BrTypeMinDemand)
+                        {
+                            info1 = ((Branch)sortedBranches[counter]).BrID % 100 + " Mi";
+
+                            info2 = ((Branch)sortedBranches[counter]).BrObj.ToString();
+                            info3 = ((Branch)sortedBranches[counter]).BrIntern + "-"
+                                         + ((Branch)sortedBranches[counter]).BrHospital;
+
+                            info4 = ((Branch)sortedBranches[counter]).BrWard + "-"
+                                         + ((Branch)sortedBranches[counter]).BrTime;
+                            info5 = "";
+                            if (((Branch)sortedBranches[counter]).BrMIP)
+                            {
+                                info5 += "MIP";
+                            }
+                            else
+                            {
+                                if (((Branch)sortedBranches[counter]).branch_status)
+                                {
+                                    info5 += ">" + Math.Ceiling(((Branch)sortedBranches[counter]).BrDemVal);
+                                }
+                                else
+                                {
+                                    info5 += "<" + Math.Floor(((Branch)sortedBranches[counter]).BrDemVal);
+                                }
+                                
+                            }
+                        }
+
+                        if (((Branch)sortedBranches[counter]).BrTypeResDemand)
+                        {
+                            info1 = ((Branch)sortedBranches[counter]).BrID % 100 + " Re";
+
+                            info2 = ((Branch)sortedBranches[counter]).BrObj.ToString();
+                            info3 = ((Branch)sortedBranches[counter]).BrIntern + "-"
+                                         + ((Branch)sortedBranches[counter]).BrHospital;
+
+                            info4 = ((Branch)sortedBranches[counter]).BrWard + "-"
+                                         + ((Branch)sortedBranches[counter]).BrTime;
+                            info5 = "";
+                            if (((Branch)sortedBranches[counter]).BrMIP)
+                            {
+                                info5 += "MIP";
+                            }
+                            else
+                            {
+                                if (((Branch)sortedBranches[counter]).branch_status)
+                                {
+                                    info5 += ">" + Math.Ceiling(((Branch)sortedBranches[counter]).BrDemVal);
+                                }
+                                else
+                                {
+                                    info5 += "<" + Math.Floor(((Branch)sortedBranches[counter]).BrDemVal);
+                                }
+
+                            }
+                        }
+
+                        if (((Branch)sortedBranches[counter]).BrTypeEmrDemand)
+                        {
+                            info1 = ((Branch)sortedBranches[counter]).BrID % 100 + " Em";
+
+                            info2 = ((Branch)sortedBranches[counter]).BrObj.ToString();
+                            info3 = ((Branch)sortedBranches[counter]).BrIntern + "-"
+                                         + ((Branch)sortedBranches[counter]).BrHospital;
+
+                            info4 = ((Branch)sortedBranches[counter]).BrWard + "-"
+                                         + ((Branch)sortedBranches[counter]).BrTime;
+                            info5 = "";
+                            if (((Branch)sortedBranches[counter]).BrMIP)
+                            {
+                                info5 += "MIP";
+                            }
+                            else
+                            {
+                                if (((Branch)sortedBranches[counter]).branch_status)
+                                {
+                                    info5 += ">" + Math.Ceiling(((Branch)sortedBranches[counter]).BrDemVal);
+                                }
+                                else
+                                {
+                                    info5 += "<" + Math.Floor(((Branch)sortedBranches[counter]).BrDemVal);
+                                }
+
+                            }
+                        }
+
+                        printingbuffer.Add(new Print(place, new string[] { info1, info2, info3, info4, info5 }, (int)((double)maxWidth / (int)Math.Pow(2, level + 2 /*for the next level*/))));
                         
                         break;
                     }
@@ -178,14 +323,13 @@ namespace BranchAndPriceAlgorithm
 
         public void printbuffer()
         {
-            branchingTree.WriteLine();
             for (int i = 0; i < ((Print)printingbuffer[0]).info.Length; i++)
             {
                 int pos = 0;
                 string line = "";
                 foreach (Print item in printingbuffer)
                 {
-                    while (true)
+                    while (pos < maxWidth)
                     {
                         if (pos == item.pos - item.info[i].Length / 2)
                         {
@@ -202,9 +346,32 @@ namespace BranchAndPriceAlgorithm
                 }
                 branchingTree.WriteLine(line);
             }
-            
-            
-            
+
+            for (int i = 0; i < ((Print)printingbuffer[0]).dashBranch.Length; i++)
+            {
+                int pos = 0;
+                string line = "";
+                foreach (Print item in printingbuffer)
+                {
+                    while (pos < maxWidth)
+                    {
+                        if (pos == item.dashBranch[i].pos - item.dashBranch[i].info[0].Length / 2)
+                        {
+                            line += item.dashBranch[i].info[0];
+                            pos += item.dashBranch[i].info[0].Length;
+                            break;
+                        }
+                        else
+                        {
+                            pos++;
+                            line += " ";
+                        }
+                    }
+                }
+                branchingTree.WriteLine(line);
+            }
+
+
             printingbuffer = new ArrayList();
         }
     }

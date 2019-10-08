@@ -21,6 +21,9 @@ namespace BranchAndPriceAlgorithm
         public ArrayList X_var;
         public ArrayList X_Data;
         public ArrayList DataColumn;
+        public double[][][] minDem_twh;
+        public double[][][] resDem_twh;
+        public double[][][] emrDem_twh;
         public int all_const;
         public int ColumnID;
         public int preIterationColumnID;
@@ -59,7 +62,7 @@ namespace BranchAndPriceAlgorithm
             data = InputData;
             initial();
             initialCplexVar();
-            createModelAndIdividualVar(InsName);
+            createModelAndIdividualVar(AllBranches ,InsName);
             addAllFatherColumn(FathersColumn, AllBranches);
             //setSol(37);
             solveRMP(InsName);
@@ -80,6 +83,9 @@ namespace BranchAndPriceAlgorithm
             TrainingPr = data.General.TrainingPr;
             preIterationColumnID = 0;
             ColumnID = 0;
+            new ArrayInitializer().CreateArray(ref minDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals,0);
+            new ArrayInitializer().CreateArray(ref resDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref emrDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
         }
 
         public void initialCplexVar()
@@ -90,14 +96,14 @@ namespace BranchAndPriceAlgorithm
             X_var = new ArrayList();
         }
 
-        public void createModelAndIdividualVar( string InsName)
+        public void createModelAndIdividualVar(ArrayList AllBranches, string InsName)
         {
             CreateModel(InsName);
             addDummyColumn();
             addRegionSl();
-            addMinDemSl();
-            addRes();
-            addEmr();
+            addMinDemSl(AllBranches);
+            addRes(AllBranches);
+            addEmr(AllBranches);
             addMinDesire();
         }
 
@@ -294,7 +300,7 @@ namespace BranchAndPriceAlgorithm
            
         }
 
-        public void addMinDemSl()
+        public void addMinDemSl(ArrayList AllBranches)
         {
             for (int tt = 0; tt < Timepriods; tt++)
             {
@@ -338,8 +344,29 @@ namespace BranchAndPriceAlgorithm
                                     }
                                 }
                             }
-
-                            X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "MinSl_twh" + tt + "_" + ww + "_" + hh));
+                            double upperbound = double.MaxValue;
+                            double lowerbound = 0;
+                            foreach (Branch tmpbr in AllBranches)
+                            {
+                                if (tmpbr.BrTypeMinDemand)
+                                {
+                                    if (tmpbr.branch_status)
+                                    {
+                                        if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
+                                        {
+                                            lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
+                                        {
+                                            upperbound = Math.Floor(tmpbr.BrDemVal);
+                                        }
+                                    }
+                                }
+                            }
+                            X_var.Add(RMP.NumVar(new_col, lowerbound, upperbound, "MinSl_twh" + tt + "_" + ww + "_" + hh));
 
                         }
                         catch (ILOG.Concert.Exception e)
@@ -353,7 +380,7 @@ namespace BranchAndPriceAlgorithm
             
         }
 
-        public void addRes()
+        public void addRes(ArrayList AllBranches)
         {
             for (int tt = 0; tt < Timepriods; tt++)
             {
@@ -413,7 +440,30 @@ namespace BranchAndPriceAlgorithm
                                 }
                             }
 
-                            X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "Res_twh" + tt + "_" + ww + "_" + hh));
+                            double upperbound = double.MaxValue;
+                            double lowerbound = 0;
+                            foreach (Branch tmpbr in AllBranches)
+                            {
+                                if (tmpbr.BrTypeResDemand)
+                                {
+                                    if (tmpbr.branch_status)
+                                    {
+                                        if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
+                                        {
+                                            lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
+                                        {
+                                            upperbound = Math.Floor(tmpbr.BrDemVal);
+                                        }
+                                    }
+                                }
+                            }
+
+                            X_var.Add(RMP.NumVar(new_col, lowerbound, upperbound, "Res_twh" + tt + "_" + ww + "_" + hh));
 
                         }
                         catch (ILOG.Concert.Exception e)
@@ -427,7 +477,7 @@ namespace BranchAndPriceAlgorithm
 
         }
 
-        public void addEmr()
+        public void addEmr(ArrayList AllBranches)
         {
             for (int tt = 0; tt < Timepriods; tt++)
             {
@@ -487,7 +537,30 @@ namespace BranchAndPriceAlgorithm
                                 }
                             }
 
-                            X_var.Add(RMP.NumVar(new_col, 0, double.MaxValue, "Emr_twh" + tt + "_" + ww + "_" + hh));
+                            double upperbound = double.MaxValue;
+                            double lowerbound = 0;
+                            foreach (Branch tmpbr in AllBranches)
+                            {
+                                if (tmpbr.BrTypeEmrDemand)
+                                {
+                                    if (tmpbr.branch_status)
+                                    {
+                                        if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
+                                        {
+                                            lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
+                                        {
+                                            upperbound = Math.Floor(tmpbr.BrDemVal);
+                                        }
+                                    }
+                                }
+                            }
+
+                            X_var.Add(RMP.NumVar(new_col, lowerbound, upperbound, "Emr_twh" + tt + "_" + ww + "_" + hh));
 
                         }
                         catch (ILOG.Concert.Exception e)
@@ -741,7 +814,7 @@ namespace BranchAndPriceAlgorithm
             }
         }
 
-        public void display( string InsName)
+        public void display(string InsName)
         {
             TotalIntVar = 0;
             TotalContinuesVar = 0;
@@ -750,102 +823,105 @@ namespace BranchAndPriceAlgorithm
             is_mip = true;
 
 
-                StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + InsName + "VarStatus.txt");
-                X_IsMIP = true;
-                Console.WriteLine("####################this is Master##################");
-                Console.WriteLine();
-                Console.WriteLine("************Cost: {0} , Status: {1}*********", RMP.ObjValue, RMP.GetStatus());
-                Console.WriteLine();
-                tw.WriteLine("Cost: {0} , Status: {1}", RMP.ObjValue, RMP.GetStatus());
-                //Console.WriteLine(masterModel.IsMIP());
+            StreamWriter tw = new StreamWriter(data.allPath.OutPutGr + InsName + "VarStatus.txt");
+            X_IsMIP = true;
+            Console.WriteLine("####################this is Master##################");
+            Console.WriteLine();
+            Console.WriteLine("************Cost: {0} , Status: {1}*********", RMP.ObjValue, RMP.GetStatus());
+            Console.WriteLine();
+            tw.WriteLine("Cost: {0} , Status: {1}", RMP.ObjValue, RMP.GetStatus());
+            //Console.WriteLine(masterModel.IsMIP());
 
-                int counter = 0;
-                for (int i = 0; i < Interns; i++)
+            int counter = 0;
+            for (int i = 0; i < Interns; i++)
+            {
+                tw.WriteLine("Dummy_[" + i + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                counter++;
+            }
+
+            for (int r = 0; r < Regions; r++)
+            {
+                for (int t = 0; t < Timepriods; t++)
                 {
-                    tw.WriteLine("Dummy_[" + i + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                    tw.WriteLine("RegSlrt_[" + r + "][" + t + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
                     counter++;
                 }
+            }
 
-                for (int r = 0; r < Regions; r++)
+            for (int t = 0; t < Timepriods; t++)
+            {
+                for (int w = 0; w < Wards; w++)
                 {
-                    for (int t = 0; t < Timepriods; t++)
+                    for (int h = 0; h < Hospitals; h++)
                     {
-                        tw.WriteLine("RegSlrt_[" + r +"]["+ t + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                        tw.WriteLine("MinSltwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                        minDem_twh[t][w][h] = RMP.GetValue((INumVar)X_var[counter]);
+                        counter++;                       
+                    }
+                }
+            }
+            for (int t = 0; t < Timepriods; t++)
+            {
+                for (int w = 0; w < Wards; w++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        tw.WriteLine("Restwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                        resDem_twh[t][w][h] = RMP.GetValue((INumVar)X_var[counter]);
                         counter++;
                     }
                 }
+            }
 
-                for (int t = 0; t < Timepriods; t++)
+            for (int t = 0; t < Timepriods; t++)
+            {
+                for (int w = 0; w < Wards; w++)
                 {
-                    for (int w = 0; w < Wards; w++)
+                    for (int h = 0; h < Hospitals; h++)
                     {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            tw.WriteLine("MinSltwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
-                            counter++;
-                        }
+                        tw.WriteLine("Emrtwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                        emrDem_twh[t][w][h] = RMP.GetValue((INumVar)X_var[counter]);
+                        counter++;
                     }
                 }
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int w = 0; w < Wards; w++)
-                    {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            tw.WriteLine("Restwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
-                            counter++;
-                        }
-                    }
-                }
+            }
 
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int w = 0; w < Wards; w++)
-                    {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            tw.WriteLine("Emrtwh_[" + t + "][" + w + "][" + h + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
-                            counter++;
-                        }
-                    }
-                }
+            for (int p = 0; p < TrainingPr; p++)
+            {
+                tw.WriteLine("MinDes_[" + p + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
+                counter++;
+            }
+            for (int i = counter; i < X_var.Count; i++)
+            {
+                double xval = RMP.GetValue((INumVar)X_var[i]);
 
-                for (int p = 0; p < TrainingPr; p++)
+                double xRC = RMP.GetReducedCost((INumVar)X_var[i]);
+
+                //Console.WriteLine("X_{0}= {1}",i+1,masterModel.GetValue((INumVar)pat_NumVar[i]));
+                tw.WriteLine(X_var[i].ToString() + " = {0} reduced Cost: {1} Intern: {2}", xval, xRC, ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern);
+                ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xRC = xRC;
+                ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
+                if (i - counter >= preIterationColumnID)
                 {
-                    tw.WriteLine("MinDes_[" + p + "]= " + RMP.GetValue((INumVar)X_var[counter]) + " reduced Cost: " + RMP.GetReducedCost((INumVar)X_var[counter]));
-                    counter++;
+                    ((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_j" + "[" + (i - counter) + "]");
                 }
-                for (int i = counter; i < X_var.Count; i++)
+                AverageReducedCost += xRC;
+                if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
                 {
-                    double xval = RMP.GetValue((INumVar)X_var[i]);
-                    
-                    double xRC = RMP.GetReducedCost((INumVar)X_var[i]);
-                   
-                    //Console.WriteLine("X_{0}= {1}",i+1,masterModel.GetValue((INumVar)pat_NumVar[i]));
-                    tw.WriteLine(X_var[i].ToString() + " = {0} reduced Cost: {1} Intern: {2}", xval, xRC, ((ColumnInternBasedDecomposition)DataColumn[i - counter]).theIntern);
-                    ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xRC = xRC;
-                    ((ColumnInternBasedDecomposition)DataColumn[i - counter]).xVal = xval;
-                    if (i - counter >= preIterationColumnID)
-                    {
-                        //((ColumnInternBasedDecomposition)DataColumn[i - counter]).WriteXML(data.allPath.ColumnLoc + "X_j" + "[" + (i - counter) + "]");
-                    }
-                    AverageReducedCost += xRC;
-                    if (RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
-                    {
-                        AvariageValue += xval;
-                        TotalIntVar++;
-                    }
-                    if (RMP.GetValue((INumVar)X_var[i]) < 1 - data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
-                    {
-                        is_mip = false;
-                        X_IsMIP = false;
-                        TotalContinuesVar++;
-                    }
+                    AvariageValue += xval;
+                    TotalIntVar++;
                 }
-                TotalIntVar = TotalIntVar - TotalContinuesVar;
-                preIterationColumnID = ColumnID;
-                tw.Close();
-            
+                if (RMP.GetValue((INumVar)X_var[i]) < 1 - data.AlgSettings.RHSepsi && RMP.GetValue((INumVar)X_var[i]) > 0 + data.AlgSettings.RHSepsi)
+                {
+                    is_mip = false;
+                    X_IsMIP = false;
+                    TotalContinuesVar++;
+                }
+            }
+            TotalIntVar = TotalIntVar - TotalContinuesVar;
+            preIterationColumnID = ColumnID;
+            tw.Close();
+
         }
 
         public void addAllFatherColumn(ArrayList FatherColumn, ArrayList AllBranches)
@@ -862,19 +938,42 @@ namespace BranchAndPriceAlgorithm
                     // if it is right branch 
                     if (tmpBR.branch_status)
                     {
-                        if (item.theIntern == tmpBR.BrIntern && !item.Y_dDh[tmpBR.BrPrDisc][tmpBR.BrDisc][tmpBR.BrHospital])
+                        if (tmpBR.BrTypePrecedence)
                         {
-                            columnStatus[counter] = false;
-                            break;
+                            if (item.theIntern == tmpBR.BrIntern && !item.Y_dDh[tmpBR.BrPrDisc][tmpBR.BrDisc][tmpBR.BrHospital])
+                            {
+                                columnStatus[counter] = false;
+                                break;
+                            }
+                        }
+                        if (tmpBR.BrTypeStartTime)
+                        {
+                            if (item.theIntern == tmpBR.BrIntern && !item.S_tdh[tmpBR.BrTime][tmpBR.BrDisc][tmpBR.BrHospital])
+                            {
+                                columnStatus[counter] = false;
+                                break;
+                            }
                         }
                     }
                     else
                     {
-                        if (item.theIntern == tmpBR.BrIntern && item.Y_dDh[tmpBR.BrPrDisc][tmpBR.BrDisc][tmpBR.BrHospital])
+                        if (tmpBR.BrTypePrecedence)
                         {
-                            columnStatus[counter] = false;
-                            break;
+                            if (item.theIntern == tmpBR.BrIntern && item.Y_dDh[tmpBR.BrPrDisc][tmpBR.BrDisc][tmpBR.BrHospital])
+                            {
+                                columnStatus[counter] = false;
+                                break;
+                            }
                         }
+                        if (tmpBR.BrTypeStartTime)
+                        {
+                            if (item.theIntern == tmpBR.BrIntern && item.S_tdh[tmpBR.BrTime][tmpBR.BrDisc][tmpBR.BrHospital])
+                            {
+                                columnStatus[counter] = false;
+                                break;
+                            }
+                        }
+
                     }
                 }
             }
