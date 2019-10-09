@@ -119,6 +119,15 @@ namespace BranchAndPriceAlgorithm
                 active_list.RemoveAt(0);
                 return;
             }
+
+            // if all variables are integer the objective will be integer 
+            if (Math.Floor(((Node)active_list[0]).Upperbound) - best_sol < data.AlgSettings.RCepsi)
+            {
+                active_list.RemoveAt(0);
+                return;
+            }
+
+
             Branch lastBr = new Branch();
             if (((Node)active_list[0]).branch_trace.Count > 0)
             {

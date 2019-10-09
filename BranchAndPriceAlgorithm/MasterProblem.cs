@@ -114,10 +114,6 @@ namespace BranchAndPriceAlgorithm
             try
             {
                 RMP.GetDuals(RMPRange).CopyTo(pi, 0);
-                for (int i = 0; i < pi.Length; i++)
-                {
-                    pi[i] = Math.Round(pi[i], 6);
-                }
             }
             catch (ILOG.Concert.Exception e)
             {
