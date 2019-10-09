@@ -142,6 +142,11 @@ namespace BranchAndPriceAlgorithm
             left_node = new Branch();
             left_node = findBranch((Node)active_list[0]);
             right_node = new Branch(left_node);
+            if (left_node.BrHospital == -1)
+            {
+                active_list.RemoveAt(0);
+                return;
+            }
             left_node.branch_status = false;
             right_node.branch_status = true;
             left_node.BrID = lastBr.BrID * 2 + 1;
@@ -334,8 +339,12 @@ namespace BranchAndPriceAlgorithm
             brnch.BrHospital = hospIndex;
             brnch.BrIntern = internIndex;
             brnch.BrDisc = discIndex;
-            BrnchHistory_yidDh[brnch.BrIntern][brnch.BrPrDisc][brnch.BrDisc][brnch.BrHospital] = true;
-            BrnchIntern_i[brnch.BrIntern] = true;
+            if (hospIndex != -1)
+            {
+
+                BrnchHistory_yidDh[brnch.BrIntern][brnch.BrPrDisc][brnch.BrDisc][brnch.BrHospital] = true;
+                BrnchIntern_i[brnch.BrIntern] = true;
+            }
             return brnch;
         }
 
@@ -476,8 +485,12 @@ namespace BranchAndPriceAlgorithm
             brnch.BrIntern = internIndex;
             brnch.BrDisc = discIndex;
             brnch.BrHospital = hospitalIndex;
-            BrnchIntern_i[brnch.BrIntern] = true;
-            BrnchHistory_Sidth[brnch.BrIntern][brnch.BrDisc][brnch.BrTime][brnch.BrHospital] = true;
+            if (hospitalIndex != -1)
+            {
+
+                BrnchIntern_i[brnch.BrIntern] = true;
+                BrnchHistory_Sidth[brnch.BrIntern][brnch.BrDisc][brnch.BrTime][brnch.BrHospital] = true;
+            }
             return brnch;
         }
 

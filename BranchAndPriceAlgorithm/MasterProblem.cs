@@ -350,14 +350,22 @@ namespace BranchAndPriceAlgorithm
                                     {
                                         if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
                                         {
-                                            lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                            if (lowerbound < Math.Ceiling(tmpbr.BrDemVal))
+                                            {
+                                                lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                            }
+
                                         }
                                     }
                                     else
                                     {
                                         if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
                                         {
-                                            upperbound = Math.Floor(tmpbr.BrDemVal);
+                                            if (upperbound > Math.Floor(tmpbr.BrDemVal))
+                                            {
+                                                upperbound = Math.Floor(tmpbr.BrDemVal);
+                                            }
+
                                         }
                                     }
                                 }
@@ -446,14 +454,22 @@ namespace BranchAndPriceAlgorithm
                                     {
                                         if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
                                         {
-                                            lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                            if (lowerbound < Math.Ceiling(tmpbr.BrDemVal))
+                                            {
+                                                lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                            }
+
                                         }
                                     }
                                     else
                                     {
                                         if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
                                         {
-                                            upperbound = Math.Floor(tmpbr.BrDemVal);
+                                            if (upperbound > Math.Floor(tmpbr.BrDemVal))
+                                            {
+                                                upperbound = Math.Floor(tmpbr.BrDemVal);
+                                            }
+
                                         }
                                     }
                                 }
@@ -543,14 +559,22 @@ namespace BranchAndPriceAlgorithm
                                     {
                                         if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
                                         {
-                                            lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                            if (lowerbound < Math.Ceiling(tmpbr.BrDemVal))
+                                            {
+                                                lowerbound = Math.Ceiling(tmpbr.BrDemVal);
+                                            }
+                                            
                                         }
                                     }
                                     else
                                     {
                                         if (tt == tmpbr.BrTime && ww == tmpbr.BrWard && tmpbr.BrHospital == hh)
                                         {
-                                            upperbound = Math.Floor(tmpbr.BrDemVal);
+                                            if (upperbound > Math.Floor(tmpbr.BrDemVal))
+                                            {
+                                                upperbound = Math.Floor(tmpbr.BrDemVal);
+                                            }
+                                            
                                         }
                                     }
                                 }
