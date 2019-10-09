@@ -54,7 +54,7 @@ namespace BranchAndPriceAlgorithm
         public void initial(ArrayList allBranches, string path, string insName)
         {
             long maxID = 0;
-            maxLevel = 3;
+            maxLevel = 6;
             minwidth = 128;
             branchStatus = new bool[allBranches.Count] ;
             int counter = -1;
@@ -464,8 +464,8 @@ namespace BranchAndPriceAlgorithm
 
                         }
                     }
-
-                    printingbuffer.Add(new Print(4, new string[] { info1 +" "+ info2 + " " + info3 + " " + info4 + " " + info5 }, 0));
+                    string line = info1 + " " + info2 + " " + info3 + " " + info4 + " " + info5;
+                    printingbuffer.Add(new Print(4+line.Length/2, new string[] { info1 +" "+ info2 + " " + info3 + " " + info4 + " " + info5 }, 0));
                     printbuffer();
                 }
 
