@@ -35,6 +35,7 @@ namespace BranchAndPriceAlgorithm
         public bool[][][][] BrnchHistory_Sidth;
         public bool[] BrnchIntern_i;
         ArrayList allBranches;
+        ArrayList allColumns;
         
         AllData data;
 
@@ -52,6 +53,7 @@ namespace BranchAndPriceAlgorithm
         public void Initialize(DataLayer.AllData allData, string insName)
         {
             data = allData;
+            allColumns = new ArrayList();
             optimalSol = new OptimalSolution(data);
             active_list = new ArrayList();
             new ArrayInitializer().CreateArray(ref BrnchHistory_yidDh, data.General.Interns, data.General.Disciplines+1, data.General.Disciplines + 1, data.General.Hospitals, false);
@@ -92,6 +94,7 @@ namespace BranchAndPriceAlgorithm
             {
                 root.Node_id = 1;
                 root.level = 1;
+                addColumns(root);
                 active_list.Add(root);
                 upper_bound = root.Upperbound;
             }
@@ -151,8 +154,8 @@ namespace BranchAndPriceAlgorithm
             right_node.branch_status = true;
             left_node.BrID = lastBr.BrID * 2 + 1;
             right_node.BrID = left_node.BrID + 1;
-            
-            Node tmp_left = new Node(data, (Node)active_list[0], left_node, insName);
+
+            Node tmp_left = new Node(data, (Node)active_list[0], allColumns, left_node, insName);
 
             
             ElappsedTime += tmp_left.ElappsedTime;
@@ -166,7 +169,7 @@ namespace BranchAndPriceAlgorithm
             tmp_left.Node_id = 2 * tmp_left.fatherNodeId + 1;
             tmp_left.level = ((Node)active_list[0]).level + 1;
 
-            Node tmp_right = new Node(data, (Node)active_list[0], right_node, insName);
+            Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName);
 
             left_node.BrObj = tmp_left.Upperbound;
             right_node.BrObj = tmp_right.Upperbound;
@@ -207,6 +210,10 @@ namespace BranchAndPriceAlgorithm
             if (theNode.is_mip)
             {
                 setOptimalSol(theNode, insName);
+            }
+            else
+            {
+                addColumns(theNode);
             }
             if (theNode.Upperbound >= upper_bound)
             {
@@ -274,7 +281,7 @@ namespace BranchAndPriceAlgorithm
             int columnIndex = -1;
             int MaxVal = 0;
             int counter = -1;
-            foreach (ColumnInternBasedDecomposition clmn in theNode.NodeCG.RMP.DataColumn)
+            foreach (ColumnInternBasedDecomposition clmn in theNode.relatedColumn)
             {
                 counter++;
                 if (clmn.xVal < data.AlgSettings.RCepsi || clmn.xVal > 1 - data.AlgSettings.RCepsi)
@@ -385,7 +392,7 @@ namespace BranchAndPriceAlgorithm
             int columnIndex = -1;
             int MaxVal = 0;
             int counter = -1;
-            foreach (ColumnInternBasedDecomposition clmn in theNode.NodeCG.RMP.DataColumn)
+            foreach (ColumnInternBasedDecomposition clmn in theNode.relatedColumn)
             {
                 counter++;
                 if (clmn.xVal < data.AlgSettings.RCepsi || clmn.xVal > 1 - data.AlgSettings.RCepsi)
@@ -442,7 +449,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals && !checkDis; h++)
                     {
-                        if (((ColumnInternBasedDecomposition)theNode.NodeCG.RMP.DataColumn[columnIndex]).S_tdh[t][d][h])
+                        if (((ColumnInternBasedDecomposition)theNode.relatedColumn[columnIndex]).S_tdh[t][d][h])
                         {
                             checkDis = true;
                         }
@@ -473,7 +480,7 @@ namespace BranchAndPriceAlgorithm
             {
                 for (int h = 0; h < data.General.Hospitals ; h++)
                 {
-                    if (((ColumnInternBasedDecomposition)theNode.NodeCG.RMP.DataColumn[columnIndex]).S_tdh[t][discIndex][h])
+                    if (((ColumnInternBasedDecomposition)theNode.relatedColumn[columnIndex]).S_tdh[t][discIndex][h])
                     {
                         hospitalIndex = h;
                         timeIndex = t;
@@ -517,7 +524,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals && !findBranch; h++)
                     {
-                        double value = Math.Round(theNode.NodeCG.RMP.minDem_twh[t][w][h],2);
+                        double value = Math.Round(theNode.minDem_twh[t][w][h],2);
                         if (Math.Ceiling(value) != Math.Floor(value))
                         {
                             findBranch = true;
@@ -560,7 +567,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals && !findBranch; h++)
                     {
-                        double value = Math.Round(theNode.NodeCG.RMP.resDem_twh[t][w][h], 2);
+                        double value = Math.Round(theNode.resDem_twh[t][w][h], 2);
                         if (Math.Ceiling(value) != Math.Floor(value))
                         {
                             findBranch = true;
@@ -603,7 +610,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals && !findBranch; h++)
                     {
-                        double value = Math.Round(theNode.NodeCG.RMP.emrDem_twh[t][w][h], 2);
+                        double value = Math.Round(theNode.emrDem_twh[t][w][h], 2);
                         if (Math.Ceiling(value) != Math.Floor(value))
                         {
                             findBranch = true;
@@ -680,7 +687,27 @@ namespace BranchAndPriceAlgorithm
             }
         }
 
-        
+        public void addColumns(Node theNode)
+        {
+            
+            foreach (ColumnInternBasedDecomposition newColumn in theNode.relatedColumn)
+            {
+                bool exist = false;
+                foreach (ColumnInternBasedDecomposition column in allColumns)
+                {
+                    if (column.Compare(newColumn,data))
+                    {
+                        exist = true;
+                        break;
+                    }
+                }
+
+                if (!exist)
+                {
+                    allColumns.Add(new ColumnInternBasedDecomposition(newColumn,data));
+                }
+            }
+        }
 
     }
 }

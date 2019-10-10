@@ -1078,8 +1078,7 @@ namespace BranchAndPriceAlgorithm
         public bool KeepGoing(double[] dual, string InsName)
         {
             bool flag = true;
-            theColumn = new ColumnInternBasedDecomposition();
-            theColumn.initial(data.General.TimePriods, data.General.Disciplines, Hospitals); // we need hospital + 1 for oversea, In the masterproblem we do not need to check it
+            theColumn = new ColumnInternBasedDecomposition(data);
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //*************set program

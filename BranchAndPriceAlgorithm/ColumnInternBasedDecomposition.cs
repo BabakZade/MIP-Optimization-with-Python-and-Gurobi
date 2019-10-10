@@ -14,12 +14,19 @@ namespace BranchAndPriceAlgorithm
         public double xVal;
         public double objectivefunction;
         public bool[][][] Y_dDh;
-        
-        public void initial(int timePeriod, int discipline, int hospital)
+        public ColumnInternBasedDecomposition()
+        {
+        }
+        public ColumnInternBasedDecomposition(DataLayer.AllData data)
+        {
+            initial(data);
+        }
+
+        public void initial(DataLayer.AllData data)
         {
             theIntern = -1;
-            new DataLayer.ArrayInitializer().CreateArray(ref S_tdh, timePeriod, discipline, hospital, false);
-            new DataLayer.ArrayInitializer().CreateArray(ref Y_dDh, discipline + 1, discipline + 1, hospital, false);
+            new DataLayer.ArrayInitializer().CreateArray(ref S_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals + 1, false);
+            new DataLayer.ArrayInitializer().CreateArray(ref Y_dDh, data.General.Disciplines + 1, data.General.Disciplines + 1, data.General.Hospitals + 1, false);
             totalChange = 0;
             desire = 0;
             xRC = 0;
@@ -27,6 +34,38 @@ namespace BranchAndPriceAlgorithm
             objectivefunction = 0;
         }
 
+        public ColumnInternBasedDecomposition(ColumnInternBasedDecomposition copyable, DataLayer.AllData data)
+        {
+            initial(data);
+            theIntern = copyable.theIntern;
+
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int d = 0; d < data.General.Disciplines; d++)
+                {
+                    for (int h = 0; h < data.General.Hospitals +1; h++)
+                    {
+                        S_tdh[t][d][h] = copyable.S_tdh[t][d][h];
+                    }
+                }
+            }
+            totalChange = copyable.totalChange;
+            desire = copyable.desire;
+            xRC = copyable.xRC;
+            xVal = copyable.xVal;
+            objectivefunction = copyable.objectivefunction;
+            for (int d = 0; d < data.General.Disciplines + 1; d++)
+            {
+                for (int D = 0; D < data.General.Disciplines + 1; D++)
+                {
+                    for (int h = 0; h < data.General.Hospitals + 1; h++)
+                    {
+                        Y_dDh[d][D][h] = copyable.Y_dDh[d][D][h];
+                    }
+                }
+            }
+        }
+        
         public double setReducedCost(double[] dual, DataLayer.AllData data)
         {
             double reducedcost = 0;
@@ -174,6 +213,44 @@ namespace BranchAndPriceAlgorithm
             ColumnInternBasedDecomposition tmp = (ColumnInternBasedDecomposition)reader.Deserialize(file);
             file.Close();
             return tmp;
+        }
+
+        /// <summary>
+        /// returns true if the comparable column is equal to this column
+        /// </summary>
+        /// <param name="compareableColumn"> the column that you want to compare with this column</param>
+        /// <returns>true if they are same</returns>
+        public bool Compare(ColumnInternBasedDecomposition compareableColumn, DataLayer.AllData data)
+        {
+            bool result = true;
+            if (theIntern != compareableColumn.theIntern)
+            {
+                result = false;
+            }
+            if (desire != compareableColumn.desire)
+            {
+                result = false;
+            }
+            if (totalChange != compareableColumn.totalChange)
+            {
+                result = false;
+            }
+            for (int t = 0; t < data.General.TimePriods && result ; t++)
+            {
+                for (int d = 0; d < data.General.Disciplines && result; d++)
+                {
+                    for (int h = 0; h < data.General.Hospitals && result; h++)
+                    {
+                        if (S_tdh[t][d][h] != compareableColumn.S_tdh[t][d][h])
+                        {
+                            result = false;
+                            
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

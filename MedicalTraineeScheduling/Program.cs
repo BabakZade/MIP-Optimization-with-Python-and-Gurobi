@@ -161,7 +161,7 @@ namespace MedicalTraineeScheduling
 
             //}
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "BaP", "");
-            for (int g = 0; g < 9 ; g++)
+            for (int g = 4; g < 9 ; g++)
 			{
 				for (int i = 1; i < InstanceSize; i++)
 				{

@@ -22,11 +22,15 @@ namespace BranchAndPriceAlgorithm
         public int[] BranchCounter_i;
 
         AllData data;
+        public  ArrayList relatedColumn;
        
 
         public ArrayList branch_trace;
 
         public ColumnGenration NodeCG;
+        public double[][][] minDem_twh;
+        public double[][][] resDem_twh;
+        public double[][][] emrDem_twh;
 
         public Node(DataLayer.AllData allData, string insName)
         {
@@ -43,7 +47,7 @@ namespace BranchAndPriceAlgorithm
 
         }
 
-        public Node(AllData allData, Node FatherNode, Branch new_branch, string insName)
+        public Node(AllData allData, Node FatherNode, ArrayList allColumn, Branch new_branch, string insName)
         {
             data = allData;
             branch_trace = new ArrayList();
@@ -52,23 +56,20 @@ namespace BranchAndPriceAlgorithm
             {
                 BranchCounter_i[i] = 1;
             }
-            branch_trace.Add(new_branch);
+            branch_trace.Add(new Branch(new_branch));
             if (FatherNode.branch_trace.Count > 0)
             {
                 CopyBranchTrace(FatherNode.branch_trace);
             }
-            
-            node_procedure(FatherNode.NodeCG.RMP.DataColumn, branch_trace, insName);
 
-
-
+            node_procedure(allColumn, branch_trace, insName);
         }
 
         public void CopyBranchTrace(ArrayList FatherBranch)
         {
             foreach (Branch item in FatherBranch)
             {
-                branch_trace.Add(item);
+                branch_trace.Add(new Branch(item));
             }
         }
 
@@ -112,9 +113,39 @@ namespace BranchAndPriceAlgorithm
 
 
                 }
-                
+
             }
+
+            saveInfo();
             
+        }
+        public void saveInfo()
+        {
+            // save the columns
+
+            relatedColumn = new ArrayList();
+            foreach (ColumnInternBasedDecomposition clmn in NodeCG.RMP.DataColumn)
+            {
+                relatedColumn.Add(new ColumnInternBasedDecomposition(clmn, data));
+            }
+
+            new ArrayInitializer().CreateArray(ref minDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref resDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref emrDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int w = 0; w < data.General.HospitalWard; w++)
+                {
+                    for (int h = 0; h < data.General.Hospitals; h++)
+                    {
+                        minDem_twh[t][w][h] = NodeCG.RMP.minDem_twh[t][w][h];
+                        resDem_twh[t][w][h] = NodeCG.RMP.resDem_twh[t][w][h];
+                        emrDem_twh[t][w][h] = NodeCG.RMP.emrDem_twh[t][w][h];
+                    }
+                }
+            }
+
         }
 
 
