@@ -36,64 +36,10 @@ namespace MedicalTraineeScheduling
 
             //    }
             //}
-           // SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "NHA", "");
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "NHA", "");
 			string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
-			string[] level = new string[4] { "00", "01", "05", "10" };
-			//for (int g = 0; g < 6; g++)
-			//{
-			//	for (int l = 0; l < 4; l++)
-			//	{
-
-			//		for (int i = 0; i < InstanceSize; i++)
-			//		{
-			//			groupCounter++;
-
-			//			ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "NHA", nameCoeff[g] + level[l], "Instance_" + i + ".txt");
-			//			Stopwatch stopwatch = new Stopwatch();
-			//			read.data.AlgSettings.internBasedImpPercentage = 0.5;
-			//			read.data.AlgSettings.bucketBasedImpPercentage = 1;
-			//			//GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
-			//			stopwatch.Start();
-			//			NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
-			//			stopwatch.Stop();
-			//			int time = (int)stopwatch.ElapsedMilliseconds / 1000;
-
-			//			using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
-			//			{
-			//				file.WriteLine(i + "\t" + time
-			//					// NHA first Sol
-			//					+ "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
-			//					+ "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
-			//					+ "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
-			//					+ "\t" + nha.nhaResult.wieghtedSumInHosPrf + "\t" + nha.nhaResult.wieghtedSumInDisPrf
-			//					 + "\t" + nha.nhaResult.wieghtedSumPrDisPrf + "\t" + nha.nhaResult.wieghtedSumInChnPrf
-			//					 + "\t" + nha.nhaResult.wieghtedSumInWaiPrf
-
-			//					// NHA bucket list improvement
-			//					+ "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.Obj + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.demandBaseLocalSearch.Global.MinDis)
-			//					+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.ResDemand
-			//					+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.SlackDem + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.NotUsedAccTotal
-			//					+ "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInHosPrf + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInDisPrf
-			//					 + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumPrDisPrf + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInChnPrf
-			//					 + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInWaiPrf
-
-			//					// NHA intern based improvement 
-			//					+ "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
-			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
-			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
-			//					+ "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInHosPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInDisPrf
-			//					 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumPrDisPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInChnPrf
-			//					 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInWaiPrf
-
-			//					);
-			//			}
-			//		}
-			//	}
-
-
-			//}
-			double[] bl = new double[] { 0.0, 0.10, 0.25, 0.50, 0.75, 1.00 };
-			double[] iCh = new double[] { 0.0, 0.10, 0.25, 0.50, 0.75, 1.00 };
+            string[] level = new string[4] { "00", "01", "05", "10" };
+           
 
             //for (int ic = 0; ic < 6; ic++)
             //{
@@ -160,7 +106,7 @@ namespace MedicalTraineeScheduling
             //	}
 
             //}
-            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "BaP", "");
+            // SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("Complexity", "BaP", "");
             for (int g = 4; g < 9 ; g++)
 			{
 				for (int i = 1; i < InstanceSize; i++)

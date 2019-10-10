@@ -407,15 +407,7 @@ namespace BranchAndPriceAlgorithm
                         {
                             if (clmn.S_tdh[t][d][h])
                             {
-                                int prD = -1;
-                                for (int dd = 0; dd < data.General.Disciplines + 1; dd++)
-                                {
-                                    if (clmn.Y_dDh[dd][d + 1][h])
-                                    {
-                                        prD = dd;
-                                    }
-                                }
-                                if (BrnchHistory_yidDh[clmn.theIntern][prD][d + 1][h])
+                                if (BrnchHistory_Sidth[clmn.theIntern][d][t][h])
                                 {
                                     continue;
                                 }
@@ -430,10 +422,6 @@ namespace BranchAndPriceAlgorithm
                     MaxVal = internColumn[clmn.theIntern];
                     internIndex = clmn.theIntern;
                     columnIndex = counter;
-                }
-                if (BrnchIntern_i[clmn.theIntern])
-                {
-                    break;
                 }
             }
 
