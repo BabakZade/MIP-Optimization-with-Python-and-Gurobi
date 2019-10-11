@@ -462,6 +462,11 @@ namespace NestedHungarianAlgorithm
             {
                 if (isRoot)
                 {
+                    if (data.Intern[i].K_AllDiscipline == 0)
+                    {
+                        requiredTimeForRemainedDisc[i] = 0;
+                        continue;
+                    }
                     requiredTimeForRemainedDisc[i] = (int)data.Intern[i].requieredTimeForRemianed[data.Intern[i].K_AllDiscipline - 1];
                 }
                 else

@@ -72,7 +72,7 @@ namespace NestedHungarianAlgorithm
 			Global = new OptimalSolution(data);
 			Local = new OptimalSolution(data);
 			Global.copyRosters(incumbentSol.Intern_itdh);
-			Global.WriteSolution(data.allPath.InsGroupLocation, "ImprovedDemand" + Name);
+			Global.WriteSolution(data.allPath.OutPutGr, "ImprovedDemand" + Name);
 
 			Local.copyRosters(incumbentSol.Intern_itdh);
 
@@ -613,7 +613,7 @@ namespace NestedHungarianAlgorithm
 
 		public void UpdateGlobal(string Name)
 		{
-			Local.WriteSolution(data.allPath.InsGroupLocation, "ImprovedLocal");
+			Local.WriteSolution(data.allPath.OutPutGr, "ImprovedLocal");
 			if (Local.Obj >= Global.Obj)
 			{
 				Global = new OptimalSolution(data);
@@ -1211,7 +1211,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			Global.WriteSolution(data.allPath.InsGroupLocation, "secondHungarian" + Name);
+			Global.WriteSolution(data.allPath.OutPutGr, "secondHungarian" + Name);
 			
 		}
 	}

@@ -171,8 +171,8 @@ namespace BranchAndPriceAlgorithm
 
             Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName);
 
-            left_node.BrObj = tmp_left.Upperbound;
-            right_node.BrObj = tmp_right.Upperbound;
+            left_node.BrObj = Math.Round( tmp_left.Upperbound, 2);
+            right_node.BrObj = Math.Round(tmp_right.Upperbound,2);
             left_node.BrMIP = tmp_left.is_mip;
             right_node.BrMIP = tmp_right.is_mip;
             allBranches.Add(left_node);
@@ -623,25 +623,27 @@ namespace BranchAndPriceAlgorithm
         public Branch findBranch(Node theNode)
         {
             // emergency demand
-            Branch branch = new Branch(findBranchStrategyEmrDemand(theNode));
+            Branch branch = new Branch();
 
-            if (branch.BrHospital != -1)
-            {
-                return branch;
-            }
-            else // reserved demand
-            {
-                branch = new Branch(findBranchStrategyResDemand(theNode));                
-            }
+            //branch = new Branch(findBranchStrategyEmrDemand(theNode));
+
+            //if (branch.BrHospital != -1)
+            //{
+            //    return branch;
+            //}
+            //else // reserved demand
+            //{
+            //    branch = new Branch(findBranchStrategyResDemand(theNode));                
+            //}
             
-            if (branch.BrHospital != -1)
-            {
-                return branch;
-            }
-            else // min demand
-            {
-                branch = new Branch(findBranchStrategyMinDemand(theNode));
-            }
+            //if (branch.BrHospital != -1)
+            //{
+            //    return branch;
+            //}
+            //else // min demand
+            //{
+            //    branch = new Branch(findBranchStrategyMinDemand(theNode));
+            //}
 
             if (branch.BrHospital != -1)
             {

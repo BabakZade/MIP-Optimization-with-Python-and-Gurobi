@@ -34,7 +34,7 @@ namespace NestedHungarianAlgorithm
 			finalSol = new OptimalSolution(data);
 			
 			finalSol.copyRosters(incumbentSol.Intern_itdh);
-			finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);
+			finalSol.WriteSolution(data.allPath.OutPutGr, "InternBasedImproved" + Name);
 			double MaxChange = Math.Ceiling(Interns * ChangePercentage);
 			if (MaxChange == 0) // to check the infeasibility
 			{
@@ -45,7 +45,7 @@ namespace NestedHungarianAlgorithm
 			{
 				OptimalSolution solI = new OptimalSolution(data);
 				solI.copyRosters(finalSol.Intern_itdh);
-				solI.WriteSolution(data.allPath.InsGroupLocation, "tmpImprovedSol" + Name);
+				solI.WriteSolution(data.allPath.OutPutGr, "tmpImprovedSol" + Name);
 				int theI = findCandidateForDP(ref i, solI);
 				if (theI < 0)
 				{
@@ -66,12 +66,12 @@ namespace NestedHungarianAlgorithm
 					solI.Intern_itdh[theI][t][neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline][neighbourhoodSol.BestSol.theSchedule_t[t].theHospital] = true;
 					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theI].ProgramID] - 1;
 				}
-				solI.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved_" + theI + "_" + Name);
+				solI.WriteSolution(data.allPath.OutPutGr, "InternBasedImproved_" + theI + "_" + Name);
 				if (solI.Obj > finalSol.Obj || (!solI.infeasibleIntern_i[theI] && finalSol.infeasibleIntern_i[theI]))
 				{
 					finalSol = new OptimalSolution(data);
 					finalSol.copyRosters(solI.Intern_itdh);
-					finalSol.WriteSolution(data.allPath.InsGroupLocation, "InternBasedImproved" + Name);					
+					finalSol.WriteSolution(data.allPath.OutPutGr, "InternBasedImproved" + Name);					
 				}
 			}
 			if (counter > 0)

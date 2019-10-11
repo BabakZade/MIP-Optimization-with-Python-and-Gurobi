@@ -1268,7 +1268,7 @@ namespace GeneralMIPAlgorithm
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
 			//*************set program
-			MIPModel.ExportModel(data.allPath.InsGroupLocation + InsName + "LP.lp");
+			MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "LP.lp");
 			MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
 			MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
 			MIPModel.SetParam(Cplex.IntParam.Threads, 3);
@@ -1359,7 +1359,7 @@ namespace GeneralMIPAlgorithm
 					Console.WriteLine(MIPModel.GetValue(des_i[i]));
 				}
 				Console.WriteLine(MIPModel.ObjValue);
-				mipOpt.WriteSolution(data.allPath.InsGroupLocation, "MIP"+InsName);
+				mipOpt.WriteSolution(data.allPath.OutPutGr, "MIP"+InsName);
 
 
 				MIPModel.End();

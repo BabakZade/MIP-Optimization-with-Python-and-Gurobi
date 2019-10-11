@@ -616,7 +616,7 @@ namespace NestedHungarianAlgorithm
 					}
 				}
 			}
-			improvedSolution.WriteSolution(data.allPath.InsGroupLocation, "BucketListImproved" + Name);
+			improvedSolution.WriteSolution(data.allPath.OutPutGr, "BucketListImproved" + Name);
 			if (improvedSolution.Obj < incumbentSol.Obj)
 			{
 				improvedSolution = incumbentSol;

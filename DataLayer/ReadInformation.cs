@@ -149,9 +149,9 @@ namespace DataLayer
 				
 			}
 			line = tw.ReadLine();
-            line = tw.ReadLine();
             if (line.Contains("Also"))
             {
+                line = tw.ReadLine();
                 for (int p = 0; p < data.General.TrainingPr; p++)
                 {
                     line = tw.ReadLine();
@@ -188,6 +188,13 @@ namespace DataLayer
                     }
 
                 }
+
+                line = tw.ReadLine();
+                line = tw.ReadLine();
+            }
+            else
+            {
+                line = tw.ReadLine();
             }
 
 			// Create and write Hospital Info 

@@ -34,9 +34,9 @@ namespace DataLayer
                 CreateInstances();
             }
 
-            WriteInstance(location, name);
+            //WriteInstance(location, name);
             WriteFeasibleSol(location, "Feasible" + name);
-            //ChangeDesCoeff(location, name);
+            ChangeObjCoeff(location, name);
         }
 
 
@@ -977,41 +977,41 @@ namespace DataLayer
             }
             tw.WriteLine();
 
-            strline = "// Also Known As  [p]: [d][D]";
-            tw.WriteLine(strline);
-            for (int p = 0; p < tmpGeneral.TrainingPr; p++)
-            {
-                strline = "// Program  " + p;
-                tw.WriteLine(strline);
-                for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
-                {
-                    for (int d = 0; d < tmpGeneral.Disciplines; d++)
-                    {
-                        tw.Write((tmpTrainingPr[p].AKA_dD[d][dd] == true ? 1 : 0).ToString() + " ");
-                    }
-                    tw.WriteLine();
-                }
+            //strline = "// Also Known As  [p]: [d][D]";
+            //tw.WriteLine(strline);
+            //for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+            //{
+            //    strline = "// Program  " + p;
+            //    tw.WriteLine(strline);
+            //    for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+            //    {
+            //        for (int d = 0; d < tmpGeneral.Disciplines; d++)
+            //        {
+            //            tw.Write((tmpTrainingPr[p].AKA_dD[d][dd] == true ? 1 : 0).ToString() + " ");
+            //        }
+            //        tw.WriteLine();
+            //    }
 
-            }
-            tw.WriteLine();
+            //}
+            //tw.WriteLine();
 
-            strline = "// Consecutive  [p]: [d][D]";
-            tw.WriteLine(strline);
-            for (int p = 0; p < tmpGeneral.TrainingPr; p++)
-            {
-                strline = "// Program  " + p;
-                tw.WriteLine(strline);
-                for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
-                {
-                    for (int d = 0; d < tmpGeneral.Disciplines; d++)
-                    {
-                        tw.Write((tmpTrainingPr[p].cns_dD[d][dd]).ToString() + " ");
-                    }
-                    tw.WriteLine();
-                }
+            //strline = "// Consecutive  [p]: [d][D]";
+            //tw.WriteLine(strline);
+            //for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+            //{
+            //    strline = "// Program  " + p;
+            //    tw.WriteLine(strline);
+            //    for (int dd = 0; dd < tmpGeneral.Disciplines; dd++)
+            //    {
+            //        for (int d = 0; d < tmpGeneral.Disciplines; d++)
+            //        {
+            //            tw.Write((tmpTrainingPr[p].cns_dD[d][dd]).ToString() + " ");
+            //        }
+            //        tw.WriteLine();
+            //    }
 
-            }
-            tw.WriteLine();
+            //}
+            //tw.WriteLine();
 
             // write Hospital Info 
             strline = "// Involved discipline in ward in hospital [h]  =>[w][d]";
@@ -1988,6 +1988,12 @@ namespace DataLayer
                                     double Delta = Wlevels[l];
                                     double Lambda = Wlevels[m];
                                     double Noe = Wlevels[n];
+                                     alpha = Wlevels[i];
+                                     Beta = Wlevels[j];
+                                     Gamma = Wlevels[k];
+                                     Delta = Wlevels[l];
+                                     Lambda = Wlevels[m];
+                                     Noe = Wlevels[n];
                                     double sum = alpha + Beta + Gamma + Delta + Lambda + Noe;
                                     if (sum == 0)
                                     {
@@ -2001,17 +2007,91 @@ namespace DataLayer
                     }
                 }
             }
-
+           StreamWriter deescription = new StreamWriter(location + "Description.txt");
             for (int i = 0; i < weight.Count(); i++)
             {
                 for (int p = 0; p < tmpGeneral.TrainingPr; p++)
                 {
-                    tmpTrainingPr[p].CoeffObj_SumDesi = weight[i][0];
-                    tmpTrainingPr[p].CoeffObj_MinDesi = weight[i][1];
-                    tmpTrainingPr[p].CoeffObj_ResCap = weight[i][2];
-                    tmpTrainingPr[p].CoeffObj_EmrCap = weight[i][3];
-                    tmpTrainingPr[p].CoeffObj_NotUsedAcc = weight[i][4];
-                    tmpTrainingPr[p].CoeffObj_MINDem = weight[i][5];
+                    tmpTrainingPr[p].CoeffObj_SumDesi =    Math.Round(weight[i][0],2);
+                    tmpTrainingPr[p].CoeffObj_MinDesi =    Math.Round(weight[i][1],2);
+                    tmpTrainingPr[p].CoeffObj_ResCap =     Math.Round(weight[i][2],2);
+                    tmpTrainingPr[p].CoeffObj_EmrCap =     Math.Round(weight[i][3],2);
+                    tmpTrainingPr[p].CoeffObj_NotUsedAcc = Math.Round(weight[i][4],2);
+                    tmpTrainingPr[p].CoeffObj_MINDem =     Math.Round(weight[i][5],2);
+                }
+                string NewLoc = location + "G_" + (i + 1).ToString() + "\\";
+                if (!Directory.Exists(NewLoc))
+                {
+                    Directory.CreateDirectory(NewLoc);
+                }
+                WriteInstance(NewLoc, name);               
+
+
+                deescription.WriteLine(Math.Round(weight[i][0], 2) 
+                    + "\t"+ Math.Round(weight[i][1], 2) + "\t" + Math.Round(weight[i][2], 2) + "\t" 
+                    + Math.Round(weight[i][3], 2) + "\t" + Math.Round(weight[i][4], 2) + "\t" + Math.Round(weight[i][5], 2));
+            }
+            deescription.Close();
+        }
+
+        public void ChangeObjCoeffRandom(string location, string name)
+        {
+            string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
+            string[] level = new string[4] { "00", "01", "05", "10" };
+            double[] Wlevels = new double[] { 0, 1, 5, 10 };
+            int expr = (int)Math.Pow(Wlevels.Length, nameCoeff.Length);
+            double[][] weight = new double[expr][];
+
+            int counter = -1;
+            for (int i = 0; i < Wlevels.Length; i++)
+            {
+                for (int j = 0; j < Wlevels.Length; j++)
+                {
+                    for (int k = 0; k < Wlevels.Length; k++)
+                    {
+                        for (int l = 0; l < Wlevels.Length; l++)
+                        {
+                            for (int m = 0; m < Wlevels.Length; m++)
+                            {
+                                for (int n = 0; n < Wlevels.Length; n++)
+                                {
+
+                                    double alpha = Wlevels[i];
+                                    double Beta = Wlevels[j];
+                                    double Gamma = Wlevels[k];
+                                    double Delta = Wlevels[l];
+                                    double Lambda = Wlevels[m];
+                                    double Noe = Wlevels[n];
+                                    alpha = Wlevels[i];
+                                    Beta = Wlevels[j];
+                                    Gamma = Wlevels[k];
+                                    Delta = Wlevels[l];
+                                    Lambda = Wlevels[m];
+                                    Noe = Wlevels[n];
+                                    double sum = alpha + Beta + Gamma + Delta + Lambda + Noe;
+                                    if (sum == 0)
+                                    {
+                                        sum = 1;
+                                    }
+                                    counter++;
+                                    weight[counter] = new double[] { alpha / sum, Beta / sum, Gamma / sum, Delta / sum, Lambda / sum, Noe / sum };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            StreamWriter deescription = new StreamWriter(location + "Description.txt");
+            for (int i = 0; i < weight.Count(); i++)
+            {
+                for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+                {
+                    tmpTrainingPr[p].CoeffObj_SumDesi = Math.Round(weight[i][0], 2);
+                    tmpTrainingPr[p].CoeffObj_MinDesi = Math.Round(weight[i][1], 2);
+                    tmpTrainingPr[p].CoeffObj_ResCap = Math.Round(weight[i][2], 2);
+                    tmpTrainingPr[p].CoeffObj_EmrCap = Math.Round(weight[i][3], 2);
+                    tmpTrainingPr[p].CoeffObj_NotUsedAcc = Math.Round(weight[i][4], 2);
+                    tmpTrainingPr[p].CoeffObj_MINDem = Math.Round(weight[i][5], 2);
                 }
                 string NewLoc = location + "G_" + (i + 1).ToString() + "\\";
                 if (!Directory.Exists(NewLoc))
@@ -2019,11 +2099,15 @@ namespace DataLayer
                     Directory.CreateDirectory(NewLoc);
                 }
                 WriteInstance(NewLoc, name);
-            }
-        }
-    
 
-		public void ChangeDesCoeff(string location, string name)
+
+                deescription.WriteLine(Math.Round(weight[i][0], 2)
+                    + "\t" + Math.Round(weight[i][1], 2) + "\t" + Math.Round(weight[i][2], 2) + "\t"
+                    + Math.Round(weight[i][3], 2) + "\t" + Math.Round(weight[i][4], 2) + "\t" + Math.Round(weight[i][5], 2));
+            }
+            deescription.Close();
+        }
+        public void ChangeDesCoeff(string location, string name)
 		{
 			string[] nameCoeff = new string[] { "W_h", "W_d", "W_p", "W_c", "W_w", "W_cs" };
 			string[] level = new string[4] { "00", "01", "05", "10" };

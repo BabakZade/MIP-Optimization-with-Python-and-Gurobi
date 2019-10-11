@@ -479,7 +479,7 @@ namespace NestedDynamicProgrammingAlgorithm
 				{
 					continue;
 				}
-				for (int l = length; l <= length; l++) 
+				for (int l = 2; l <= length; l++) 
 				{
 					int[] theH = new int[l];
 					
