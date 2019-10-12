@@ -13,7 +13,7 @@ namespace MedicalTraineeScheduling
 		static void Main(string[] args)
 		{
             //new SolveMe().createInstanceObjCoeff(30);
-            new SolveMe().solveObjCoeffPareto(20,30,8);
+            new SolveMe().solveObjCoeffParetoXMLTwoObjective(4096,5,8);
             
 		}
 
