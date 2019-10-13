@@ -1009,10 +1009,11 @@ namespace GeneralMIPAlgorithm
 									skill.AddTerm(s_idth[i][d][tt][h], tt);
 									skill.AddTerm(s_idth[i][dd][tt][h], -tt);
 									skill.AddTerm(s_idth[i][d][tt][h], -Timepriods);
+                                    skill.AddTerm(s_idth[i][dd][tt][h], Timepriods);
 
-								}
+                                }
 							}
-							MIPModel.AddGe(skill, -Timepriods, "SkillIDd_" + i + "_" + d + "_" + dd);
+							MIPModel.AddGe(skill, 0, "SkillIDd_" + i + "_" + d + "_" + dd);
 						}
 					}
 				}

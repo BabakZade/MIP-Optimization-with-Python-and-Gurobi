@@ -867,10 +867,10 @@ namespace BranchAndPriceAlgorithm
                                     skill.AddTerm(s_dth[d][tt][h], tt);
                                     skill.AddTerm(s_dth[dd][tt][h], -tt);
                                     skill.AddTerm(s_dth[d][tt][h], -Timepriods);
-
+                                    skill.AddTerm(s_dth[dd][tt][h], Timepriods);
                                 }
                             }
-                            MIPModel.AddGe(skill, -Timepriods, "SkillIDd_" + i + "_" + d + "_" + dd);
+                            MIPModel.AddGe(skill, 0, "SkillIDd_" + i + "_" + d + "_" + dd);
                         }
                     }
                 }
