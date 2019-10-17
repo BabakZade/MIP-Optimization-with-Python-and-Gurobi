@@ -389,7 +389,6 @@ namespace MedicalTraineeScheduling
 
         }
 
-
         public void solveObjCoeffParetoXMLTwoObjective(int totalGroup, int totalInstance, int totalMeasure)
         {
             string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
@@ -447,6 +446,10 @@ namespace MedicalTraineeScheduling
 
                     for (int i = 0; i < totalMeasure; i++)
                     {
+                        if (maxMeasure[i] == 0)
+                        {
+                            maxMeasure[i] = 1;
+                        }
                         result_checking_coeff_instance_measure1[n][l][i]/=maxMeasure[i];
                    
                     }
@@ -591,15 +594,134 @@ namespace MedicalTraineeScheduling
             }
 
 
+            for (int i = 0; i < totalInstance; i++)
+            {
+
+                for (int g = 0; g < totalGroup; g++)
+                {
+                    using (StreamWriter file = new StreamWriter(allpathTotal.OutPutLocation + "\\ResultValueTwo.txt", true))
+                    {
+                        file.WriteLine(i
+                            + "\t" + result_checking_coeff_instance_Twomeasure[g][i][0]
+                            + "\t" + result_checking_coeff_instance_Twomeasure[g][i][1]
+                            
+                            );
+                    }
+                }
+            }
+
+
             System.Xml.Serialization.XmlSerializer writer1 =
                 new System.Xml.Serialization.XmlSerializer(typeof(int[][]));
             System.IO.FileStream file1 = System.IO.File.Create(allpathTotal.OutPutLocation + "\\ResultDominatedCountTwogi.xml");
             writer1.Serialize(file1, Pareto_DominatedCount_gi);
             file1.Close();
 
+            System.Xml.Serialization.XmlSerializer writer2 =
+                new System.Xml.Serialization.XmlSerializer(typeof(double[][][]));
+            System.IO.FileStream file3 = System.IO.File.Create(allpathTotal.OutPutLocation + "\\ResultValueTwo.xml");
+            writer2.Serialize(file3, result_checking_coeff_instance_Twomeasure);
+            file3.Close();
+
+        }
+
+
+        public void solveOneFactorAtAtime()
+        {
+            int InstanceSize = 5;
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "NHA", "");
+            string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
+            string[] level = new string[4] { "00", "01", "05", "10" };
+            for (int g = 0; g < 6; g++)
+            {
+                for (int l = 0; l < 4; l++)
+                {
+                    for (int i = 0; i < InstanceSize; i++)
+                    {
+
+                        ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "NHA", nameCoeff[g] + level[l], "Instance_" + i + ".txt");
+                        Stopwatch stopwatch = new Stopwatch();
+                        read.data.AlgSettings.bucketBasedImpPercentage = 1;
+                        read.data.AlgSettings.internBasedImpPercentage = 0.5;
+                        //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
+                        stopwatch.Start();
+                        NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
+                        stopwatch.Stop();
+                        int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+
+                        using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                        {
+                            file.WriteLine(i + "\t" + time
+                                // NHA first Sol
+                                + "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
+                                + "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
+                                + "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
+                                + "\t" + nha.nhaResult.wieghtedSumInHosPrf + "\t" + nha.nhaResult.wieghtedSumInDisPrf
+                                 + "\t" + nha.nhaResult.wieghtedSumPrDisPrf + "\t" + nha.nhaResult.wieghtedSumInChnPrf
+                                 + "\t" + nha.nhaResult.wieghtedSumInWaiPrf
+
+                                // NHA bucket list improvement
+                                + "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.Obj + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.demandBaseLocalSearch.Global.MinDis)
+                                + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.ResDemand
+                                + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.SlackDem + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.NotUsedAccTotal
+                                + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInHosPrf + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInDisPrf
+                                 + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumPrDisPrf + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInChnPrf
+                                 + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInWaiPrf
+
+                                // NHA intern based improvement 
+                                + "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
+                                + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
+                                + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
+                                + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInHosPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInDisPrf
+                                 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumPrDisPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInChnPrf
+                                 + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInWaiPrf
+                                 + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.maxDesGap // from the last step
+
+                                );
+                        }
+                    }
+                }
+            }
+        }
+
+        public void readSolOneFactorAtAtime()
+        {
+            int InstanceSize = 5;
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "NHA", "");
+            string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
+            string[] level = new string[4] { "00", "01", "05", "10" };
+            for (int g = 0; g < 6; g++)
+            {
+                for (int l = 0; l < 4; l++)
+                {
+                    for (int i = 0; i < InstanceSize; i++)
+                    {
+
+                        ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "MIP", nameCoeff[g] + level[l], "Instance_" + i + ".txt");
+                        Stopwatch stopwatch = new Stopwatch();
+                        read.data.AlgSettings.bucketBasedImpPercentage = 1;
+                        read.data.AlgSettings.internBasedImpPercentage = 0.5;
+                        //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString());
+                        stopwatch.Start();
+                        OptimalSolution optimal = new OptimalSolution(read.data).readSol(read.data, "MIP"+i );
+                        stopwatch.Stop();
+                        int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+
+                        using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                        {
+                            file.WriteLine( optimal.Obj + "\t" + optimal.AveDes + "\t" + String.Join(" \t ", optimal.MinDis)
+                                + "\t" + optimal.EmrDemand + "\t" + optimal.ResDemand
+                                + "\t" + optimal.SlackDem + "\t" + optimal.NotUsedAccTotal
+                                + "\t" + optimal.wieghtedSumInHosPrf + "\t" + optimal.wieghtedSumInDisPrf
+                                 + "\t" + optimal.wieghtedSumPrDisPrf + "\t" + optimal.wieghtedSumInChnPrf
+                                 + "\t" + optimal.wieghtedSumInWaiPrf                              
+
+                                );
+                        }
+                    }
+                }
+            }
         }
     }
-
-
    
 }

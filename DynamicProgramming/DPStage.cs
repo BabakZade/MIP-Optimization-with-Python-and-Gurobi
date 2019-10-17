@@ -261,7 +261,7 @@ namespace NestedDynamicProgrammingAlgorithm
 							int theD = item.theD;
 							if (!disStatus[theD] && !curentStat.activeDisc[theD])
 							{
-								obj += item.AbsDesire * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_MinDesi + data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+								obj += item.AbsDesire * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
 								disStatus[theD] = true;
 								length--;
 							}

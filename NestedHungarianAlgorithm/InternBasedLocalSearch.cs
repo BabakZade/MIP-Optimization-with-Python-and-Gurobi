@@ -113,7 +113,11 @@ namespace NestedHungarianAlgorithm
 						Counter--;
 						break;
 					}
-					double tmpObj = data.Intern[i].MaxPrf - incumbentSol.Des_i[i];
+                    if (data.Intern[i].MaxPrf < incumbentSol.Des_i[i])
+                    {
+                        data.Intern[i].MaxPrf = incumbentSol.Des_i[i];
+                    }
+					double tmpObj = (data.Intern[i].MaxPrf - incumbentSol.Des_i[i])* data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
 					if (tmpObj > MaxDif)
 					{
 						MaxDif = tmpObj;

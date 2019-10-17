@@ -72,7 +72,8 @@ namespace NestedDynamicProgrammingAlgorithm
 			Initial(data);
 			activeDisc = new bool[alldata.General.Disciplines];
 			double coeff = data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_SumDesi + data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_MinDesi;
-			if (isRoot)
+            coeff = data.TrainingPr[data.Intern[theI].ProgramID].CoeffObj_SumDesi;
+            if (isRoot)
 			{
 				this.isRoot = true;
 			}

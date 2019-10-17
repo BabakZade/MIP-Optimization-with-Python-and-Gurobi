@@ -282,7 +282,7 @@ namespace NestedHungarianAlgorithm
                         if (isRoot)
                         {
                             DemMax_wth[d][t][h] = data.Hospital[h].HospitalMaxDem_tw[t][d] + data.Hospital[h].EmergencyCap_tw[t][d] + data.Hospital[h].ReservedCap_tw[t][d];
-                            DemMax_wth[d][t][h] = data.Hospital[h].HospitalMaxDem_tw[t][d];
+                            //DemMax_wth[d][t][h] = data.Hospital[h].HospitalMaxDem_tw[t][d];
                         }
                         else
                         {
@@ -532,8 +532,7 @@ namespace NestedHungarianAlgorithm
                         else
                         {
                             double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi + data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
-
-                            //double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+                            coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
                             if (Change_ih[i][((PositionMap)MappingTable[j]).HIndex] > 0)
                             {
                                 // if the person can be assigned to this hospital

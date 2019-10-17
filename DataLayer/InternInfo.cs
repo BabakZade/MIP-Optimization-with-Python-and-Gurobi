@@ -456,11 +456,12 @@ namespace DataLayer
 				{
 					tmpKAll-= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
 					tmpK_g[GrIndex]-= allData.Discipline[tmp.theD].CourseCredit_p[ProgramID];
-					MaxPrf += allData.Discipline[tmp.theD].CourseCredit_p[ProgramID] * tmp.AbsDesire * allData.TrainingPr[ProgramID].CoeffObj_SumDesi;
+					MaxPrf += allData.Discipline[tmp.theD].CourseCredit_p[ProgramID] * tmp.AbsDesire;
                     disStatus[tmp.theD] = true;
                     removeDisciplineFromList(allData, tmp.theD);
                     totalAssignment++;
-				}
+                    IndeXarry = 0;
+                }
 				else
 				{
 					IndeXarry++;
@@ -489,7 +490,9 @@ namespace DataLayer
                     disStatus[tmp.theD] = true;
                     removeDisciplineFromList(allData, tmp.theD);
                     totalAssignment++;
-				}
+                    IndeXarry = 0;
+
+                }
 				else
 				{
 					IndeXarry++;

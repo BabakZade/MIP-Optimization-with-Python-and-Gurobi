@@ -68,7 +68,7 @@ namespace DataLayer
         public double assignedCap_hwt;
         public double internPrfperMax_i;
         public double percentInfisibility;
-
+        public double maxDesGap;
 
 
         public OptimalSolution(AllData data)
@@ -198,7 +198,7 @@ namespace DataLayer
 			NotUsedAccTotal = 0;
 			Obj = 0;
 			SlackDem = 0;
-
+            maxDesGap = 0;
 			
 		}
 		public void resetInf(AllData data)
@@ -605,7 +605,8 @@ namespace DataLayer
 			MaxRes = 0;
 			MaxMin = 0;
 			MaxAcc = 0;
-			StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
+            maxDesGap = 0;
+            StreamWriter tw = new StreamWriter(Path + Name + "OptSol.txt");
 			tw.WriteLine("PP | II | GG | DD | TT | Du | HH | PrD | PrH | PrP | K_G | C_C | FH (Schedule)");
 			for (int p = 0; p < data.General.TrainingPr; p++)
 			{
@@ -670,7 +671,7 @@ namespace DataLayer
                                 for (int i = 0; i < data.General.Interns; i++)
                                 {
                                     int strt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1);
-                                    //strt = t;
+                                   strt = t;
                                     for (int tt = strt; tt <= t; tt++)
                                     {
                                         if (Intern_itdh[i][tt][d][h] && data.Intern[i].TransferredTo_r[r])
@@ -825,7 +826,7 @@ namespace DataLayer
 								for (int i = 0; i < data.General.Interns; i++)
 								{
                                     int strt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1);
-                                    //strt = t; // we keep doing this
+                                    strt = t; // we keep doing this
                                     for (int tt = strt; tt <= t; tt++)
                                     {
                                         if (Intern_itdh[i][tt][d][h])
@@ -954,6 +955,10 @@ namespace DataLayer
 			tw.WriteLine("III DesI DesP MaxP");
 			for (int i = 0; i < data.General.Interns; i++)
 			{
+                if (maxDesGap < data.Intern[i].MaxPrf - Des_i[i] )
+                {
+                    maxDesGap = data.Intern[i].MaxPrf - Des_i[i];
+                }
 				Obj += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
 				Obj_i[i] += Des_i[i] * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
 				tw.WriteLine(i.ToString("000") + " " + Des_i[i].ToString("000")
@@ -973,7 +978,8 @@ namespace DataLayer
 			tw.WriteLine("Acc: " + NotUsedAccTotal.ToString("000.0"));
 			tw.WriteLine("SlD: " + SlackDem.ToString("000.0"));
 			tw.WriteLine("Obj: " + Obj.ToString("000.0"));
-			tw.WriteLine(setInfSetting());
+            tw.WriteLine("Gap: " + maxDesGap.ToString("000.0"));
+            tw.WriteLine(setInfSetting());
 			IsFeasible = !infeasibilityChangesInHospital 
 				&& !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve 
 				&& !infeasibilitySkill && !infeasibilityOverused && !infeasibilityOverlap
@@ -1060,55 +1066,60 @@ namespace DataLayer
         }
 
 
-        public OptimalSolution readSol(AllData data, string path, string name)
+        public OptimalSolution readSol(AllData data, string name)
         {
-            StreamReader sr = new StreamReader(path + name + "OptSol.txt");
             OptimalSolution optimal = new OptimalSolution(data);
-            int PP; int II; int GG; int DD; int TT; int Du; int HH; int PrD; int PrH; int PrP; int K_G; int C_C;
-            string line = sr.ReadLine();
-            bool du = false;
-            if (line.Contains("Du"))
+            if (File.Exists(data.allPath.InsGroupLocation + name + "OptSol.txt"))
             {
-                du = true;
-            }
-            line = sr.ReadLine();
-            while (line.Contains("|"))
-            {
-                int index = line.IndexOf("|");
-                PP = Convert.ToInt32(line.Substring(0, index));
-
-                line = line.Substring(index + 1);
-                index = line.IndexOf("|");
-                II = Convert.ToInt32(line.Substring(0, index));
-
-                line = line.Substring(index + 1);
-                index = line.IndexOf("|");
-                GG = Convert.ToInt32(line.Substring(0, index));
-
-                line = line.Substring(index + 1);
-                index = line.IndexOf("|");
-                DD = Convert.ToInt32(line.Substring(0, index));
-
-                line = line.Substring(index + 1);
-                index = line.IndexOf("|");
-                TT = Convert.ToInt32(line.Substring(0, index));
-
-                if (du)
+                StreamReader sr = new StreamReader(data.allPath.InsGroupLocation + name + "OptSol.txt");
+                
+                int PP; int II; int GG; int DD; int TT; int Du; int HH; int PrD; int PrH; int PrP; int K_G; int C_C;
+                string line = sr.ReadLine();
+                bool du = false;
+                if (line.Contains("Du"))
                 {
+                    du = true;
+                }
+                line = sr.ReadLine();
+                while (line.Contains("|"))
+                {
+                    int index = line.IndexOf("|");
+                    PP = Convert.ToInt32(line.Substring(0, index));
+
                     line = line.Substring(index + 1);
                     index = line.IndexOf("|");
-                    Du = Convert.ToInt32(line.Substring(0, index));
+                    II = Convert.ToInt32(line.Substring(0, index));
+
+                    line = line.Substring(index + 1);
+                    index = line.IndexOf("|");
+                    GG = Convert.ToInt32(line.Substring(0, index));
+
+                    line = line.Substring(index + 1);
+                    index = line.IndexOf("|");
+                    DD = Convert.ToInt32(line.Substring(0, index));
+
+                    line = line.Substring(index + 1);
+                    index = line.IndexOf("|");
+                    TT = Convert.ToInt32(line.Substring(0, index));
+
+                    if (du)
+                    {
+                        line = line.Substring(index + 1);
+                        index = line.IndexOf("|");
+                        Du = Convert.ToInt32(line.Substring(0, index));
+                    }
+
+
+                    line = line.Substring(index + 1);
+                    index = line.IndexOf("|");
+                    HH = Convert.ToInt32(line.Substring(0, index));
+                    optimal.Intern_itdh[II][TT][DD][HH] = true;
+                    line = sr.ReadLine();
                 }
-
-
-                line = line.Substring(index + 1);
-                index = line.IndexOf("|");
-                HH = Convert.ToInt32(line.Substring(0, index));
-                optimal.Intern_itdh[II][TT][DD][HH] = true;
-                line = sr.ReadLine();
             }
+            
 
-            optimal.WriteSolution(path, name+"New");
+            optimal.WriteSolution(data.allPath.OutPutGr, name+"New");
             return optimal;
         }
     }
