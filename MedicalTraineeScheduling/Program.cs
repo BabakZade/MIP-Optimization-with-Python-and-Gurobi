@@ -12,8 +12,8 @@ namespace MedicalTraineeScheduling
 		public static int InstanceSize;
 		static void Main(string[] args)
 		{
-            //new SolveMe().createInstanceObjCoeff(30);
-            new SolveMe().solveObjCoeffPareto(4096, 5, 8);
+            //new SolveMe().createInstanceObjCoeff(5);
+            new SolveMe().solveObjCoeffGammaDelta(20, 5, 8);
             
 		}
 

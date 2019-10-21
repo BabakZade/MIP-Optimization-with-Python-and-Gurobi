@@ -101,18 +101,30 @@ namespace NestedHungarianAlgorithm
 		public int findCandidateForDP(ref int Counter, OptimalSolution incumbentSol)
 		{
 			int candidate = -1;
-			double MaxDif = 0;
+			double MaxDif = -1;
+            bool thereIsInf = false ;
+            for (int i = 0; i < Interns; i++)
+            {
+                if (!InternStatus[i] && incumbentSol.infeasibleIntern_i[i])
+                {
+                    thereIsInf = true;
+                    double tmpObj = data.Intern[i].MaxPrf * data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
+                    if (tmpObj > MaxDif)
+                    {
+                        MaxDif = tmpObj;
+                        candidate = i;
+                    }
+                }
+            }
+            if (thereIsInf)
+            {
+                Counter--;
+            }
 
-			for (int i = 0; i < Interns; i++)
+            for (int i = 0; i < Interns && !thereIsInf; i++)
 			{				
 				if (!InternStatus[i])
 				{
-					if (incumbentSol.infeasibleIntern_i[i])
-					{
-						candidate = i;
-						Counter--;
-						break;
-					}
                     if (data.Intern[i].MaxPrf < incumbentSol.Des_i[i])
                     {
                         data.Intern[i].MaxPrf = incumbentSol.Des_i[i];

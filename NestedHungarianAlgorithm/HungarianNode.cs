@@ -506,7 +506,7 @@ namespace NestedHungarianAlgorithm
             // set motivation for demand min
             setMinDemMotivationCost();
             // set motivation for rare discipline and vital
-            setTakingPercentageMotivation();
+            // setTakingPercentageMotivation();
             // set motivation for need skill in the future
             setSkillbasedCost(NotRequiredSkill_id);
         }
@@ -558,7 +558,7 @@ namespace NestedHungarianAlgorithm
                             }
 
                             // discipline prf and Training Program prf
-                            if (TimeID <= 1 && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
+                            if (false && TimeID <= 1 && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
                             {
                                 CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }

@@ -1916,6 +1916,119 @@ namespace DataLayer
 
         public void ChangeObjCoeff(string location, string name)
         {
+            string[] nameCoeff = new string[] { "Alpha", "Beta", "Gamma", "Lambda", "Noe" };
+            string[] level = new string[4] { "00", "01", "10", "100" };
+            //double[][] weight = new double[24][]{new double[6] { 0.00, 0.20, 0.20, 0.20, 0.20, 0.20 },
+            //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+            //									 new double[6] { 0.50, 0.10, 0.10, 0.10, 0.10, 0.10 },
+            //									 new double[6] { 0.67, 0.07, 0.07, 0.07, 0.07, 0.07 },
+            //									 new double[6] { 0.20, 0.00, 0.20, 0.20, 0.20, 0.20 },
+            //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+            //									 new double[6] { 0.10, 0.50, 0.10, 0.10, 0.10, 0.10 },
+            //									 new double[6] { 0.07, 0.67, 0.07, 0.07, 0.07, 0.07 },
+            //									 new double[6] { 0.20, 0.20, 0.00, 0.20, 0.20, 0.20 },
+            //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+            //									 new double[6] { 0.10, 0.10, 0.50, 0.10, 0.10, 0.10 },
+            //									 new double[6] { 0.07, 0.07, 0.67, 0.07, 0.07, 0.07 },
+            //									 new double[6] { 0.20, 0.20, 0.20, 0.00, 0.20, 0.20 },
+            //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+            //									 new double[6] { 0.10, 0.10, 0.10, 0.50, 0.10, 0.10 },
+            //									 new double[6] { 0.07, 0.07, 0.07, 0.67, 0.07, 0.07 },
+            //									 new double[6] { 0.20, 0.20, 0.20, 0.20, 0.00, 0.20 },
+            //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+            //									 new double[6] { 0.10, 0.10, 0.10, 0.10, 0.50, 0.10 },
+            //									 new double[6] { 0.07, 0.07, 0.07, 0.07, 0.67, 0.07 },
+            //									 new double[6] { 0.20, 0.20, 0.20, 0.20, 0.20, 0.00 },
+            //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
+            //									 new double[6] { 0.10, 0.10, 0.10, 0.10, 0.10, 0.50 },
+            //									 new double[6] { 0.07, 0.07, 0.07, 0.07, 0.07, 0.67 }};
+
+            //for (int i = 0; i < nameCoeff.Count(); i++)
+            //{
+            //    for (int l = 0; l < level.Count(); l++)
+            //    {
+            //        for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+            //        {
+            //            tmpTrainingPr[p].CoeffObj_SumDesi = weight[i * level.Count() + l][0];
+            //            tmpTrainingPr[p].CoeffObj_MinDesi = weight[i * level.Count() + l][1];
+            //            tmpTrainingPr[p].CoeffObj_ResCap = weight[i * level.Count() + l][2];
+            //            tmpTrainingPr[p].CoeffObj_EmrCap = weight[i * level.Count() + l][3];
+            //            tmpTrainingPr[p].CoeffObj_NotUsedAcc = weight[i * level.Count() + l][4];
+            //            tmpTrainingPr[p].CoeffObj_MINDem = weight[i * level.Count() + l][5];
+            //        }
+            //        string NewLoc = location + nameCoeff[i] + level[l] + "\\";
+            //        if (!Directory.Exists(NewLoc))
+            //        {
+            //            Directory.CreateDirectory(NewLoc);
+            //        }
+            //        WriteInstance(NewLoc, name);
+            //    }
+            //}
+            double[] Wlevels = new double[] { 0, 1, 10, 100 };
+            double[] WFixed = new double[] { 1, 1, 1, 1, 1};
+            //int expr = (int)Math.Pow(Wlevels.Length, nameCoeff.Length);
+            int expr = 20;
+            double[][] weight = new double[expr][];
+
+            int counter = -1;
+            for (int i = 0; i < nameCoeff.Length; i++)
+            {
+                for (int j = 0; j < Wlevels.Length; j++)
+                {
+                    double[] Wvalue = new double[WFixed.Length];
+                    for (int k = 0; k < WFixed.Length; k++)
+                    {
+                        Wvalue[k] = WFixed[k];
+                    }
+
+                    Wvalue[i] = Wlevels[j];
+               
+                    
+                    double alpha = Wvalue[0];
+                    double Beta = Wvalue[1];
+                    double Gamma = Wvalue[2];
+                    double Delta = Wvalue[2];
+                    double Lambda = Wvalue[3];
+                    double Noe = Wvalue[4];
+                    double sum = alpha + Beta + Gamma + Delta + Lambda + Noe;
+                    if (sum == 0)
+                    {
+                        sum = 1;
+                    }
+                    counter++;
+                    weight[counter] = new double[] { alpha / sum, Beta / sum, Gamma / sum, Delta / sum, Lambda / sum, Noe / sum };
+
+                }
+            }
+            StreamWriter deescription = new StreamWriter(location + "Description.txt");
+            for (int i = 0; i < weight.Count(); i++)
+            {
+                for (int p = 0; p < tmpGeneral.TrainingPr; p++)
+                {
+                    tmpTrainingPr[p].CoeffObj_SumDesi = Math.Round(weight[i][0], 2);
+                    tmpTrainingPr[p].CoeffObj_MinDesi = Math.Round(weight[i][1], 2);
+                    tmpTrainingPr[p].CoeffObj_ResCap = Math.Round(weight[i][2], 2);
+                    tmpTrainingPr[p].CoeffObj_EmrCap = Math.Round(weight[i][3], 2);
+                    tmpTrainingPr[p].CoeffObj_NotUsedAcc = Math.Round(weight[i][4], 2);
+                    tmpTrainingPr[p].CoeffObj_MINDem = Math.Round(weight[i][5], 2);
+                }
+                string NewLoc = location + "G_" + (i + 1).ToString() + "\\";
+                if (!Directory.Exists(NewLoc))
+                {
+                    Directory.CreateDirectory(NewLoc);
+                }
+                WriteInstance(NewLoc, name);
+
+
+                deescription.WriteLine(Math.Round(weight[i][0], 2)
+                    + "\t" + Math.Round(weight[i][1], 2) + "\t" + Math.Round(weight[i][2], 2) + "\t"
+                    + Math.Round(weight[i][3], 2) + "\t" + Math.Round(weight[i][4], 2) + "\t" + Math.Round(weight[i][5], 2));
+            }
+            deescription.Close();
+        }
+
+        public void ChangeObjCoeffFullFactorial(string location, string name)
+        {
             string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
             string[] level = new string[4] { "00", "01", "05", "10" };
             //double[][] weight = new double[24][]{new double[6] { 0.00, 0.20, 0.20, 0.20, 0.20, 0.20 },
