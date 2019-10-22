@@ -25,8 +25,8 @@ namespace NestedHungarianAlgorithm
 		{
 			data = allData;
 			MaxProcessedNode = 0;
-		RealProcessedNode = 0;
-		Initial(incumbentSol);
+		    RealProcessedNode = 0;
+		    Initial(incumbentSol);
 			reScheduleIntern(incumbentSol, data.AlgSettings.internBasedImpPercentage, Name);
 		}
 		public void reScheduleIntern(OptimalSolution incumbentSol, double ChangePercentage, string Name)
@@ -47,6 +47,7 @@ namespace NestedHungarianAlgorithm
 				solI.copyRosters(finalSol.Intern_itdh);
 				solI.WriteSolution(data.allPath.OutPutGr, "tmpImprovedSol" + Name);
 				int theI = findCandidateForDP(ref i, solI);
+                double OLD = solI.Des_i[theI];
 				if (theI < 0)
 				{
 					break;
@@ -55,6 +56,7 @@ namespace NestedHungarianAlgorithm
 				DP neighbourhoodSol = new DP(data, theI, solI);
 				MaxProcessedNode += neighbourhoodSol.MaxProcessedNode;
 				RealProcessedNode += neighbourhoodSol.RealProcessedNode;
+                
 				solI.CleanInternRoster(theI);
 
 				for (int t = 0; t < Timepriods; t++)
@@ -67,6 +69,7 @@ namespace NestedHungarianAlgorithm
 					t = t + data.Discipline[neighbourhoodSol.BestSol.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theI].ProgramID] - 1;
 				}
 				solI.WriteSolution(data.allPath.OutPutGr, "InternBasedImproved_" + theI + "_" + Name);
+                Console.WriteLine(OLD + " ==> " +solI.Des_i[theI]);
 				if (solI.Obj > finalSol.Obj || (!solI.infeasibleIntern_i[theI] && finalSol.infeasibleIntern_i[theI]))
 				{
 					finalSol = new OptimalSolution(data);
@@ -129,7 +132,7 @@ namespace NestedHungarianAlgorithm
                     {
                         data.Intern[i].MaxPrf = incumbentSol.Des_i[i];
                     }
-					double tmpObj = (data.Intern[i].MaxPrf - incumbentSol.Des_i[i])* data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
+					double tmpObj = (data.Intern[i].MaxPrf - incumbentSol.Des_i[i]) / data.Intern[i].MaxPrf ;
 					if (tmpObj > MaxDif)
 					{
 						MaxDif = tmpObj;

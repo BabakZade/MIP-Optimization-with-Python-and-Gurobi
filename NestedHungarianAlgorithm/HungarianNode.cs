@@ -84,6 +84,9 @@ namespace NestedHungarianAlgorithm
         public int DisciplineGr;
         public bool[] disStatus_d;
         public int[][] Change_ih;
+        public double[] minDesire_i;
+        public double[] minDesireChance_i;
+        public int[] sortedMinDesireIntern_i;
 
         public bool[][] sHeOccupies_ir;
 
@@ -333,7 +336,26 @@ namespace NestedHungarianAlgorithm
                 }
 
             }
-
+            minDesireChance_i = new double[Interns];
+            for (int p = 0; p < Interns; p++)
+            {
+                minDesireChance_i[p] = 0;
+            }
+            minDesire_i = new double[Interns];
+            for (int i = 0; i < Interns; i++)
+            {
+                if (isRoot)
+                {
+                    minDesire_i[i] = 0;
+                    
+                }
+                else
+                {
+                    minDesire_i[i] = parentNode.minDesire_i[i];
+                    
+                }
+            }
+            findMinDesireCandidate();
             capacityBasedPreprocess();
             setDisc_iwh();
             // we need map for current time
@@ -493,6 +515,8 @@ namespace NestedHungarianAlgorithm
             }
             // just desire (discipline + hospital + training program + change) + wait + oversea
             setDesireCost(MotivationList_itdh);
+            // set minimum desire 
+            setMinDesireCost();
             // if intern is not available 
             setAvailibilityCost();
             // if interns can not
@@ -516,7 +540,8 @@ namespace NestedHungarianAlgorithm
             Random random = new Random();
             for (int i = 0; i < Interns; i++)
             {
-                
+                double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+
                 for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
                 {
                     
@@ -532,8 +557,7 @@ namespace NestedHungarianAlgorithm
                         }
                         else
                         {
-                            double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi + data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
-                            coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+                             coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
                             if (Change_ih[i][((PositionMap)MappingTable[j]).HIndex] > 0)
                             {
                                 // if the person can be assigned to this hospital
@@ -559,7 +583,7 @@ namespace NestedHungarianAlgorithm
                             }
 
                             // discipline prf and Training Program prf
-                            if (random.NextDouble()<0.5 && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
+                            if (false && random.NextDouble()<0.5 && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
                             {
                                 CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }
@@ -643,7 +667,77 @@ namespace NestedHungarianAlgorithm
                         }
                         else // if the intern wants to wait(weight_w<0)
                         {
-                            CostMatrix_i_whDem[i][j] -= data.Intern[i].wieght_w;
+                            CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_w;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        public void setMinDesireCost()
+        {
+            Random random = new Random();
+            int maxchange = (int)(random.NextDouble() * Interns);
+            maxchange = (int)(Interns * 0.25);
+            for (int ii = 0; ii < Interns; ii++)
+            {
+                if (ii > maxchange)
+                {
+                    break;
+                }
+                int i = sortedMinDesireIntern_i[ii];
+                double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
+                for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
+                {
+
+                    // just desire 
+                    if (j < TotalAvailablePosition)
+                    {
+
+                        int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+                        // if the intern is already assigned to this discipline
+                        if (discIn < 0)
+                        {
+                            
+                        }
+                        else
+                        {
+
+                            CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
+
+                            CostMatrix_i_whDem[i][j] -= coeff * data.TrainingPr[data.Intern[i].ProgramID].weight_p * data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn];
+
+                            //Change and Consecutive 
+                            if (!isRoot)
+                            {
+                                int prHosp = parentNode.LastPosition_i[i].HIndex;
+                                int prDisc = parentNode.LastPosition_i[i].dIndex;
+                                if (prHosp != ((PositionMap)MappingTable[j]).HIndex)
+                                {
+                                    CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_ch;
+                                }
+                                if (prDisc >= 0)
+                                {
+                                    CostMatrix_i_whDem[i][j] += coeff * data.Intern[i].wieght_cns * data.TrainingPr[data.Intern[i].ProgramID].cns_dD[prDisc][discIn];
+                                }
+                            }
+
+                        }
+                    }
+                    else if (j < TotalAvailablePosition + Interns) // oversea intern
+                    {
+                        
+                    }
+                    else
+                    {
+                        if (requiredTimeForRemainedDisc[i] > data.General.TimePriods - TimeID) // if interns must take a course 
+                        {
+                            //CostMatrix_i_whDem[i][j] += data.AlgSettings.MotivationBM;
+                        }
+                        else // if the intern wants to wait(weight_w<0)
+                        {
+                            CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_w;
                         }
 
                     }
@@ -689,7 +783,7 @@ namespace NestedHungarianAlgorithm
                     // if the intern is already assigned to this discipline
                     if (discIn < 0)
                     {
-                        CostMatrix_i_whDem[i][j] += data.AlgSettings.BigM;
+                       
                     }
                     // if intern is not available 
                     else if (j < TotalAvailablePosition && !data.Intern[i].Abi_dh[discIn][((PositionMap)MappingTable[j]).HIndex])
@@ -1018,9 +1112,10 @@ namespace NestedHungarianAlgorithm
         public void updateLastPos()
         {
             new ArrayInitializer().CreateArray(ref Schedule_idh, Interns, Disciplins, Hospitals + 1, false);
+            
             for (int i = 0; i < Interns; i++)
             {
-                
+                double desireNow = 0;
                 int Index = BestSchedule[i] < TotalAvailablePosition + Interns ? BestSchedule[i] : -1;
                 int discIn = -1;
                 // if intern waits 
@@ -1061,6 +1156,23 @@ namespace NestedHungarianAlgorithm
                     }
                     disStatus_d[discIn] = true;
                     requiredTimeForRemainedDisc[i] -= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
+                    desireNow = data.Intern[i].Prf_d[discIn] * data.Intern[i].wieght_d
+                             + data.Intern[i].Prf_h[((PositionMap)MappingTable[Index]).HIndex] * data.Intern[i].wieght_d
+                             + data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn] * data.TrainingPr[data.Intern[i].ProgramID].weight_p;
+                    // change 
+                    if (!isRoot)
+                    {
+                        int prHosp = parentNode.LastPosition_i[i].HIndex;
+                        int prDisc = parentNode.LastPosition_i[i].dIndex;
+                        if (prHosp != ((PositionMap)MappingTable[Index]).HIndex)
+                        {
+                            desireNow -=  data.Intern[i].wieght_ch;
+                        }
+                        if (prDisc >= 0)
+                        {
+                            desireNow +=  data.Intern[i].wieght_cns * data.TrainingPr[data.Intern[i].ProgramID].cns_dD[prDisc][discIn];
+                        }
+                    }
                 }
                 else if (BestSchedule[i] < TotalAvailablePosition + Interns) // oversea
                 {
@@ -1096,11 +1208,31 @@ namespace NestedHungarianAlgorithm
                                 }
                             }
                             requiredTimeForRemainedDisc[i] -= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
+                           
                         }
                     }
-
+                    desireNow = data.Intern[i].Prf_d[discIn] * data.Intern[i].wieght_d
+                             + data.TrainingPr[data.Intern[i].ProgramID].Prf_d[discIn] * data.TrainingPr[data.Intern[i].ProgramID].weight_p;
+                    // change 
+                    if (!isRoot)
+                    {
+                        int prHosp = parentNode.LastPosition_i[i].HIndex;
+                        int prDisc = parentNode.LastPosition_i[i].dIndex;
+                        if (true)
+                        {
+                            desireNow -= data.Intern[i].wieght_ch;
+                        }
+                        if (prDisc >= 0)
+                        {
+                            desireNow += data.Intern[i].wieght_cns * data.TrainingPr[data.Intern[i].ProgramID].cns_dD[prDisc][discIn];
+                        }
+                    }
                 }
-
+                else // weight
+                {
+                    desireNow = data.Intern[i].wieght_w;               
+                }
+                minDesire_i[i] += desireNow;
             }
         }
 
@@ -1401,24 +1533,22 @@ namespace NestedHungarianAlgorithm
             }
             for (int r = 0; r < Region; r++)
             {
-                for (int cap = 0; cap < data.Region[r].AvaAcc_t[TimeID]; cap++)
+                for (int i = 0; i < Interns; i++)
                 {
-                    for (int i = 0; i < Interns; i++)
+                    // he is busy in the other hospital
+                    if (!isRoot && parentNode.TimeLine_it[indexInternInR_ri[r][i]][TimeID] > 0)
                     {
-                        // he is busy in the other hospital
-                        if (!isRoot && parentNode.TimeLine_it[indexInternInR_ri[r][i]][TimeID] > 0)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        // if he is not alreaady assigned to other region and available
-                        if (!InternStatus[indexInternInR_ri[r][i]] && data.Intern[indexInternInR_ri[r][i]].Ave_t[TimeID])
-                        {
-                            sHeOccupies_ir[indexInternInR_ri[r][i]][r] = true;
-                            InternStatus[indexInternInR_ri[r][i]] = true;
-                        }
+                    // if he is not alreaady assigned to other region and available
+                    if (!InternStatus[indexInternInR_ri[r][i]] && data.Intern[indexInternInR_ri[r][i]].Ave_t[TimeID])
+                    {
+                        sHeOccupies_ir[indexInternInR_ri[r][i]][r] = true;
+                        InternStatus[indexInternInR_ri[r][i]] = true;
                     }
                 }
+
             }
         }
 
@@ -1477,5 +1607,62 @@ namespace NestedHungarianAlgorithm
             return result;
         }
 
+
+        public void findMinDesireCandidate()
+        {
+            for (int p = 0; p < TrainingPr; p++)
+            {
+                double max = 0;
+                double sum = 0;
+                for (int i = 0; i < Interns; i++)
+                {
+                    if (data.Intern[i].ProgramID != p)
+                    {
+                        continue;
+                    }
+                    sum += minDesire_i[i];
+                    if (max < minDesire_i[i])
+                    {
+                        max = minDesire_i[i];
+                    }
+                   
+                }
+                if (max != 0)
+                {
+
+                    for (int i = 0; i < Interns; i++)
+                    {
+                        if (data.Intern[i].ProgramID != p)
+                        {
+                            continue;
+                        }
+                        minDesireChance_i[i] = (max - minDesire_i[i]) / max;
+                    }
+                    
+                }
+            }
+
+
+            sortedMinDesireIntern_i = new int[Interns];
+            for (int i = 0; i < Interns; i++)
+            {
+                sortedMinDesireIntern_i[i] = i;
+            }
+
+            for (int i = 0; i < Interns; i++)
+            {
+                for (int j = i+1; j < Interns; j++)
+                {
+                    if (minDesireChance_i[sortedMinDesireIntern_i[i]] < minDesireChance_i[sortedMinDesireIntern_i[j]])
+                    {
+                        int tmp = sortedMinDesireIntern_i[i];
+                        sortedMinDesireIntern_i[i] = sortedMinDesireIntern_i[j];
+                        sortedMinDesireIntern_i[j] = tmp;
+                    }
+                }
+            }
+
+            
+        }
     }
 }

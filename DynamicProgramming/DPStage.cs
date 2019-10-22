@@ -790,8 +790,8 @@ namespace NestedDynamicProgrammingAlgorithm
 					double demCost = returnDemandCost(state.x_Disc, state.x_Hosp, stageTime, state.x_wait);
 					double tmpdemCost = returnDemandCost(current.x_Disc, current.x_Hosp, stageTime, current.x_wait);
 
-					double obj1 = -demCost + prfX1 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
-					double obj2 = -tmpdemCost + prfX2 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+					double obj1 = -demCost + prfX1 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi );
+					double obj2 = -tmpdemCost + prfX2 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi );
 					if (obj2 > obj1)
 					{
 						continue;

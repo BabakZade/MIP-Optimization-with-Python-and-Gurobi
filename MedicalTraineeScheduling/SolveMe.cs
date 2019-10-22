@@ -56,6 +56,7 @@ namespace MedicalTraineeScheduling
             elapsed.Start();
             for (int g = 0; g < totalGroup; g++)
             {
+                
                 elapsed.Restart();
                 for (int i = 0; i < totalInstance; i++)
                 {
