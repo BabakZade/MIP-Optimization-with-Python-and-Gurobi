@@ -671,7 +671,7 @@ namespace DataLayer
                                 for (int i = 0; i < data.General.Interns; i++)
                                 {
                                     int strt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1);
-                                   strt = t;
+                                   //strt = t;
                                     for (int tt = strt; tt <= t; tt++)
                                     {
                                         if (Intern_itdh[i][tt][d][h] && data.Intern[i].TransferredTo_r[r])
@@ -826,7 +826,7 @@ namespace DataLayer
 								for (int i = 0; i < data.General.Interns; i++)
 								{
                                     int strt = Math.Max(0, t - data.Discipline[d].Duration_p[data.Intern[i].ProgramID] + 1);
-                                    strt = t; // we keep doing this
+                                    //strt = t; // we keep doing this
                                     for (int tt = strt; tt <= t; tt++)
                                     {
                                         if (Intern_itdh[i][tt][d][h])

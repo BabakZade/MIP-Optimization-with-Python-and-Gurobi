@@ -162,7 +162,7 @@ namespace DataLayer
 
 			// min Demand Rate
 			double[] R_dMin = new double[1] { 0.05 };
-			R_dMin = new double[1] { 0.00 };
+			//R_dMin = new double[1] { 0.00 };
 
 			// min demand 
 			int[] MinDem = new int[1] { 1 };

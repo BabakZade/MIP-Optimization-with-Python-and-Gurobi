@@ -1916,7 +1916,7 @@ namespace DataLayer
 
         public void ChangeObjCoeff(string location, string name)
         {
-            string[] nameCoeff = new string[] { "Alpha", "Beta", "Gamma", "Lambda", "Noe" };
+            string[] nameCoeff = new string[] { "Alpha", "Beta", "Gamma","Delta", "Lambda", "Noe" };
             string[] level = new string[4] { "00", "01", "10", "100" };
             //double[][] weight = new double[24][]{new double[6] { 0.00, 0.20, 0.20, 0.20, 0.20, 0.20 },
             //									 new double[6] { 0.17, 0.17, 0.17, 0.17, 0.17, 0.17 },
@@ -1965,9 +1965,9 @@ namespace DataLayer
             //    }
             //}
             double[] Wlevels = new double[] { 0, 1, 10, 100 };
-            double[] WFixed = new double[] { 1, 1, 1, 1, 1};
+            double[] WFixed = new double[] { 1, 1, 1, 1, 1, 1};
             //int expr = (int)Math.Pow(Wlevels.Length, nameCoeff.Length);
-            int expr = 20;
+            int expr = 24;
             double[][] weight = new double[expr][];
 
             int counter = -1;
@@ -1987,9 +1987,13 @@ namespace DataLayer
                     double alpha = Wvalue[0];
                     double Beta = Wvalue[1];
                     double Gamma = Wvalue[2];
-                    double Delta = Wvalue[2];
-                    double Lambda = Wvalue[3];
-                    double Noe = Wvalue[4];
+                    double Delta = Wvalue[3];
+                    double Lambda = Wvalue[4];
+                    double Noe = Wvalue[5];
+                    if (Gamma > Delta)
+                    {
+                        Delta = Gamma;
+                    }
                     double sum = alpha + Beta + Gamma + Delta + Lambda + Noe;
                     if (sum == 0)
                     {

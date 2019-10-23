@@ -13,12 +13,12 @@ namespace MedicalTraineeScheduling
         public void createInstanceObjCoeff(int totalInstance)
         {
             DataLayer.InstanceSetting inssetting = new InstanceSetting();
-            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "NHA", "");
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeffEjor", "NHA", "");
             foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
             {
                 for (int i = 0; i < totalInstance; i++)
                 {
-                    SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("ObjCoeff", "", "G_");
+                    SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("ObjCoeffEjor", "", "G_");
                     WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "\\", "Instance_" + i, false);
                     using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
                     {
@@ -921,6 +921,74 @@ namespace MedicalTraineeScheduling
                     }
                 }
             }
+        }
+
+        public void solveThisDataSet(int totalGroup, int totalInstance, string datasetName, string nameOfProcsdure) 
+        {
+            int groupCounter = 0;
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult(datasetName, nameOfProcsdure, "");
+            for (int g = 0; g < totalGroup; g++)
+            {
+                for (int i = 0; i < totalInstance; i++)
+                {
+                    groupCounter++;
+                    if (groupCounter < 31)
+                    {
+                        //continue;
+                    }
+                    ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, datasetName , nameOfProcsdure, "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+                    read.data.AlgSettings.bucketBasedImpPercentage = 1;
+                    read.data.AlgSettings.internBasedImpPercentage = 0.5;
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                   // BranchAndPriceAlgorithm.BranchAndPrice bp = new BranchAndPriceAlgorithm.BranchAndPrice(read.data, "Ins_" + i);
+                    //MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
+                    //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString(), false, 7200);
+                    NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
+                    stopwatch.Stop();
+                    int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+
+                    using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                    {
+
+                        file.WriteLine(i + "\t" + time
+                        // NHA first Sol
+                        + "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
+                        + "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
+                        + "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
+                        // NHA bucket list improvement
+                        + "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.Obj + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.demandBaseLocalSearch.Global.MinDis)
+                        + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.ResDemand
+                        + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.SlackDem + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.NotUsedAccTotal
+                        // NHA intern based improvement 
+                        + "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
+                        + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
+                        + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
+                        + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxDisier + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxMin
+                        + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.MaxRes + "\t" + nha.improvementStep.internBasedLocalSearch.MaxProcessedNode
+                        + "\t" + nha.improvementStep.internBasedLocalSearch.RealProcessedNode
+                        );
+                }
+                //using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                //{
+                //	string output = i + "\t" + time + "\t" + xy.objFunction; 
+                //	for (int p = 0; p < read.data.General.TrainingPr; p++)
+                //	{
+                //		output += "\t" + xy.ElappesedTime_p[p]
+                //		// NHA first Sol
+                //		+ "\t" + xy.finalSol_p[p].Obj + "\t" + xy.finalSol_p[p].AveDes + "\t" + String.Join(" \t ", xy.finalSol_p[p].MinDis)
+                //		+ "\t" + xy.finalSol_p[p].EmrDemand + "\t" + xy.finalSol_p[p].ResDemand
+                //		+ "\t" + xy.finalSol_p[p].SlackDem + "\t" + xy.finalSol_p[p].NotUsedAccTotal;
+                //	}
+                //	file.WriteLine(output);
+                //}
+
+            }
+
+            }
+
+
+
         }
     }
    

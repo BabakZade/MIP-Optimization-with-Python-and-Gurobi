@@ -6,16 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExcelPackage" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1000" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="Syncfusion.Compression.Base" Version="17.2.0.41" />
-    <PackageReference Include="Syncfusion.Compression.Net.Core" Version="17.2.0.41" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BranchAndPriceAlgorithm\BranchAndPriceAlgorithm.csproj" />
     <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
     <ProjectReference Include="..\DynamicProgramming\NestedDynamicProgrammingAlgorithm.csproj" />

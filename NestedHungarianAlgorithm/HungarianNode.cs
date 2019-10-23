@@ -634,7 +634,7 @@ namespace NestedHungarianAlgorithm
                             // if interns list is longer than availble time the we have to devide the preferences to duration of the discipline
                             if (requiredTimeForRemainedDisc[i] > data.General.TimePriods - TimeID)
                             {
-                                CostMatrix_i_whDem[i][j] /= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
+                               // CostMatrix_i_whDem[i][j] /= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
                             }
 
                         }
@@ -677,9 +677,17 @@ namespace NestedHungarianAlgorithm
 
         public void setMinDesireCost()
         {
+            
             Random random = new Random();
             int maxchange = (int)(random.NextDouble() * Interns);
-            maxchange = (int)(Interns * 0.25);
+            double sum = data.TrainingPr[0].CoeffObj_SumDesi
+                + data.TrainingPr[0].CoeffObj_MinDesi
+                + data.TrainingPr[0].CoeffObj_EmrCap
+                + data.TrainingPr[0].CoeffObj_ResCap
+                + data.TrainingPr[0].CoeffObj_MINDem
+                + data.TrainingPr[0].CoeffObj_NotUsedAcc;
+            sum = data.TrainingPr[0].CoeffObj_MinDesi / sum;
+            maxchange = (int)(Interns * sum);
             for (int ii = 0; ii < Interns; ii++)
             {
                 if (ii > maxchange)
@@ -696,6 +704,7 @@ namespace NestedHungarianAlgorithm
                     {
 
                         int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+
                         // if the intern is already assigned to this discipline
                         if (discIn < 0)
                         {
@@ -703,6 +712,8 @@ namespace NestedHungarianAlgorithm
                         }
                         else
                         {
+
+                            CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_h * data.Intern[i].Prf_h[((PositionMap)MappingTable[j]).HIndex];
 
                             CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
 
