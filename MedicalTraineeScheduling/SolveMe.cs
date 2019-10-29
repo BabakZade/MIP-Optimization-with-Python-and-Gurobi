@@ -825,6 +825,19 @@ namespace MedicalTraineeScheduling
 
         }
 
+        public void solveEConstriant() 
+        {
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "eConstraint", "");
+            ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "eConstraint", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
+            GeneralMIPAlgorithm.AugmentedEConstraintAlg augmeconstraint = new GeneralMIPAlgorithm.AugmentedEConstraintAlg(read.data, (0).ToString());
+            foreach (GeneralMIPAlgorithm.ParetoPoints pareto in augmeconstraint.paretoSol)
+            {
+                using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                {
+                    file.WriteLine(pareto.displayMe());
+                }
+            }
+        }
 
         public void solveOneFactorAtAtime()
         {

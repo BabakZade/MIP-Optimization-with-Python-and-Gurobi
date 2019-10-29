@@ -4,6 +4,7 @@ using System.Text;
 using DataLayer;
 using ILOG.Concert;
 using ILOG.CPLEX;
+using MultiObjLongInfo = ILOG.CPLEX.Cplex.MultiObjLongInfo;
 using System.Diagnostics;
 
 namespace GeneralMIPAlgorithm
@@ -40,9 +41,10 @@ namespace GeneralMIPAlgorithm
         public string[][][] RES_twh;
         public string[][][] EMR_twh;
         public string[][][] SLD_twh;
-
+        public double[] multiObjectiveValue;
         public string[][] ACCSL_tr;
         public string[] DESMin_p;
+        public bool notFeasible;
 
         public int Interns;
         public int Disciplins;
@@ -57,10 +59,10 @@ namespace GeneralMIPAlgorithm
             data = InputData;
             MIPalgorithem(InsName, CPLEXFirstNode, NewTimeLimit);
         }
-        public MedicalTraineeSchedulingMIP(AllData InputData, AUGMECONS augmentedaddon,  string InsName)
+        public MedicalTraineeSchedulingMIP(AllData InputData, AUGMECONS augmentedaddon, bool ifRoot,  string InsName)
         {
             data = InputData;
-            SolveAUGMECON(InsName,augmentedaddon);
+            SolveAUGMECON(InsName,augmentedaddon,ifRoot);
         }
         public void MIPalgorithem(string InsName, bool CPLEXFirstNode, int NewTimeLimit)
         {
@@ -1380,27 +1382,40 @@ namespace GeneralMIPAlgorithm
             }
         }
 
-        public void SolveAUGMECON(string InsName, AUGMECONS augmentedaddon)
+        public void SolveAUGMECON(string InsName, AUGMECONS augmentedaddon, bool ifRoot)
         {
             Initial();
             InitialMIPVar();
-
-            setEugmentedECons(augmentedaddon);
             CreateModel();
+            setEugmentedECons(augmentedaddon, ifRoot, InsName);
+            
             setDemandConstraint();
             //SetSol();
-            solve_AUGMECON(InsName);
+            solve_AUGMECON(InsName, augmentedaddon);
+           
         }
-        public void setEugmentedECons(AUGMECONS augmentedaddon) 
+        public void setEugmentedECons(AUGMECONS augmentedaddon, bool ifRoot, string InsName) 
         {
             setEugmentedSlack(augmentedaddon);
-            setSumDesireAUGMECON(augmentedaddon);
+            if (ifRoot)
+            {
+                setLexicoGraohObjectiveAUGMECON(augmentedaddon);
+            }
+            else
+            {
+                setAugmentedObjectiveFunctionAUGMECON(augmentedaddon);
+            }
             setMinDesireAUGMECON(augmentedaddon);
             setResDemandAUGMECON(augmentedaddon);
             setEmrDemandAUGMECON(augmentedaddon);
             setMinDemandAUGMECON(augmentedaddon);
             setUnAccDemandAUGMECON(augmentedaddon);
         }
+
+        /// <summary>
+        /// it sets the slack variables range and adds it to MIP model
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
         public void setEugmentedSlack(AUGMECONS augmentedaddon) 
         {
             s_obj = new INumVar[augmentedaddon.totalObjective];
@@ -1409,27 +1424,158 @@ namespace GeneralMIPAlgorithm
                 s_obj[o] = MIPModel.NumVar(augmentedaddon.lowerBound_o[o], augmentedaddon.upperBound_o[o], "slack_[" + o + "]");
             }
         }
-        public void setSumDesireAUGMECON(AUGMECONS augmentedaddon) 
+
+        /// <summary>
+        /// sets the augmented objective function for MIP model
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
+        public void setLexicoGraohObjectiveAUGMECON(AUGMECONS augmentedaddon) 
         {
-            ILinearNumExpr sumdes = MIPModel.LinearNumExpr();
-            for (int i = 0; i <  Interns; i++)
+            // objective function
+            ILinearNumExpr Obj1 = MIPModel.LinearNumExpr();
+            ILinearNumExpr Obj2 = MIPModel.LinearNumExpr();
+            ILinearNumExpr Obj3 = MIPModel.LinearNumExpr();
+            ILinearNumExpr Obj4 = MIPModel.LinearNumExpr();
+            ILinearNumExpr Obj5 = MIPModel.LinearNumExpr();
+            ILinearNumExpr Obj6 = MIPModel.LinearNumExpr();
+            if (augmentedaddon.activeObj_o[0])
             {
-                sumdes.AddTerm(1,des_i[i]);
+                for (int i = 0; i < Interns; i++)
+                {
+                    Obj1.AddTerm(des_i[i], 1);
+                }
             }
-            
-            for (int o = 1; o < augmentedaddon.totalObjective; o++)
+            if (augmentedaddon.activeObj_o[1])
             {
+                for (int p = 0; p < TrainingPr; p++)
+                {
+                    Obj2.AddTerm(desMin_p[p], 1);
+                }
+            }
+            if (augmentedaddon.activeObj_o[2])
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals - 1; h++)
+                        {
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                Obj3.AddTerm(Res_twh[t][w][h], -1);
+                            }
+
+                        }
+                    }
+                }
+            }
+            if (augmentedaddon.activeObj_o[3])
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals - 1; h++)
+                        {
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                Obj4.AddTerm(Emr_twh[t][w][h], -1);
+                            }
+
+                        }
+                    }
+                }
+            }
+            if (augmentedaddon.activeObj_o[4])
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int w = 0; w < Wards; w++)
+                    {
+                        for (int h = 0; h < Hospitals - 1; h++)
+                        {
+                            for (int p = 0; p < TrainingPr; p++)
+                            {
+                                Obj5.AddTerm(sld_twh[t][w][h], -1);
+                            }
+
+                        }
+                    }
+                }
+            }
+            if (augmentedaddon.activeObj_o[5])
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int r = 0; r < Regions; r++)
+                    {
+                        for (int p = 0; p < TrainingPr; p++)
+                        {
+                            Obj6.AddTerm(AccSl_tr[t][r], -1);
+                        }
+                    }
+                }
+            }
+            MIPModel.Maximize(MIPModel.StaticLex(new INumExpr[] { Obj1, Obj2, Obj3, Obj4, Obj5, Obj6 }, augmentedaddon.weight_o, augmentedaddon.priority_o,
+                augmentedaddon.absTols_o, augmentedaddon.relTols_o, ""), "LexicographObjective");   
+            
+        }
+
+        /// <summary>
+        /// adds the slack variables to the objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
+        public void setAugmentedObjectiveFunctionAUGMECON(AUGMECONS augmentedaddon) 
+        {
+            ILinearNumExpr objectiveFunction = MIPModel.LinearNumExpr();
+            for (int i = 0; i < Interns; i++)
+            {
+                objectiveFunction.AddTerm(des_i[i], 1);
+            }
+            for (int o = 0; o < augmentedaddon.totalObjective; o++)
+            {
+                
                 double rhsSum = augmentedaddon.upperBound_o[0] - augmentedaddon.lowerBound_o[0];
                 double rhs_o = augmentedaddon.upperBound_o[o] - augmentedaddon.lowerBound_o[o];
+                
                 if (rhs_o == 0)
                 {
-                    rhs_o = 1;
+                    objectiveFunction.AddTerm(0, s_obj[o]);
                 }
-                sumdes.AddTerm(rhsSum / rhs_o, s_obj[o]);
+                else
+                {
+                    objectiveFunction.AddTerm(rhsSum / rhs_o, s_obj[o]);
+                }
+                
             }
 
-            MIPModel.Maximize(sumdes,"AugmentedObjective");
+            MIPModel.Maximize(objectiveFunction, "AugmentedObjective");
         }
+
+        /// <summary>
+        /// adds the constraints related to sum desire objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
+        public void setSumDesireAUGMECON(AUGMECONS augmentedaddon)
+        {
+            ILinearNumExpr sumdes = MIPModel.LinearNumExpr();
+
+            for (int i = 0; i < Interns; i++)
+            {
+                sumdes.AddTerm(1, des_i[i]);
+            }
+            sumdes.AddTerm(-1, s_obj[0]);
+            if (augmentedaddon.activeConst_o[0])
+            {
+                MIPModel.AddEq(sumdes, augmentedaddon.epsilonCon_o[0], "AugmentedConsSumDes_" + 0);
+            }
+
+        }
+
+        /// <summary>
+        /// adds the constraints related to min desire objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
         public void setMinDesireAUGMECON(AUGMECONS augmentedaddon) 
         {
             ILinearNumExpr mindes = MIPModel.LinearNumExpr();
@@ -1439,9 +1585,17 @@ namespace GeneralMIPAlgorithm
                 mindes.AddTerm(1, desMin_p[i]);
             }
             mindes.AddTerm(-1, s_obj[1]);
-
-            MIPModel.AddEq(mindes, rhs, "AugmentedConsMinDes_" + 1);
+            if (augmentedaddon.activeConst_o[1])
+            {
+                MIPModel.AddEq(mindes, augmentedaddon.epsilonCon_o[1], "AugmentedConsMinDes_" + 1);
+            }
+            
         }
+
+        /// <summary>
+        /// adds the constraints related to reserved demand objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
         public void setResDemandAUGMECON(AUGMECONS augmentedaddon) 
         {
             ILinearNumExpr resdem = MIPModel.LinearNumExpr();
@@ -1456,9 +1610,17 @@ namespace GeneralMIPAlgorithm
                 }
             }
             resdem.AddTerm(+1, s_obj[2]);
-
-            MIPModel.AddEq(resdem, augmentedaddon.epsilonCon_o[2], "AugmentedConsResDem_" + 2);
+            if (augmentedaddon.activeConst_o[2])
+            {
+                MIPModel.AddEq(resdem, augmentedaddon.epsilonCon_o[2], "AugmentedConsResDem_" + 2);
+            }
+            
         }
+
+        /// <summary>
+        /// adds the constraints related to emergency demand objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
         public void setEmrDemandAUGMECON(AUGMECONS augmentedaddon)
         {
             ILinearNumExpr emrdem = MIPModel.LinearNumExpr();
@@ -1473,9 +1635,17 @@ namespace GeneralMIPAlgorithm
                 }
             }
             emrdem.AddTerm(+1, s_obj[3]);
-
-            MIPModel.AddEq(emrdem, augmentedaddon.epsilonCon_o[3], "AugmentedConsEmrDem_" + 3);
+            if (augmentedaddon.activeConst_o[3])
+            {
+                MIPModel.AddEq(emrdem, augmentedaddon.epsilonCon_o[3], "AugmentedConsEmrDem_" + 3);
+            }
+            
         }
+
+        /// <summary>
+        /// adds the constraints related to min demand objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
         public void setMinDemandAUGMECON(AUGMECONS augmentedaddon)
         {
             ILinearNumExpr mindem = MIPModel.LinearNumExpr();
@@ -1490,9 +1660,17 @@ namespace GeneralMIPAlgorithm
                 }
             }
             mindem.AddTerm(+1, s_obj[4]);
-
-            MIPModel.AddEq(mindem, augmentedaddon.epsilonCon_o[4], "AugmentedConsMinDem_" + 4);
+            if (augmentedaddon.activeConst_o[4])
+            {
+                MIPModel.AddEq(mindem, augmentedaddon.epsilonCon_o[4], "AugmentedConsMinDem_" + 4);
+            }
+            
         }
+
+        /// <summary>
+        /// adds the constraints related to unused accomodation in different region objective function
+        /// </summary>
+        /// <param name="augmentedaddon"></param>
         public void setUnAccDemandAUGMECON(AUGMECONS augmentedaddon)
         {
             ILinearNumExpr mindem = MIPModel.LinearNumExpr();
@@ -1504,17 +1682,58 @@ namespace GeneralMIPAlgorithm
                 }
             }
             mindem.AddTerm(+1, s_obj[5]);
-
-            MIPModel.AddEq(mindem, augmentedaddon.epsilonCon_o[5], "AugmentedConsUnAcc_" + 5);
+            if (augmentedaddon.activeConst_o[5])
+            {
+                MIPModel.AddEq(mindem, augmentedaddon.epsilonCon_o[5], "AugmentedConsUnAcc_" + 5);
+            }
+            
         }
 
+        public void setMultiObjValue(AUGMECONS augmentedaddon) 
+        {
+            multiObjectiveValue = new double[augmentedaddon.totalObjective];
+            for (int oo = 0; oo < augmentedaddon.totalObjective; oo++)
+            {
+                multiObjectiveValue[oo] = 0;
+            }
+            for (int i = 0; i < Interns; i++)
+            {
+                multiObjectiveValue[0] += MIPModel.GetValue(des_i[i]);
+            }
+            for (int p = 0; p < TrainingPr; p++)
+            {
+                multiObjectiveValue[1] += MIPModel.GetValue(desMin_p[p]);
+            }
 
-        public void solve_AUGMECON(string InsName)
+            for (int w = 0; w < Wards; w++)
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        multiObjectiveValue[2] += MIPModel.GetValue( Res_twh[t][w][h]);
+                        multiObjectiveValue[3] += MIPModel.GetValue(Emr_twh[t][w][h]);
+                        multiObjectiveValue[4] += MIPModel.GetValue(sld_twh[t][w][h]);
+                    }
+                }
+            }
+
+            for (int r = 0; r < Regions; r++)
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    multiObjectiveValue[5] += MIPModel.GetValue(AccSl_tr[t][r]);
+                }
+            }
+        }
+        public void solve_AUGMECON(string InsName, AUGMECONS augmentedaddon)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //*************set program
             MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "LP.lp");
+            // Set multi-objective display level to "detailed".
+            MIPModel.SetParam(Cplex.Param.MultiObjective.Display, 2);
             MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
             MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
             MIPModel.SetParam(Cplex.IntParam.Threads, 3);
@@ -1527,8 +1746,9 @@ namespace GeneralMIPAlgorithm
                 
                 if (MIPModel.Solve())
                 {
+                    notFeasible = false;
                     ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                   
+                    setMultiObjValue(augmentedaddon);
                     stopwatch.Stop();
                     ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
                     for (int i = 0; i < Interns; i++)
@@ -1588,11 +1808,11 @@ namespace GeneralMIPAlgorithm
                     }
 
                 }
-                for (int i = 0; i < Interns; i++)
+                else
                 {
-                    Console.WriteLine(MIPModel.GetValue(des_i[i]));
+                    notFeasible = true;
                 }
-                Console.WriteLine(MIPModel.ObjValue);
+                
                 mipOpt.WriteSolution(data.allPath.OutPutGr, "MIP" + InsName);
 
 
