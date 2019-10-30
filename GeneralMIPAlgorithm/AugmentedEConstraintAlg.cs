@@ -34,9 +34,10 @@ namespace GeneralMIPAlgorithm
         public double[][] rangeInterval_oi;
         public ArrayList paretoSol;
         public int augCounter;
-
+        public bool[][][][] warmStartTime_itdh;
 
         public AugmentedEConstraintAlg(DataLayer.AllData alldata, string InsName) {
+            alldata.AlgSettings.MIPTime = 300;
             initial(alldata);
             setAUGMECONSpayoff(InsName);
             setAUGMECONSRange(InsName);
@@ -60,25 +61,34 @@ namespace GeneralMIPAlgorithm
             rangeQ_o = new int[totalObjective];
             for (int o = 0; o < totalObjective; o++)
             {
-                minRange_o[o] = 0;
+                minRange_o[o] = alldata.AlgSettings.BigM;
                 maxRange_o[o] = 0;
                 rangeQ_o[o] = 0;
 
             }
-            rangeQ_o = new int[] { 3, 3, 2, 2, 2, 2 };
+            rangeQ_o = new int[] { 3, 5, 5, 5, 5, 5 };
             data = alldata;
             eConstraitn = new ArrayList();
             paretoSol = new ArrayList();
             augCounter = 0;
+            new DataLayer.ArrayInitializer().CreateArray(ref warmStartTime_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines + 1, data.General.Hospitals + 1, false);
+
         }
 
         public void setAUGMECONSpayoff(string InsName)
         {
-            string name = InsName + "AugID_" + augCounter;
+            bool warmStartFlag = false;
             for (int o = 0; o < totalObjective; o++)
             {
                 augCounter++;
-                AUGMECONS root = new AUGMECONS(totalObjective);
+                
+                AUGMECONS root = new AUGMECONS(totalObjective,augCounter);
+                if (warmStartFlag)
+                {
+                    root.setWarmStartTime(data, warmStartTime_itdh);
+                    root.useWarmStart = true;
+                }
+                string name = InsName + "AugID_" + root.ID;
                 for (int oo = 0; oo < totalObjective; oo++)
                 {
                     root.activeObj_o[oo] = true;
@@ -93,12 +103,19 @@ namespace GeneralMIPAlgorithm
                 MedicalTraineeSchedulingMIP mip = new MedicalTraineeSchedulingMIP(data, root, true, name);
                 if (!mip.notFeasible)
                 {
+                    warmStartTime_itdh = mip.warmStartTime_itdh;
+                    root.setWarmStartTime(data, warmStartTime_itdh);
+                    warmStartFlag = true;
                     for (int oo = 0; oo < totalObjective; oo++)
                     {
                         payOffTable[o][oo] = mip.multiObjectiveValue[oo];
                         if (minRange_o[oo] > payOffTable[o][oo])
                         {
                             minRange_o[oo] = payOffTable[o][oo];
+                        }
+                        if (maxRange_o[o] < payOffTable[o][oo])
+                        {
+                            maxRange_o[o] = payOffTable[o][oo];
                         }
                     }
                     paretoSol.Add(new ParetoPoints
@@ -110,32 +127,40 @@ namespace GeneralMIPAlgorithm
                         minDemand = payOffTable[o][4],
                         regDemand = payOffTable[o][5],
                     });
-                    maxRange_o[o] = payOffTable[o][o];
                 }
-                
-                
+
+                eConstraitn.Add(root); // we need them later
             }
         }
 
         public void setAUGMECONSRange(string InsName) 
         {
-            eConstraitn = new ArrayList();
             StreamWriter swEC = new StreamWriter(data.allPath.OutPutGr + "econstGrid.txt");
-            int counter = 0;
-            for (int mnD = 0; mnD < rangeQ_o[1]; mnD++)
+            for (int o = 0; o < totalObjective; o++)
             {
-                for (int rsD = 0; rsD < rangeQ_o[2]; rsD++)
+                if (maxRange_o[o] == minRange_o[o])
                 {
-                    for (int emD = 0; emD < rangeQ_o[3]; emD++)
+                    rangeQ_o[o] = 0; // the loops from hear can consider 0
+                }
+            }
+            int counter = 0;
+            for (int mnD = 0; mnD <= rangeQ_o[1]; mnD++)
+            {
+                for (int rsD = 0; rsD <= rangeQ_o[2]; rsD++)
+                {
+                    for (int emD = 0; emD <= rangeQ_o[3]; emD++)
                     {
-                        for (int miD = 0; miD < rangeQ_o[4]; miD++)
+                        for (int miD = 0; miD <= rangeQ_o[4]; miD++)
                         {
-                            for (int rgD = 0; rgD < rangeQ_o[5]; rgD++)
+                            for (int rgD = 0; rgD <= rangeQ_o[5]; rgD++)
                             {
-                                AUGMECONS tmpAug = new AUGMECONS(totalObjective);
+                                augCounter++;
+                                AUGMECONS tmpAug = new AUGMECONS(totalObjective,augCounter);
                                 counter++;
                                 for (int o = 1; o < totalObjective; o++)
                                 {
+                                    tmpAug.useWarmStart = true;
+                                    tmpAug.setWarmStartTime(data, ((AUGMECONS)eConstraitn[o]).warmStartTime_itdh);
                                     double econst = 0;
                                     switch (o)
                                     {
@@ -179,22 +204,42 @@ namespace GeneralMIPAlgorithm
 
         public void setAUGMECONSPareto(string InsName) 
         {
-            
-            foreach (AUGMECONS aug in eConstraitn)
+            int counter = totalObjective - 1; // the firs 6 ones are root we already checked them for payoff
+            for (int mnD = 0; mnD <= rangeQ_o[1]; mnD++)
             {
-                string name = InsName + "AugID_" + augCounter;
-                MedicalTraineeSchedulingMIP tmp = new MedicalTraineeSchedulingMIP(data, aug, false, name);
-                if (!tmp.notFeasible)
+                for (int rsD = 0; rsD <= rangeQ_o[2]; rsD++)
                 {
-                    paretoSol.Add(new ParetoPoints
+                    for (int emD = 0; emD <= rangeQ_o[3]; emD++)
                     {
-                        sumDesire = tmp.multiObjectiveValue[0],
-                        minDesire = tmp.multiObjectiveValue[1],
-                        resDemand = tmp.multiObjectiveValue[2],
-                        emrDemand = tmp.multiObjectiveValue[3],
-                        minDemand = tmp.multiObjectiveValue[4],
-                        regDemand = tmp.multiObjectiveValue[5],
-                    });
+                        for (int miD = 0; miD <= rangeQ_o[4]; miD++)
+                        {
+                            for (int rgD = 0; rgD <= rangeQ_o[5]; rgD++)
+                            {
+                                counter++;
+                                AUGMECONS aug = (AUGMECONS)eConstraitn[counter];
+                                
+                                string name = InsName + "AugID_" + aug.ID;
+                                MedicalTraineeSchedulingMIP tmp = new MedicalTraineeSchedulingMIP(data, aug, false, name);
+
+                                if (!tmp.notFeasible)
+                                {
+                                    if (counter < eConstraitn.Count - 1)
+                                    {
+                                        ((AUGMECONS)eConstraitn[counter + 1]).setWarmStartTime(data, tmp.warmStartTime_itdh);
+                                    }
+                                    paretoSol.Add(new ParetoPoints
+                                    {
+                                        sumDesire = tmp.multiObjectiveValue[0],
+                                        minDesire = tmp.multiObjectiveValue[1],
+                                        resDemand = tmp.multiObjectiveValue[2],
+                                        emrDemand = tmp.multiObjectiveValue[3],
+                                        minDemand = tmp.multiObjectiveValue[4],
+                                        regDemand = tmp.multiObjectiveValue[5],
+                                    });
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -829,6 +829,7 @@ namespace MedicalTraineeScheduling
         {
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "eConstraint", "");
             ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "eConstraint", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
+            //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
             GeneralMIPAlgorithm.AugmentedEConstraintAlg augmeconstraint = new GeneralMIPAlgorithm.AugmentedEConstraintAlg(read.data, (0).ToString());
             foreach (GeneralMIPAlgorithm.ParetoPoints pareto in augmeconstraint.paretoSol)
             {

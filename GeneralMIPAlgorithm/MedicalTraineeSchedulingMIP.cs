@@ -4,7 +4,9 @@ using System.Text;
 using DataLayer;
 using ILOG.Concert;
 using ILOG.CPLEX;
+using MultiObjIntInfo = ILOG.CPLEX.Cplex.MultiObjIntInfo;
 using MultiObjLongInfo = ILOG.CPLEX.Cplex.MultiObjLongInfo;
+using MultiObjNumInfo = ILOG.CPLEX.Cplex.MultiObjNumInfo;
 using System.Diagnostics;
 
 namespace GeneralMIPAlgorithm
@@ -45,7 +47,7 @@ namespace GeneralMIPAlgorithm
         public string[][] ACCSL_tr;
         public string[] DESMin_p;
         public bool notFeasible;
-
+        public bool[][][][] warmStartTime_itdh;
         public int Interns;
         public int Disciplins;
         public int Hospitals;
@@ -80,16 +82,13 @@ namespace GeneralMIPAlgorithm
 
 
 
-            sol.AddTerm(s_idth[00][04][00][00], 1);
-            sol.AddTerm(s_idth[01][03][00][00], 1);
-            sol.AddTerm(s_idth[02][03][00][00], 1);
-            sol.AddTerm(s_idth[03][03][00][00], 1);
-            sol.AddTerm(s_idth[04][04][00][00], 1);
-            sol.AddTerm(s_idth[05][02][00][00], 1);
-            sol.AddTerm(s_idth[06][04][00][00], 1);
+            sol.AddTerm(s_idth[02][12][00][01], 1);
+            sol.AddTerm(s_idth[02][10][01][00], 1);
+            sol.AddTerm(s_idth[02][11][02][02], 1);
+           
 
             //sol.AddTerm(w_id[1][1], 1);
-            MIPModel.AddEq(sol, 7);
+            MIPModel.AddEq(sol, 3,"setSol");
         }
         public void Initial()
         {
@@ -450,6 +449,7 @@ namespace GeneralMIPAlgorithm
                     for (int h = 0; h < Hospitals - 1; h++)
                     {
                         Res_twh[t][w][h] = MIPModel.NumVar(0, data.Hospital[h].ReservedCap_tw[t][w], RES_twh[t][w][h]);
+                        //MIPModel.Add(Res_twh[t][w][h]);
                     }
                 }
             }
@@ -464,6 +464,7 @@ namespace GeneralMIPAlgorithm
                     for (int h = 0; h < Hospitals; h++)
                     {
                         EMR_twh[t][w][h] = "EMR_twh[" + t + "][" + w + "][" + h + "]";
+
                     }
                 }
             }
@@ -478,6 +479,7 @@ namespace GeneralMIPAlgorithm
                     for (int h = 0; h < Hospitals - 1; h++)
                     {
                         Emr_twh[t][w][h] = MIPModel.NumVar(0, data.Hospital[h].EmergencyCap_tw[t][w], EMR_twh[t][w][h]);
+                        //MIPModel.Add(Emr_twh[t][w][h]);
                     }
                 }
             }
@@ -506,6 +508,7 @@ namespace GeneralMIPAlgorithm
                     for (int h = 0; h < Hospitals - 1; h++)
                     {
                         sld_twh[t][w][h] = MIPModel.NumVar(0, data.Hospital[h].HospitalMinDem_tw[t][w], SLD_twh[t][w][h]);
+                        //MIPModel.Add(sld_twh[t][w][h]);
                     }
                 }
             }
@@ -527,6 +530,7 @@ namespace GeneralMIPAlgorithm
                 for (int r = 0; r < Regions; r++)
                 {
                     AccSl_tr[t][r] = MIPModel.NumVar(0, data.Region[r].AvaAcc_t[t], ACCSL_tr[t][r]);
+                    MIPModel.Add(AccSl_tr[t][r]);
                 }
             }
             DESMin_p = new string[TrainingPr];
@@ -537,7 +541,7 @@ namespace GeneralMIPAlgorithm
             desMin_p = new INumVar[TrainingPr];
             for (int p = 0; p < TrainingPr; p++)
             {
-                desMin_p[p] = MIPModel.NumVar(-int.MaxValue, int.MaxValue, DESMin_p[p]);
+                desMin_p[p] = MIPModel.NumVar(0, int.MaxValue, DESMin_p[p]);
             }
 
             MinPD = MIPModel.NumVar(-int.MaxValue, int.MaxValue, "MinP");
@@ -1387,11 +1391,12 @@ namespace GeneralMIPAlgorithm
             Initial();
             InitialMIPVar();
             CreateModel();
+            setDemandConstraint();
             setEugmentedECons(augmentedaddon, ifRoot, InsName);
             
-            setDemandConstraint();
+            
             //SetSol();
-            solve_AUGMECON(InsName, augmentedaddon);
+            solve_AUGMECON(InsName, augmentedaddon,ifRoot);
            
         }
         public void setEugmentedECons(AUGMECONS augmentedaddon, bool ifRoot, string InsName) 
@@ -1432,93 +1437,113 @@ namespace GeneralMIPAlgorithm
         public void setLexicoGraohObjectiveAUGMECON(AUGMECONS augmentedaddon) 
         {
             // objective function
-            ILinearNumExpr Obj1 = MIPModel.LinearNumExpr();
-            ILinearNumExpr Obj2 = MIPModel.LinearNumExpr();
-            ILinearNumExpr Obj3 = MIPModel.LinearNumExpr();
-            ILinearNumExpr Obj4 = MIPModel.LinearNumExpr();
-            ILinearNumExpr Obj5 = MIPModel.LinearNumExpr();
-            ILinearNumExpr Obj6 = MIPModel.LinearNumExpr();
-            if (augmentedaddon.activeObj_o[0])
+            ILinearNumExpr[] lexExp = new ILinearNumExpr[augmentedaddon.totalObjective];
+            IObjective[] lexObj = new IObjective[augmentedaddon.totalObjective];
+            for (int o = 0; o < augmentedaddon.totalObjective; o++)
             {
-                for (int i = 0; i < Interns; i++)
+                lexExp[o] = MIPModel.LinearNumExpr();
+                string objName = "";
+                if (augmentedaddon.activeObj_o[o])
                 {
-                    Obj1.AddTerm(des_i[i], 1);
-                }
-            }
-            if (augmentedaddon.activeObj_o[1])
-            {
-                for (int p = 0; p < TrainingPr; p++)
-                {
-                    Obj2.AddTerm(desMin_p[p], 1);
-                }
-            }
-            if (augmentedaddon.activeObj_o[2])
-            {
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int w = 0; w < Wards; w++)
+                    switch (o)
                     {
-                        for (int h = 0; h < Hospitals - 1; h++)
-                        {
-                            for (int p = 0; p < TrainingPr; p++)
+                        case 0:
+                            objName = "SumDesire";
+                            for (int i = 0; i < Interns; i++)
                             {
-                                Obj3.AddTerm(Res_twh[t][w][h], -1);
+                                lexExp[o].AddTerm(des_i[i], 1);
                             }
 
-                        }
-                    }
-                }
-            }
-            if (augmentedaddon.activeObj_o[3])
-            {
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int w = 0; w < Wards; w++)
-                    {
-                        for (int h = 0; h < Hospitals - 1; h++)
-                        {
+                            break;
+                        case 1:
+                            objName = "minDesire";
                             for (int p = 0; p < TrainingPr; p++)
                             {
-                                Obj4.AddTerm(Emr_twh[t][w][h], -1);
+                                lexExp[o].AddTerm(desMin_p[p], 1);
                             }
-
-                        }
-                    }
-                }
-            }
-            if (augmentedaddon.activeObj_o[4])
-            {
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int w = 0; w < Wards; w++)
-                    {
-                        for (int h = 0; h < Hospitals - 1; h++)
-                        {
-                            for (int p = 0; p < TrainingPr; p++)
+                            break;
+                        case 2:
+                            objName = "resDemand";
+                            for (int t = 0; t < Timepriods; t++)
                             {
-                                Obj5.AddTerm(sld_twh[t][w][h], -1);
-                            }
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals - 1; h++)
+                                    {
+                                        for (int p = 0; p < TrainingPr; p++)
+                                        {
+                                            lexExp[o].AddTerm(Res_twh[t][w][h], -1);
+                                        }
 
-                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case 3:
+                            objName = "emrDemand";
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals - 1; h++)
+                                    {
+                                        for (int p = 0; p < TrainingPr; p++)
+                                        {
+                                            lexExp[o].AddTerm(Emr_twh[t][w][h], -1);
+                                        }
+
+                                    }
+                                }
+                            }
+                            break;
+                        case 4:
+                            objName = "minDemand";
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int w = 0; w < Wards; w++)
+                                {
+                                    for (int h = 0; h < Hospitals - 1; h++)
+                                    {
+                                        for (int p = 0; p < TrainingPr; p++)
+                                        {
+                                            lexExp[o].AddTerm(sld_twh[t][w][h], -1);
+                                        }
+
+                                    }
+                                }
+                            }
+                            break;
+                        case 5:
+                            objName = "unUsedAcc";
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int r = 0; r < Regions; r++)
+                                {
+                                    for (int p = 0; p < TrainingPr; p++)
+                                    {
+                                        lexExp[o].AddTerm(AccSl_tr[t][r], -1);
+                                    }
+                                }
+                            }
+                            break;
+                        default:
+                            break;
                     }
-                }
+                    lexObj[o] = MIPModel.Maximize(lexExp[o],objName);
+
+                }                
             }
-            if (augmentedaddon.activeObj_o[5])
+            INumExpr[] objArray = new INumExpr[augmentedaddon.totalObjective];
+            for (int o = 0; o < augmentedaddon.totalObjective; o++)
             {
-                for (int t = 0; t < Timepriods; t++)
-                {
-                    for (int r = 0; r < Regions; r++)
-                    {
-                        for (int p = 0; p < TrainingPr; p++)
-                        {
-                            Obj6.AddTerm(AccSl_tr[t][r], -1);
-                        }
-                    }
-                }
+                objArray[o] = lexObj[o].Expr;
             }
-            MIPModel.Maximize(MIPModel.StaticLex(new INumExpr[] { Obj1, Obj2, Obj3, Obj4, Obj5, Obj6 }, augmentedaddon.weight_o, augmentedaddon.priority_o,
-                augmentedaddon.absTols_o, augmentedaddon.relTols_o, ""), "LexicographObjective");   
-            
+
+            MIPModel.Add(MIPModel.Maximize(MIPModel.StaticLex(objArray, augmentedaddon.weight_o, augmentedaddon.priority_o,
+                augmentedaddon.absTols_o, augmentedaddon.relTols_o, ""), "LexicographObjective"));
+
+
+
         }
 
         /// <summary>
@@ -1535,7 +1560,7 @@ namespace GeneralMIPAlgorithm
             for (int o = 0; o < augmentedaddon.totalObjective; o++)
             {
                 
-                double rhsSum = augmentedaddon.upperBound_o[0] - augmentedaddon.lowerBound_o[0];
+                double rhsSum = 0.003;
                 double rhs_o = augmentedaddon.upperBound_o[o] - augmentedaddon.lowerBound_o[o];
                 
                 if (rhs_o == 0)
@@ -1603,7 +1628,7 @@ namespace GeneralMIPAlgorithm
             {
                 for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int h = 0; h < Hospitals; h++)
+                    for (int h = 0; h < Hospitals - 1; h++)
                     {
                         resdem.AddTerm(1,Res_twh[t][w][h]);
                     }
@@ -1628,7 +1653,7 @@ namespace GeneralMIPAlgorithm
             {
                 for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int h = 0; h < Hospitals; h++)
+                    for (int h = 0; h < Hospitals - 1; h++)
                     {
                         emrdem.AddTerm(1, Emr_twh[t][w][h]);
                     }
@@ -1653,7 +1678,7 @@ namespace GeneralMIPAlgorithm
             {
                 for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int h = 0; h < Hospitals; h++)
+                    for (int h = 0; h < Hospitals - 1; h++)
                     {
                         mindem.AddTerm(1, sld_twh[t][w][h]);
                     }
@@ -1709,7 +1734,7 @@ namespace GeneralMIPAlgorithm
             {
                 for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int h = 0; h < Hospitals; h++)
+                    for (int h = 0; h < Hospitals - 1; h++)
                     {
                         multiObjectiveValue[2] += MIPModel.GetValue( Res_twh[t][w][h]);
                         multiObjectiveValue[3] += MIPModel.GetValue(Emr_twh[t][w][h]);
@@ -1726,105 +1751,207 @@ namespace GeneralMIPAlgorithm
                 }
             }
         }
-        public void solve_AUGMECON(string InsName, AUGMECONS augmentedaddon)
+        public void solve_AUGMECON(string InsName, AUGMECONS augmentedaddon, bool ifRoot)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
+            if (augmentedaddon.useWarmStart)
+            {
+                setWarmStartTime(augmentedaddon.warmStartTime_itdh);
+            }
             //*************set program
-            MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "LP.lp");
-            // Set multi-objective display level to "detailed".
-            MIPModel.SetParam(Cplex.Param.MultiObjective.Display, 2);
+            MIPModel.ExportModel(data.allPath.OutPutGr + InsName + ".lp");
+            
             MIPModel.SetParam(Cplex.DoubleParam.EpRHS, data.AlgSettings.RHSepsi);
             MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
             MIPModel.SetParam(Cplex.IntParam.Threads, 3);
             MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.MIPTime);
             MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
-            try
+            if (ifRoot)
             {
-                SolutionFound = true;
-                mipOpt = new OptimalSolution(data);
-                
-                if (MIPModel.Solve())
+                double sumPr = 0;
+                for (int o = 0; o < augmentedaddon.totalObjective; o++)
                 {
-                    notFeasible = false;
-                    ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                    setMultiObjValue(augmentedaddon);
+                    sumPr += augmentedaddon.priority_o[o];
+                }
+                MIPModel.SetParam(Cplex.Param.MultiObjective.Display, 2);
+
+                // Purely for demonstrative purposes, set global and local limits
+                // using parameter sets.
+
+                // First, set the global deterministic time limit.
+                MIPModel.SetParam(Cplex.Param.TimeLimit, data.AlgSettings.MIPTime);
+
+                // Second, create a parameter set for each priority.
+                Cplex.ParameterSet[] paramsets = new Cplex.ParameterSet[augmentedaddon.totalObjective];
+                for (int o = 0; o < augmentedaddon.totalObjective; o++)
+                {
+                    paramsets[o] = new Cplex.ParameterSet();
+                    
+                    // Set the local deterministic time limits. Optimization will stop
+                    // whenever either the global or local limit is exceeded.
+                    paramsets[o].SetParam(Cplex.Param.TimeLimit, data.AlgSettings.MIPTime / sumPr * augmentedaddon.priority_o[o]);
+                    
+                }
+               
+                try
+                {
+                    SolutionFound = true;
+                    mipOpt = new OptimalSolution(data);
+
+                    if (MIPModel.Solve(paramsets))
+                    {
+                        MIPModel.ExportModel(data.allPath.OutPutGr + InsName + ".lp");
+                        notFeasible = false;
+                        ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+                        setMultiObjValue(augmentedaddon);
+                        stopwatch.Stop();
+                        ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+                        for (int i = 0; i < Interns; i++)
+                        {
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int d = 1; d < Disciplins; d++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        if (MIPModel.GetValue(s_idth[i][d][t][h]) > 1 - 0.5)
+                                        {
+                                            mipOpt.Intern_itdh[i][t][d - 1][h] = true;                           
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+
+                    }
+                    else
+                    {
+                        notFeasible = true;
+                    }
+
+                    mipOpt.WriteSolution(data.allPath.OutPutGr, "MIP" + InsName );
+
+                    setsolforNextStart();
+                    MIPModel.End();
+                }
+                catch (ILOG.Concert.Exception e)
+                {
                     stopwatch.Stop();
                     ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                    for (int i = 0; i < Interns; i++)
-                    {
-                        for (int t = 0; t < Timepriods; t++)
-                        {
-                            for (int d = 1; d < Disciplins; d++)
-                            {
-                                for (int h = 0; h < Hospitals; h++)
-                                {
-                                    if (MIPModel.GetValue(s_idth[i][d][t][h]) > 1 - 0.5)
-                                    {
-                                        mipOpt.Intern_itdh[i][t][d - 1][h] = true;
-                                        if (h < Hospitals - 1)
-                                        {
-                                            Console.WriteLine("intern " + i + " started " + d + " at time " + t + " in hospital " + h + " and changed " + MIPModel.GetValue(ch_id[i][d]));
-                                        }
-                                        else
-                                        {
-
-                                            Console.WriteLine("intern " + i + " started " + d + " at time " + t + " in Oversea hospital " + h + " and changed " + MIPModel.GetValue(ch_id[i][d]));
-                                        }
-
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-
-                    // Mandatory discipline 
-                    for (int i = 0; i < Interns; i++)
-                    {
-                        for (int d = 1; d < Disciplins; d++)
-                        {
-                            // check if the training program and involved mandatory discipline
-                            for (int p = 0; p < TrainingPr; p++)
-                            {
-                                if (data.Intern[i].ProgramID == p)
-                                {
-                                    for (int dd = 0; dd < Disciplins; dd++)
-                                    {
-                                        for (int h = 0; h < Hospitals; h++)
-                                        {
-                                            if (MIPModel.GetValue(y_idDh[i][dd][d][h]) > 0.5)
-                                            {
-                                                Console.WriteLine("intern " + i + ": " + d + " came after " + dd + " With " + MIPModel.GetValue(w_id[i][d]));
-                                            }
-                                        }
-                                    }
-
-                                }
-                            }
-
-
-                        }
-                    }
-
+                    SolutionFound = false;
+                    System.Console.WriteLine("Concert exception '" + e + "' caught");
                 }
-                else
-                {
-                    notFeasible = true;
-                }
-                
-                mipOpt.WriteSolution(data.allPath.OutPutGr, "MIP" + InsName);
-
-
-                MIPModel.End();
             }
-            catch (ILOG.Concert.Exception e)
+            else
             {
-                stopwatch.Stop();
-                ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                SolutionFound = false;
-                System.Console.WriteLine("Concert exception '" + e + "' caught");
+                try
+                {
+                    SolutionFound = true;
+                    mipOpt = new OptimalSolution(data);
+
+                    if (MIPModel.Solve())
+                    {
+                        notFeasible = false;
+                        ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+                        setMultiObjValue(augmentedaddon);
+                        stopwatch.Stop();
+                        ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+                        for (int i = 0; i < Interns; i++)
+                        {
+                            for (int t = 0; t < Timepriods; t++)
+                            {
+                                for (int d = 1; d < Disciplins; d++)
+                                {
+                                    for (int h = 0; h < Hospitals; h++)
+                                    {
+                                        if (MIPModel.GetValue(s_idth[i][d][t][h]) > 1 - 0.5)
+                                        {
+                                            mipOpt.Intern_itdh[i][t][d - 1][h] = true;
+                                            
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        notFeasible = true;
+                    }
+
+                    mipOpt.WriteSolution(data.allPath.OutPutGr, "MIP" + InsName );
+
+                    setsolforNextStart();
+                    MIPModel.End();
+                }
+                catch (ILOG.Concert.Exception e)
+                {
+                    stopwatch.Stop();
+                    ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+                    SolutionFound = false;
+                    System.Console.WriteLine("Concert exception '" + e + "' caught");
+                }
+            }
+
+            
+        }
+
+        public void setsolforNextStart()
+        {
+            warmStartTime_itdh = new bool[Interns][][][];
+            for (int i = 0; i < Interns; i++)
+            {
+                warmStartTime_itdh[i] = new bool[Timepriods][][];
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    warmStartTime_itdh[i][t] = new bool[Disciplins][];
+                    for (int d = 0; d < Disciplins; d++)
+                    {
+                        warmStartTime_itdh[i][t][d] = new bool[Hospitals];
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            warmStartTime_itdh[i][t][d][h] = false;
+                            if (MIPModel.IsPrimalFeasible() && MIPModel.GetValue(s_idth[i][d][t][h]) > 0.5)
+                            {
+                                warmStartTime_itdh[i][t][d][h] = true ;
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        public void setWarmStartTime(bool[][][][] warmStartTime_itdh)
+        {
+            IIntVar[] warmStart_idthVar = new IIntVar[Interns* Disciplins* Timepriods* Hospitals];
+            double[] warmStart_idthVal = new double[Interns * Disciplins * Timepriods * Hospitals];
+            int counter = 0;
+            for (int i = 0; i < Interns; i++)
+            {
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int d = 0; d < Disciplins; d++)
+                    {
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            warmStart_idthVar[counter] = s_idth[i][d][t][h];
+
+                            warmStart_idthVal[counter] = warmStartTime_itdh[i][t][d][h] ? 1 : 0;
+
+                            counter++;
+                        }
+                    }
+                }
+            }
+
+            MIPModel.AddMIPStart(warmStart_idthVar, warmStart_idthVal, "WarmStart");
+            
+        }
+
     }
 }
