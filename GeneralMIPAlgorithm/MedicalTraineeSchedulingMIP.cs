@@ -33,6 +33,7 @@ namespace GeneralMIPAlgorithm
         public INumVar[][][] sld_twh;
         public INumVar[][] AccSl_tr;
         public INumVar[] s_obj;
+        public INumVar[] RBigM_obj;
         public string[][][][] Y_idDh;
         public string[][][][] S_idth;
         public string[][] W_id;
@@ -1424,9 +1425,11 @@ namespace GeneralMIPAlgorithm
         public void setEugmentedSlack(AUGMECONS augmentedaddon) 
         {
             s_obj = new INumVar[augmentedaddon.totalObjective];
+            RBigM_obj = new INumVar[augmentedaddon.totalObjective];
             for (int o = 0; o < augmentedaddon.totalObjective; o++)
             {
                 s_obj[o] = MIPModel.NumVar(augmentedaddon.lowerBound_o[o], augmentedaddon.upperBound_o[o], "slack_[" + o + "]");
+                RBigM_obj[o] = MIPModel.NumVar(0, augmentedaddon.upperBound_o[o], "RBigM_[" + o + "]");
             }
         }
 
@@ -1570,11 +1573,12 @@ namespace GeneralMIPAlgorithm
                 else
                 {
                     objectiveFunction.AddTerm(rhsSum / rhs_o, s_obj[o]);
+                    objectiveFunction.AddTerm(-data.AlgSettings.BigM, RBigM_obj[o]);
                 }
                 
             }
 
-            MIPModel.Maximize(objectiveFunction, "AugmentedObjective");
+            MIPModel.AddMaximize(objectiveFunction, "AugmentedObjective");
         }
 
         /// <summary>
@@ -1610,6 +1614,7 @@ namespace GeneralMIPAlgorithm
                 mindes.AddTerm(1, desMin_p[i]);
             }
             mindes.AddTerm(-1, s_obj[1]);
+            mindes.AddTerm(1, RBigM_obj[1]);
             if (augmentedaddon.activeConst_o[1])
             {
                 MIPModel.AddEq(mindes, augmentedaddon.epsilonCon_o[1], "AugmentedConsMinDes_" + 1);
@@ -1635,6 +1640,7 @@ namespace GeneralMIPAlgorithm
                 }
             }
             resdem.AddTerm(+1, s_obj[2]);
+            resdem.AddTerm(-1, RBigM_obj[2]);
             if (augmentedaddon.activeConst_o[2])
             {
                 MIPModel.AddEq(resdem, augmentedaddon.epsilonCon_o[2], "AugmentedConsResDem_" + 2);
@@ -1660,6 +1666,7 @@ namespace GeneralMIPAlgorithm
                 }
             }
             emrdem.AddTerm(+1, s_obj[3]);
+            emrdem.AddTerm(-1, RBigM_obj[3]);
             if (augmentedaddon.activeConst_o[3])
             {
                 MIPModel.AddEq(emrdem, augmentedaddon.epsilonCon_o[3], "AugmentedConsEmrDem_" + 3);
@@ -1685,6 +1692,7 @@ namespace GeneralMIPAlgorithm
                 }
             }
             mindem.AddTerm(+1, s_obj[4]);
+            mindem.AddTerm(-1, RBigM_obj[4]);
             if (augmentedaddon.activeConst_o[4])
             {
                 MIPModel.AddEq(mindem, augmentedaddon.epsilonCon_o[4], "AugmentedConsMinDem_" + 4);
@@ -1707,6 +1715,7 @@ namespace GeneralMIPAlgorithm
                 }
             }
             mindem.AddTerm(+1, s_obj[5]);
+            mindem.AddTerm(-1, RBigM_obj[5]);
             if (augmentedaddon.activeConst_o[5])
             {
                 MIPModel.AddEq(mindem, augmentedaddon.epsilonCon_o[5], "AugmentedConsUnAcc_" + 5);
@@ -1772,7 +1781,11 @@ namespace GeneralMIPAlgorithm
                 double sumPr = 0;
                 for (int o = 0; o < augmentedaddon.totalObjective; o++)
                 {
-                    sumPr += augmentedaddon.priority_o[o];
+                    if (augmentedaddon.priority_o[o] != augmentedaddon.totalObjective)
+                    {
+                        sumPr += augmentedaddon.priority_o[o];
+                    }
+                    
                 }
                 MIPModel.SetParam(Cplex.Param.MultiObjective.Display, 2);
 
@@ -1780,17 +1793,25 @@ namespace GeneralMIPAlgorithm
                 // using parameter sets.
 
                 // First, set the global deterministic time limit.
-                MIPModel.SetParam(Cplex.Param.TimeLimit, data.AlgSettings.MIPTime);
+                MIPModel.SetParam(Cplex.Param.TimeLimit, 2*data.AlgSettings.MIPTime);
 
                 // Second, create a parameter set for each priority.
                 Cplex.ParameterSet[] paramsets = new Cplex.ParameterSet[augmentedaddon.totalObjective];
                 for (int o = 0; o < augmentedaddon.totalObjective; o++)
                 {
                     paramsets[o] = new Cplex.ParameterSet();
-                    
+
                     // Set the local deterministic time limits. Optimization will stop
                     // whenever either the global or local limit is exceeded.
-                    paramsets[o].SetParam(Cplex.Param.TimeLimit, data.AlgSettings.MIPTime / sumPr * augmentedaddon.priority_o[o]);
+                    if (augmentedaddon.priority_o[o] == augmentedaddon.totalObjective)
+                    {
+                        paramsets[o].SetParam(Cplex.Param.TimeLimit, data.AlgSettings.MIPTime);
+                    }
+                    else
+                    {
+                        paramsets[o].SetParam(Cplex.Param.TimeLimit, data.AlgSettings.MIPTime / sumPr * augmentedaddon.priority_o[o]);
+                    }
+                    
                     
                 }
                

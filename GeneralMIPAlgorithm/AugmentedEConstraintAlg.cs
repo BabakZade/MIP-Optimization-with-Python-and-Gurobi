@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace GeneralMIPAlgorithm
 {
@@ -13,10 +14,18 @@ namespace GeneralMIPAlgorithm
         public double emrDemand;
         public double minDemand;
         public double regDemand;
+        public long elapsedTime;
 
         public string displayMe() {
             string disp = "";
             disp += sumDesire + "\t" + minDesire + "\t" + resDemand + "\t" + emrDemand + "\t" + minDemand + "\t" + regDemand;
+
+            return disp;
+        }
+        public string displayMeWithTime()
+        {
+            string disp = "";
+            disp += elapsedTime +"\t"+ sumDesire + "\t" + minDesire + "\t" + resDemand + "\t" + emrDemand + "\t" + minDemand + "\t" + regDemand;
 
             return disp;
         }
@@ -35,9 +44,9 @@ namespace GeneralMIPAlgorithm
         public ArrayList paretoSol;
         public int augCounter;
         public bool[][][][] warmStartTime_itdh;
-
+        public Stopwatch elapsedSW;
         public AugmentedEConstraintAlg(DataLayer.AllData alldata, string InsName) {
-            alldata.AlgSettings.MIPTime = 300;
+            
             initial(alldata);
             setAUGMECONSpayoff(InsName);
             setAUGMECONSRange(InsName);
@@ -46,6 +55,9 @@ namespace GeneralMIPAlgorithm
 
         public void initial(DataLayer.AllData alldata)
         {
+            alldata.AlgSettings.MIPTime = 200;
+            elapsedSW = new Stopwatch();
+            elapsedSW.Start();
             totalObjective = 6;
             payOffTable = new double[totalObjective][];
             for (int o = 0; o < totalObjective; o++)
@@ -81,7 +93,7 @@ namespace GeneralMIPAlgorithm
             for (int o = 0; o < totalObjective; o++)
             {
                 augCounter++;
-                
+                elapsedSW.Restart();
                 AUGMECONS root = new AUGMECONS(totalObjective,augCounter);
                 if (warmStartFlag)
                 {
@@ -112,10 +124,12 @@ namespace GeneralMIPAlgorithm
                         if (minRange_o[oo] > payOffTable[o][oo])
                         {
                             minRange_o[oo] = payOffTable[o][oo];
+                            root.lowerBound_o[oo] = minRange_o[oo];
                         }
-                        if (maxRange_o[o] < payOffTable[o][oo])
+                        if (maxRange_o[oo] < payOffTable[o][oo])
                         {
-                            maxRange_o[o] = payOffTable[o][oo];
+                            maxRange_o[oo] = payOffTable[o][oo];
+                            root.upperBound_o[oo] = maxRange_o[oo];
                         }
                     }
                     paretoSol.Add(new ParetoPoints
@@ -126,6 +140,7 @@ namespace GeneralMIPAlgorithm
                         emrDemand = payOffTable[o][3],
                         minDemand = payOffTable[o][4],
                         regDemand = payOffTable[o][5],
+                        elapsedTime = elapsedSW.ElapsedMilliseconds/1000,
                     });
                 }
 
@@ -162,26 +177,34 @@ namespace GeneralMIPAlgorithm
                                     tmpAug.useWarmStart = true;
                                     tmpAug.setWarmStartTime(data, ((AUGMECONS)eConstraitn[o]).warmStartTime_itdh);
                                     double econst = 0;
-                                    switch (o)
+                                    if (rangeQ_o[o] == 0)
                                     {
-                                        case 1:
-                                            econst = minRange_o[o] + mnD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
-                                            break;
-                                        case 2:
-                                            econst = minRange_o[o] + rsD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
-                                            break;
-                                        case 3:
-                                            econst = minRange_o[o] + emD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
-                                            break;
-                                        case 4:
-                                            econst = minRange_o[o] + miD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
-                                            break;
-                                        case 5:
-                                            econst = minRange_o[o] + rgD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
-                                            break;
-                                        default:
-                                            break;
+                                        econst = minRange_o[o];
                                     }
+                                    else
+                                    {
+                                        switch (o)
+                                        {
+                                            case 1:
+                                                econst = minRange_o[o] + mnD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
+                                                break;
+                                            case 2:
+                                                econst = minRange_o[o] + rsD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
+                                                break;
+                                            case 3:
+                                                econst = minRange_o[o] + emD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
+                                                break;
+                                            case 4:
+                                                econst = minRange_o[o] + miD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
+                                                break;
+                                            case 5:
+                                                econst = minRange_o[o] + rgD * (maxRange_o[o] - minRange_o[o]) / rangeQ_o[o];
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                    
                                     tmpAug.upperBound_o[o] = maxRange_o[o];
                                     tmpAug.lowerBound_o[o] = minRange_o[o];
                                     tmpAug.epsilonCon_o[o] = econst;
@@ -204,6 +227,13 @@ namespace GeneralMIPAlgorithm
 
         public void setAUGMECONSPareto(string InsName) 
         {
+            for (int o = 0; o < totalObjective; o++)
+            {
+                using (StreamWriter file = new StreamWriter(data.allPath.OutPutLocation + "\\Result.txt", true))
+                {
+                    file.WriteLine(((ParetoPoints)paretoSol[o]).displayMeWithTime());
+                }
+            }
             int counter = totalObjective - 1; // the firs 6 ones are root we already checked them for payoff
             for (int mnD = 0; mnD <= rangeQ_o[1]; mnD++)
             {
@@ -216,11 +246,12 @@ namespace GeneralMIPAlgorithm
                             for (int rgD = 0; rgD <= rangeQ_o[5]; rgD++)
                             {
                                 counter++;
+                                elapsedSW.Restart();
                                 AUGMECONS aug = (AUGMECONS)eConstraitn[counter];
                                 
                                 string name = InsName + "AugID_" + aug.ID;
                                 MedicalTraineeSchedulingMIP tmp = new MedicalTraineeSchedulingMIP(data, aug, false, name);
-
+                                
                                 if (!tmp.notFeasible)
                                 {
                                     if (counter < eConstraitn.Count - 1)
@@ -235,7 +266,13 @@ namespace GeneralMIPAlgorithm
                                         emrDemand = tmp.multiObjectiveValue[3],
                                         minDemand = tmp.multiObjectiveValue[4],
                                         regDemand = tmp.multiObjectiveValue[5],
+                                        elapsedTime = elapsedSW.ElapsedMilliseconds / 1000,
                                     });
+
+                                    using (StreamWriter file = new StreamWriter(data.allPath.OutPutLocation + "\\Result.txt", true))
+                                    {
+                                        file.WriteLine(((ParetoPoints)paretoSol[counter]).displayMeWithTime());
+                                    }
                                 }
                             }
                         }
