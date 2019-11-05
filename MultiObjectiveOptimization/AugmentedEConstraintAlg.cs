@@ -3,34 +3,10 @@ using System.Collections;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using GeneralMIPAlgorithm;
 
-namespace GeneralMIPAlgorithm
+namespace MultiObjectiveOptimization
 {
-    public struct ParetoPoints 
-    {
-        public double sumDesire;
-        public double minDesire;
-        public double resDemand;
-        public double emrDemand;
-        public double minDemand;
-        public double regDemand;
-        public long elapsedTime;
-
-        public string displayMe() {
-            string disp = "";
-            disp += sumDesire + "\t" + minDesire + "\t" + resDemand + "\t" + emrDemand + "\t" + minDemand + "\t" + regDemand;
-
-            return disp;
-        }
-        public string displayMeWithTime()
-        {
-            string disp = "";
-            disp += elapsedTime +"\t"+ sumDesire + "\t" + minDesire + "\t" + resDemand + "\t" + emrDemand + "\t" + minDemand + "\t" + regDemand;
-
-            return disp;
-        }
-
-    }
     public class AugmentedEConstraintAlg
     {
         public int totalObjective;
@@ -55,7 +31,6 @@ namespace GeneralMIPAlgorithm
 
         public void initial(DataLayer.AllData alldata)
         {
-            alldata.AlgSettings.MIPTime = 200;
             elapsedSW = new Stopwatch();
             elapsedSW.Start();
             totalObjective = 6;
@@ -153,9 +128,9 @@ namespace GeneralMIPAlgorithm
             StreamWriter swEC = new StreamWriter(data.allPath.OutPutGr + "econstGrid.txt");
             for (int o = 0; o < totalObjective; o++)
             {
-                if (maxRange_o[o] == minRange_o[o])
+                if (rangeQ_o[o] > (int)(maxRange_o[o] - minRange_o[o]))
                 {
-                    rangeQ_o[o] = 0; // the loops from hear can consider 0
+                    rangeQ_o[o] = (int)(maxRange_o[o] - minRange_o[o]); // the loops from hear can consider 0
                 }
             }
             int counter = 0;
@@ -207,7 +182,7 @@ namespace GeneralMIPAlgorithm
                                     
                                     tmpAug.upperBound_o[o] = maxRange_o[o];
                                     tmpAug.lowerBound_o[o] = minRange_o[o];
-                                    tmpAug.epsilonCon_o[o] = econst;
+                                    tmpAug.epsilonCon_o[o] = (int)econst;
                                     tmpAug.activeConst_o[o] = true;
                                     tmpAug.activeObj_o[0] = true; // only the first objective is active
                                     tmpAug.objectiveRange_o[o] = maxRange_o[o] - minRange_o[o];

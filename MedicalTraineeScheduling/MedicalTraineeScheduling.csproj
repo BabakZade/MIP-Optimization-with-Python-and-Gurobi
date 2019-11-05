@@ -11,6 +11,7 @@
     <ProjectReference Include="..\DynamicProgramming\NestedDynamicProgrammingAlgorithm.csproj" />
     <ProjectReference Include="..\GeneralMIPAlgorithm\GeneralMIPAlgorithm.csproj" />
     <ProjectReference Include="..\MultiLevelSolutionMethodology\MultiLevelSolutionMethodology.csproj" />
+    <ProjectReference Include="..\MultiObjectiveOptimization\MultiObjectiveOptimization.csproj" />
     <ProjectReference Include="..\NestedHungarianAlgorithm\NestedHungarianAlgorithm.csproj" />
   </ItemGroup>
 

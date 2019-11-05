@@ -9,6 +9,7 @@ using MultiObjLongInfo = ILOG.CPLEX.Cplex.MultiObjLongInfo;
 using MultiObjNumInfo = ILOG.CPLEX.Cplex.MultiObjNumInfo;
 using System.Diagnostics;
 
+
 namespace GeneralMIPAlgorithm
 {
     public class MedicalTraineeSchedulingMIP

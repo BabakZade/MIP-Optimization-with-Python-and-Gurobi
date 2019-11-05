@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 
 namespace BranchAndPriceAlgorithm
@@ -14,6 +14,7 @@ namespace BranchAndPriceAlgorithm
         public double xVal;
         public double objectivefunction;
         public bool[][][] Y_dDh;
+        public ArrayList neighbourColums;
         public ColumnInternBasedDecomposition()
         {
         }

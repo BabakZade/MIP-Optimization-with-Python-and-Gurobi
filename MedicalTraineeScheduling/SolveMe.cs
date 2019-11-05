@@ -830,14 +830,23 @@ namespace MedicalTraineeScheduling
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "eConstraint", "");
             ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "eConstraint", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
             //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
-            GeneralMIPAlgorithm.AugmentedEConstraintAlg augmeconstraint = new GeneralMIPAlgorithm.AugmentedEConstraintAlg(read.data, (0).ToString());
-            foreach (GeneralMIPAlgorithm.ParetoPoints pareto in augmeconstraint.paretoSol)
+            MultiObjectiveOptimization.AugmentedEConstraintAlg augmeconstraint = new MultiObjectiveOptimization.AugmentedEConstraintAlg(read.data, (0).ToString());
+            foreach (MultiObjectiveOptimization.ParetoPoints pareto in augmeconstraint.paretoSol)
             {
                 using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
                 {
                     file.WriteLine(pareto.displayMe());
                 }
             }
+        }
+
+        public void solveRandomlyGeneratedWeight()
+        {
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "RandomlyGenerated", "");
+            ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "RandomlyGenerated", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
+            //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
+            MultiObjectiveOptimization.WeightedSum weightedSum = new MultiObjectiveOptimization.WeightedSum(read.data , 400, (0).ToString(),0);
+            
         }
 
         public void solveOneFactorAtAtime()
