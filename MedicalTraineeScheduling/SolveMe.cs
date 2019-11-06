@@ -845,8 +845,17 @@ namespace MedicalTraineeScheduling
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "RandomlyGenerated", "");
             ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "RandomlyGenerated", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
             //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
-            MultiObjectiveOptimization.WeightedSum weightedSum = new MultiObjectiveOptimization.WeightedSum(read.data , 400, (0).ToString(),0);
+            MultiObjectiveOptimization.WeightedSum weightedSum = new MultiObjectiveOptimization.WeightedSum(read.data , 600, (0).ToString(),0);
             
+        }
+
+        public void solvePriodicGeneratedWeight()
+        {
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "PriodicGenerated", "");
+            ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "PriodicGenerated", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
+            //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
+            MultiObjectiveOptimization.WeightedSum weightedSum = new MultiObjectiveOptimization.WeightedSum(read.data, 400, (0).ToString(), 1);
+
         }
 
         public void solveOneFactorAtAtime()

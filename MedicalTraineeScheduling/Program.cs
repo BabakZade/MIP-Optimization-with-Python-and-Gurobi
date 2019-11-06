@@ -15,7 +15,7 @@ namespace MedicalTraineeScheduling
             //new SolveMe().createInstanceObjCoeff(5);
             // new SolveMe().solveObjCoeffGammaDelta(24,5,8);
             //new SolveMe().solveThisDataSet(9, 5, "ResourcePool", "NHA");
-            new SolveMe().solveEConstriant();
+            new SolveMe().solveRandomlyGeneratedWeight();
             
 		}
 

@@ -25,6 +25,7 @@ namespace MultiObjectiveOptimization
                 default:
                     break;
             }
+            solveWeightedNHA(instanceName);
 
         }
         public void initial(DataLayer.AllData allData) {
@@ -55,7 +56,7 @@ namespace MultiObjectiveOptimization
                 {
                     paretoPoints.minDesire += nha.improvementStep.demandBaseLocalSearch.Global.MinDis[p];
                 }
-                paretoPoints.minDesire /= data.General.TrainingPr;
+                //paretoPoints.minDesire /= data.General.TrainingPr;
                 paretoPoints.resDemand = nha.improvementStep.demandBaseLocalSearch.Global.ResDemand;
                 paretoPoints.emrDemand = nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand;
                 paretoPoints.minDemand = nha.improvementStep.demandBaseLocalSearch.Global.SlackDem;
@@ -77,30 +78,36 @@ namespace MultiObjectiveOptimization
                 ParetoWeight paretoWeight = new ParetoWeight();
                 // create the weight
                 paretoWeight.w_sumDesire = Math.Round(random.NextDouble(),3);
-
-                // sum desire can not be zero, and sum will never be zero as well
-                while (paretoWeight.w_sumDesire == 0)
-                {
-                    paretoWeight.w_sumDesire = Math.Round(random.NextDouble(), 3);
-                }
                 sum += paretoWeight.w_sumDesire;
 
-                paretoWeight.w_minDesire = (1 - sum) * Math.Round(random.NextDouble(), 3);
+                paretoWeight.w_minDesire =  Math.Round(random.NextDouble(), 3);
                 sum += paretoWeight.w_minDesire;
 
-                paretoWeight.w_resDemand = (1 - sum) * Math.Round(random.NextDouble(), 3);
+                paretoWeight.w_resDemand =  Math.Round(random.NextDouble(), 3);
                 sum += paretoWeight.w_resDemand;
 
-                paretoWeight.w_emrDemand = (1 - sum) * Math.Round(random.NextDouble(), 3);
+                paretoWeight.w_emrDemand =  Math.Round(random.NextDouble(), 3);
                 sum += paretoWeight.w_emrDemand;
 
-                paretoWeight.w_minDemand = (1 - sum) * Math.Round(random.NextDouble(), 3);
+                paretoWeight.w_minDemand =  Math.Round(random.NextDouble(), 3);
                 sum += paretoWeight.w_minDemand;
 
-                paretoWeight.w_regDemand = 1 - sum;
+                paretoWeight.w_regDemand = Math.Round(random.NextDouble(), 3);
                 sum += paretoWeight.w_regDemand;
 
                 // the sum is already equal to zero
+                if (sum == 0)
+                {
+                    paretoWeight.w_sumDesire = 1;
+                    sum = 1;
+                }
+
+                paretoWeight.w_sumDesire /= sum;
+                paretoWeight.w_minDesire /= sum;
+                paretoWeight.w_resDemand /= sum;
+                paretoWeight.w_emrDemand /= sum;
+                paretoWeight.w_minDemand /= sum;
+                paretoWeight.w_regDemand /= sum;
 
                 addWeights(paretoWeight);
             }
@@ -108,43 +115,58 @@ namespace MultiObjectiveOptimization
 
         public void setThePeriodicalVariationWeighted(int totalNumberOfWeight)
         {
-            double counter = Math.Pow(totalNumberOfWeight, 1 / 5); // we have total 6 objective and 5 loop to create all the weits but the last one is not counted 
+            double counter = Math.Pow(totalNumberOfWeight, 0.17); // we have total 6 objective (1/6 = 0.17)
             Random random = new Random();
             for (int t1 = 0; t1 < Math.Ceiling(counter); t1++)
             {
-                for (int t2 = 0; t2 < Math.Ceiling(counter); t2++)
+                for (int t2 = 0; t2 < counter; t2++)
                 {
-                    for (int t3 = 0; t3 < Math.Ceiling(counter); t3++)
+                    for (int t3 = 0; t3 < counter; t3++)
                     {
-                        for (int t4 = 0; t4 < Math.Ceiling(counter); t4++)
+                        for (int t4 = 0; t4 < counter; t4++)
                         {
-                            for (int t5 = 0; t5 < Math.Ceiling(counter); t5++)
+                            for (int t5 = 0; t5 < counter; t5++)
                             {
-                                double sum = 0;
+                                for (int t6 = 0; t6 < counter; t6++)
+                                {
+                                    double sum = 0;
 
-                                ParetoWeight paretoWeight = new ParetoWeight();
+                                    ParetoWeight paretoWeight = new ParetoWeight();
 
-                                paretoWeight.w_sumDesire = Math.Abs(Math.Sin(2 * Math.PI * t1 / totalNumberOfWeight));
-                                sum += paretoWeight.w_sumDesire;
+                                    paretoWeight.w_sumDesire = Math.Abs(Math.Sin(2 * Math.PI * t1 / totalNumberOfWeight));
+                                    sum += paretoWeight.w_sumDesire;
 
-                                paretoWeight.w_minDesire = (1 - sum) * Math.Abs(Math.Sin(2 * Math.PI * t2 / totalNumberOfWeight));
-                                sum += paretoWeight.w_minDesire;
+                                    paretoWeight.w_minDesire = Math.Abs(Math.Sin(2 * Math.PI * t2 / totalNumberOfWeight));
+                                    sum += paretoWeight.w_minDesire;
 
-                                paretoWeight.w_resDemand = (1 - sum) * Math.Abs(Math.Sin(2 * Math.PI * t3 / totalNumberOfWeight));
-                                sum += paretoWeight.w_resDemand;
+                                    paretoWeight.w_resDemand = Math.Abs(Math.Sin(2 * Math.PI * t3 / totalNumberOfWeight));
+                                    sum += paretoWeight.w_resDemand;
 
-                                paretoWeight.w_emrDemand = (1 - sum) * Math.Abs(Math.Sin(2 * Math.PI * t4 / totalNumberOfWeight));
-                                sum += paretoWeight.w_emrDemand;
+                                    paretoWeight.w_emrDemand = Math.Abs(Math.Sin(2 * Math.PI * t4 / totalNumberOfWeight));
+                                    sum += paretoWeight.w_emrDemand;
 
-                                paretoWeight.w_minDemand = (1 - sum) * Math.Abs(Math.Sin(2 * Math.PI * t5 / totalNumberOfWeight));
-                                sum += paretoWeight.w_minDemand;
+                                    paretoWeight.w_minDemand = Math.Abs(Math.Sin(2 * Math.PI * t5 / totalNumberOfWeight));
+                                    sum += paretoWeight.w_minDemand;
 
-                                paretoWeight.w_regDemand = 1 - sum;
-                                sum += paretoWeight.w_regDemand;
+                                    paretoWeight.w_regDemand = Math.Abs(Math.Sin(2 * Math.PI * t6 / totalNumberOfWeight));
+                                    sum += paretoWeight.w_regDemand;
 
-                                // the sum is already equal to zero
+                                    // the sum is already equal to zero
+                                    if (sum == 0)
+                                    {
+                                        paretoWeight.w_sumDesire = 1;
+                                        sum = 1;
+                                    }
+                                    paretoWeight.w_sumDesire /= sum;
+                                    paretoWeight.w_minDesire /= sum;
+                                    paretoWeight.w_resDemand /= sum;
+                                    paretoWeight.w_emrDemand /= sum;
+                                    paretoWeight.w_minDemand /= sum;
+                                    paretoWeight.w_regDemand /= sum;
 
-                                addWeights(paretoWeight);
+                                    addWeights(paretoWeight);
+                                }
+                                
                             }
                         }
                     }
