@@ -15,7 +15,11 @@ namespace MedicalTraineeScheduling
             //new SolveMe().createInstanceObjCoeff(5);
             // new SolveMe().solveObjCoeffGammaDelta(24,5,8);
             //new SolveMe().solveThisDataSet(9, 5, "ResourcePool", "NHA");
-            new SolveMe().solveRandomlyGeneratedWeight();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            new SolveMe().solveAddaptiveWeight();
+            double elapsedTime = stopwatch.ElapsedMilliseconds / 1000;
+            Console.WriteLine(elapsedTime);
             
 		}
 

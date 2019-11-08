@@ -583,7 +583,7 @@ namespace NestedHungarianAlgorithm
                             }
 
                             // discipline prf and Training Program prf
-                            if (false && random.NextDouble()<0.5 && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
+                            if (false && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
                             {
                                 CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }
@@ -679,22 +679,45 @@ namespace NestedHungarianAlgorithm
         {
             
             Random random = new Random();
-            int maxchange = (int)(random.NextDouble() * Interns);
-            double sum = data.TrainingPr[0].CoeffObj_SumDesi
-                + data.TrainingPr[0].CoeffObj_MinDesi
-                + data.TrainingPr[0].CoeffObj_EmrCap
-                + data.TrainingPr[0].CoeffObj_ResCap
-                + data.TrainingPr[0].CoeffObj_MINDem
-                + data.TrainingPr[0].CoeffObj_NotUsedAcc;
-            sum = data.TrainingPr[0].CoeffObj_MinDesi / sum;
-            maxchange = (int)(Interns * sum);
+            double[] maxchange = new double[data.General.TrainingPr];
+            for (int p = 0; p < data.General.TrainingPr; p++)
+            {
+                double sum = data.TrainingPr[p].CoeffObj_SumDesi
+                + data.TrainingPr[p].CoeffObj_MinDesi
+                + data.TrainingPr[p].CoeffObj_EmrCap
+                + data.TrainingPr[p].CoeffObj_ResCap
+                + data.TrainingPr[p].CoeffObj_MINDem
+                + data.TrainingPr[p].CoeffObj_NotUsedAcc;
+                sum = data.TrainingPr[p].CoeffObj_MinDesi / sum;
+                maxchange[p] = sum;
+            }
+            for (int p = 0; p < data.General.TrainingPr; p++)
+            {
+                int totalIntern = 0;
+                for (int i = 0; i < Interns; i++)
+                {
+                    if (data.Intern[i].ProgramID == p)
+                    {
+                        totalIntern++;
+                    }
+                }
+                maxchange[p] *= totalIntern;
+            }
+            
+            
             for (int ii = 0; ii < Interns; ii++)
             {
-                if (ii > maxchange)
-                {
-                    break;
-                }
+                
                 int i = sortedMinDesireIntern_i[ii];
+                if (maxchange[data.Intern[i].ProgramID] > 0)
+                {
+                    maxchange[data.Intern[i].ProgramID]--;
+                }
+                else
+                {
+                    continue;
+                }
+
                 double coeff = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_MinDesi;
                 for (int j = 0; j < TotalAvailablePosition + Interns + Interns; j++)
                 {
@@ -844,7 +867,8 @@ namespace NestedHungarianAlgorithm
                     {
                         if (((PositionMap)MappingTable[j]).Mindemand && data.Intern[i].isProspective)
                         {
-                            CostMatrix_i_whDem[i][j] -= data.TrainingPr[p].CoeffObj_MINDem;
+                           
+                            CostMatrix_i_whDem[i][j] -= data.TrainingPr[p].CoeffObj_MINDem ;
                         }
                     }
 
@@ -929,7 +953,12 @@ namespace NestedHungarianAlgorithm
                     {
                         if (sHeOccupies_ir[i][r] && data.Intern[i].TransferredTo_r[r] && data.Hospital[((PositionMap)MappingTable[j]).HIndex].InToRegion_r[r] && AvAcc_rt[r][TimeID] > 0)
                         {
-                            CostMatrix_i_whDem[i][j] -= data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_NotUsedAcc;
+                            int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
+                            if (discIn == -1)
+                            {
+                                continue;
+                            }
+                            CostMatrix_i_whDem[i][j] -= data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_NotUsedAcc * data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
                         }
                     }
                 }

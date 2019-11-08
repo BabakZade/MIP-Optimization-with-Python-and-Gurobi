@@ -137,7 +137,12 @@ namespace NestedHungarianAlgorithm
 					{
 						MaxDif = tmpObj;
 						candidate = i;
+                        if (incumbentSol.MinDis[data.Intern[i].ProgramID] == incumbentSol.Des_i[i])
+                        {
+                            break;
+                        }
 					}
+                    
 				}
 			}
 			if (candidate >= 0)

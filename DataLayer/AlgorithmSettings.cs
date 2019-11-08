@@ -16,6 +16,17 @@ namespace DataLayer
 		public int BigM;
 		public int MotivationBM;
 
+        // evolutionary algorithm for addapted weight setting
+        public int sizeOfArchivedSet;
+        public int sizeOfEvolutionaySet;
+        public int totalIteration;
+
+        public AlgorithmSettings() {
+            sizeOfArchivedSet = 100;
+            sizeOfEvolutionaySet = 100;
+            totalIteration = 20;
+        }
+
 		// Epsilon
 		public double RHSepsi;
 		public double RCepsi;

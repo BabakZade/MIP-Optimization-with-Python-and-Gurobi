@@ -68,10 +68,10 @@ namespace MultiObjectiveOptimization
 
             normalSum += sumDesire * objWeight.w_sumDesire;
             normalSum += minDesire * objWeight.w_minDesire;
-            normalSum += resDemand * objWeight.w_resDemand;
-            normalSum += emrDemand * objWeight.w_emrDemand;
-            normalSum += minDemand * objWeight.w_minDemand;
-            normalSum += regDemand * objWeight.w_regDemand;
+            normalSum -= resDemand * objWeight.w_resDemand;
+            normalSum -= emrDemand * objWeight.w_emrDemand;
+            normalSum -= minDemand * objWeight.w_minDemand;
+            normalSum -= regDemand * objWeight.w_regDemand;
 
             return normalSum;
         }
@@ -81,10 +81,10 @@ namespace MultiObjectiveOptimization
 
             normalSum += sumDesire;
             normalSum += minDesire;
-            normalSum += resDemand;
-            normalSum += emrDemand;
-            normalSum += minDemand;
-            normalSum += regDemand;
+            normalSum -= resDemand;
+            normalSum -= emrDemand;
+            normalSum -= minDemand;
+            normalSum -= regDemand;
 
             return normalSum;
         }
@@ -156,5 +156,24 @@ namespace MultiObjectiveOptimization
             return disp;
         }
 
+        public void upgradeRefrencePoint(ParetoPoints paretoP)
+        {
+            sumDesire = sumDesire < paretoP.sumDesire ? paretoP.sumDesire : sumDesire;
+            minDesire = minDesire < paretoP.minDesire ? paretoP.minDesire : minDesire;
+            resDemand = resDemand > paretoP.resDemand ? paretoP.resDemand : resDemand;
+            emrDemand = emrDemand > paretoP.emrDemand ? paretoP.emrDemand : emrDemand;
+            minDemand = minDemand > paretoP.minDemand ? paretoP.minDemand : minDemand;
+            regDemand = regDemand > paretoP.regDemand ? paretoP.regDemand : regDemand;
+        }
+
+        public void makeRefrencePoint(double BigM) 
+        {
+            sumDesire = -BigM;
+            minDesire = -BigM;
+            resDemand = BigM;
+            emrDemand = BigM;
+            minDemand = BigM;
+            regDemand = BigM;
+        }
     }
 }

@@ -858,20 +858,28 @@ namespace MedicalTraineeScheduling
 
         }
 
+        public void solveAddaptiveWeight()
+        {
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "AdaW", "");
+            ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "AdaW", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
+            //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
+            MultiObjectiveOptimization.AdaptedWeightMethod adapted = new MultiObjectiveOptimization.AdaptedWeightMethod(read.data, (0).ToString());
+
+        }
+
+
         public void solveOneFactorAtAtime()
         {
             int InstanceSize = 5;
-            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "NHA", "");
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeffEjor", "NHA", "");
             string[] nameCoeff = new string[6] { "Alpha", "Beta", "Gamma", "Delta", "Lambda", "Noe" };
             string[] level = new string[4] { "00", "01", "05", "10" };
-            for (int g = 0; g < 6; g++)
+            for (int g = 0; g < 24; g++)
             {
-                for (int l = 0; l < 4; l++)
-                {
                     for (int i = 0; i < InstanceSize; i++)
                     {
 
-                        ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "NHA", nameCoeff[g] + level[l], "Instance_" + i + ".txt");
+                        ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeffEjor", "NHA", "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
                         Stopwatch stopwatch = new Stopwatch();
                         read.data.AlgSettings.bucketBasedImpPercentage = 1;
                         read.data.AlgSettings.internBasedImpPercentage = 0.5;
@@ -911,7 +919,7 @@ namespace MedicalTraineeScheduling
 
                                 );
                         }
-                    }
+                    
                 }
             }
         }
