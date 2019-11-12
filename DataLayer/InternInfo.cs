@@ -62,6 +62,7 @@ namespace DataLayer
 		public double[] takingDiscPercentage;
 		public double MaxPrfDiscipline;
 		public double AveDur;
+        public bool[] twinIntern;
 
 		public double[] requieredTimeForRemianed;
 		public InternInfo(int Hospitals, int Disciplines, int TimePeriods, int DisciplineGr, int TrainingPr, int Region)
@@ -82,8 +83,8 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref OverSea_dt, Disciplines, TimePeriods, false);
 			new ArrayInitializer().CreateArray(ref AllDes_dh,Disciplines, Hospitals, -1);
 			new ArrayInitializer().CreateArray(ref takingDiscPercentage, Disciplines, 0);
-
-			wieght_d = 0;
+            
+            wieght_d = 0;
 			wieght_h = 0;
 			wieght_w = 0;
 			wieght_ch = 0;
@@ -523,5 +524,29 @@ namespace DataLayer
 				c++;
 			}
 		}
+
+        public void setTwinInterns(AllData allData) {
+            new ArrayInitializer().CreateArray(ref twinIntern, allData.General.Interns , false);
+            for (int i = 0; i < allData.General.Interns; i++)
+            {
+                if (allData.Intern[i].K_AllDiscipline <= K_AllDiscipline && allData.Intern[i].ProgramID == ProgramID)
+                {
+                    bool isTwin = true;
+                    for (int g = 0; g < allData.General.DisciplineGr; g++)
+                    {
+                        if (allData.Intern[i].ShouldattendInGr_g[g] > ShouldattendInGr_g[g])
+                        {
+                            isTwin = false;
+                            break;
+                        }
+                    }
+                    if (isTwin)
+                    {
+                        twinIntern[i] = true;
+                    }
+                }
+            }
+
+        }
 	}
 }

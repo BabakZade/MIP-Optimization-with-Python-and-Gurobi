@@ -963,7 +963,7 @@ namespace MedicalTraineeScheduling
             }
         }
 
-        public void solveThisDataSet(int totalGroup, int totalInstance, string datasetName, string nameOfProcsdure) 
+        public void solveThisDataSetNHA(int totalGroup, int totalInstance, string datasetName, string nameOfProcsdure) 
         {
             int groupCounter = 0;
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult(datasetName, nameOfProcsdure, "");
@@ -1024,6 +1024,51 @@ namespace MedicalTraineeScheduling
                 //}
 
             }
+
+            }
+
+
+
+        }
+
+        public void solveThisDataSetBP(int totalGroup, int totalInstance, string datasetName, string nameOfProcsdure)
+        {
+            int groupCounter = 0;
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult(datasetName, nameOfProcsdure, "");
+            for (int g = 0; g < totalGroup; g++)
+            {
+                for (int i = 0; i < totalInstance; i++)
+                {
+                    groupCounter++;
+                    if (groupCounter < 31)
+                    {
+                        //continue;
+                    }
+                    ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, datasetName, nameOfProcsdure, "G_" + (g + 1).ToString(), "Instance_" + i + ".txt");
+                    read.data.AlgSettings.bucketBasedImpPercentage = 1;
+                    read.data.AlgSettings.internBasedImpPercentage = 0.5;
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                     BranchAndPriceAlgorithm.BranchAndPrice bp = new BranchAndPriceAlgorithm.BranchAndPrice(read.data, "Ins_" + i);
+                    //MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
+                    //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString(), false, 7200);
+                    //NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
+                    stopwatch.Stop();
+                    int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+
+                    using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
+                    {
+                        string output = i + "\t" + time
+                            + "\t" + bp.optimalSol.Obj + "\t" + bp.optimalSol.AveDes + "\t" + String.Join(" \t ", bp.optimalSol.MinDis)
+                            + "\t" + bp.optimalSol.EmrDemand + "\t" + bp.optimalSol.ResDemand
+                            + "\t" + bp.optimalSol.SlackDem + "\t" + bp.optimalSol.NotUsedAccTotal
+                        // bandp metric
+                        +"\t" + bp.subMIP_time + "\t" + bp.master_Time + "\t" + bp.totalCreatedColumn + "\t" + bp.totalNumberOfColumn + "\t" + bp.branch_counter;
+                        file.WriteLine(output);
+                    }
+
+
+                }
 
             }
 

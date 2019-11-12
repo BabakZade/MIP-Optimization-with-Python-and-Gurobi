@@ -44,7 +44,7 @@ namespace BranchAndPriceAlgorithm
         public int Regions;
         public int DisciplineGr;
 
-        public ColumnInternBasedDecomposition theColumn;
+        public ArrayList theColumns;
 
         public SubProblem(AllData InputData, ArrayList AllBranches, double[] dual, int theIntern, string InsName)
         {
@@ -1078,7 +1078,7 @@ namespace BranchAndPriceAlgorithm
         public bool KeepGoing(double[] dual, string InsName)
         {
             bool flag = true;
-            theColumn = new ColumnInternBasedDecomposition(data);
+            theColumns = new ArrayList();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //*************set program
@@ -1088,7 +1088,9 @@ namespace BranchAndPriceAlgorithm
             MIPModel.SetParam(Cplex.IntParam.Threads, 3);
             MIPModel.SetParam(Cplex.DoubleParam.TiLim, data.AlgSettings.SubTime);
             MIPModel.SetParam(Cplex.BooleanParam.MemoryEmphasis, true);
-            if (!MIPModel.Solve())
+            //MIPModel.SetParam(Cplex.Param.MIP.Pool.RelGap, 1);
+
+            if (!MIPModel.Populate())
             {
                 flag = false;
             }
@@ -1097,41 +1099,55 @@ namespace BranchAndPriceAlgorithm
             {
                 stopwatch.Stop();
                 ElapsedTime = stopwatch.ElapsedMilliseconds / 1000;
-                setColumn();
-                
-                if (theColumn.setReducedCost(dual,data) < data.AlgSettings.RCepsi)
+                int numsol = MIPModel.GetSolnPoolNsolns();
+                System.Console.WriteLine("The solution pool contains " + numsol +
+                                   " solutions.");
+                for (int i = 0; i < numsol; i++)
                 {
-                    flag = false;
+
+                    ColumnInternBasedDecomposition tmpColumn = setColumn(i);
+
+                    if (tmpColumn.setReducedCost(dual, data) > data.AlgSettings.RCepsi)
+                    {
+                        theColumns.Add(tmpColumn);
+                    }
                 }
+
             }
 
 
             MIPModel.End();
             System.GC.Collect();
-
             return flag;
         }
 
-        public void setColumn()
+        public ColumnInternBasedDecomposition setColumn(int solpoolIndex)
         {
+            ColumnInternBasedDecomposition theColumn = new ColumnInternBasedDecomposition(data);
             theColumn.theIntern = theIntern;
-            theColumn.objectivefunction = MIPModel.GetObjValue();
-            theColumn.desire = MIPModel.GetValue(des);
+            theColumn.objectivefunction = MIPModel.GetObjValue(solpoolIndex);
+            theColumn.desire = MIPModel.GetValue(des, solpoolIndex);
             int totalChange = 0;
             for (int d = 1; d < Disciplins; d++)
             {
-                totalChange += (int)MIPModel.GetValue(ch_d[d]);
+                totalChange += (int)MIPModel.GetValue(ch_d[d], solpoolIndex);
             }
             theColumn.totalChange = totalChange;
             for (int t = 0; t < Timepriods; t++)
             {
                 for (int d = 1; d < Disciplins; d++)
                 {
-                    for (int h = 0; h < Hospitals; h++)
+                    for (int h = 0; h < Hospitals + 1; h++)
                     {
-                        if (MIPModel.GetValue(s_dth[d][t][h]) > 1 - 0.5)
+                        if (MIPModel.GetValue(s_dth[d][t][h], solpoolIndex) > 1 - 0.5)
                         {
                             theColumn.S_tdh[t][d - 1][h] = true;
+                            theColumn.theRoster.Add(new RoosterPosition
+                            {
+                                theDiscipline = d - 1,
+                                theHospital = h,
+                                theTime = t
+                            });
 
 
                         }
@@ -1145,7 +1161,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < Hospitals; h++)
                     {
-                        if (MIPModel.GetValue(y_dDh[d][dd][h]) > 0.5)
+                        if (MIPModel.GetValue(y_dDh[d][dd][h], solpoolIndex) > 0.5)
                         {
                                 theColumn.Y_dDh[d][dd][h] = true;
                                                        
@@ -1153,6 +1169,9 @@ namespace BranchAndPriceAlgorithm
                     }
                 }
             }
+
+
+            return theColumn;
         }
     }
 }

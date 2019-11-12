@@ -181,8 +181,12 @@ namespace BranchAndPriceAlgorithm
                 SubProblem sp = new SubProblem(data, AllBranches, dual, i, insName);
                 if (sp.KeepGoing(dual,insName))
                 {
-                    totalColumn++;
-                    RMP.addColumn(sp.theColumn);                    
+                    foreach (ColumnInternBasedDecomposition column in sp.theColumns)
+                    {
+                        totalColumn++;
+                        RMP.addColumn(column);
+                    }
+                                     
                 }
             }
             sw.Stop();
