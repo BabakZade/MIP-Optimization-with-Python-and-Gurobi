@@ -4,11 +4,11 @@ using System.Text;
 
 namespace BranchAndPriceAlgorithm
 {
-    struct RoosterPosition {
+    struct RosterPosition {
         public int theTime;
         public int theHospital;
         public int theDiscipline;
-        public RoosterPosition(RoosterPosition copyable) 
+        public RosterPosition(RosterPosition copyable) 
         {
             theTime = copyable.theTime;
             theHospital = copyable.theHospital;
@@ -26,7 +26,6 @@ namespace BranchAndPriceAlgorithm
         public double xVal;
         public double objectivefunction;
         public bool[][][] Y_dDh;
-        public ArrayList neighbourColums;
         public ArrayList theRoster;
         public ColumnInternBasedDecomposition()
         {
@@ -80,9 +79,9 @@ namespace BranchAndPriceAlgorithm
                 }
             }
 
-            foreach (RoosterPosition position in copyable.theRoster)
+            foreach (RosterPosition position in copyable.theRoster)
             {
-                theRoster.Add(new RoosterPosition(position));
+                theRoster.Add(new RosterPosition(position));
             }
         }
 
@@ -297,7 +296,7 @@ namespace BranchAndPriceAlgorithm
                                 bool disExist = false;
                                 for (int p = 0; p < clmn.theRoster.Count; p++)
                                 {
-                                    RoosterPosition position = (RoosterPosition)clmn.theRoster[p];
+                                    RosterPosition position = (RosterPosition)clmn.theRoster[p];
                                     if (position.theDiscipline == d) // we assigned this discipline to the student
                                     {
                                         disExist = true;

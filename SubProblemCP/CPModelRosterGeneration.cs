@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BranchAndPriceAlgorithm
+namespace SubProblemCP
 {
-    public class SubProblemDP
+    public class CPModelRosterGeneration
     {
     }
 }

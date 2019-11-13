@@ -6,8 +6,6 @@ namespace BranchAndPriceAlgorithm
 {
     public class Branch
     {
-        
-
         public long BrID;
 
         // left child =0 right child =1, left means the branch is equal to 0, right means equal to 1
