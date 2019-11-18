@@ -4,4 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="oplall">
+      <HintPath>C:\Program Files\IBM\ILOG\CPLEX_Studio129\opl\lib\oplall.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

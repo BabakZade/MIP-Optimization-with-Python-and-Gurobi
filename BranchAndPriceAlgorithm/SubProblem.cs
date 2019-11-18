@@ -900,6 +900,7 @@ namespace BranchAndPriceAlgorithm
                                     change.AddTerm(y_dDh[ddd][dd][h], 1);
                                 }
 
+
                                 MIPModel.AddGe(change, 0, "ChangeIdDH_" + i + "_" + d + "_" + dd + "_" + h);
                             }
                         }
