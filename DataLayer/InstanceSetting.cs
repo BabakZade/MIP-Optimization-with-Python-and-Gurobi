@@ -177,7 +177,7 @@ namespace DataLayer
 			int[] ResDem = new int[1] { 1 };
 
             // yearly demand percent
-            double MaxYearlyDemandPrcnt = 0.3;
+            double MaxYearlyDemandPrcnt = 1;
 
             // ratio of mutual discipline in training program
             double[] R_muDp = new double[3] { 0, 0.1, 0.25 };
@@ -198,7 +198,7 @@ namespace DataLayer
 
 			// oversea hospital
 			double[] overseaHosp = new double[3] { 0, 0.1, 0.25 };
-			overseaHosp = new double[1] { 0.1 };
+			overseaHosp = new double[1] { 0.0 };
 
 			// fulfilled %
 			double[] fulfilled = new double[1] { 0.0 };
@@ -221,7 +221,7 @@ namespace DataLayer
 			// 0.6 => training program 1
 			// 0.4 => training program 2
 			double[][] DisciplineDistribution_p = new double[3][] { new double[2] { 0.3, 0.7 }, new double[2] { 0.5, 0.5 }, new double[2] { 0.7, 0.3 } };
-			DisciplineDistribution_p  = new double[1][] { new double[2] { 0.7, 0.3 } };
+			DisciplineDistribution_p  = new double[1][] { new double[2] { 0.5, 0.5 } };
 			// discipline distribution per group (from all assigned discipline to the training program) 
 			// sum per row => 1
 			// 0.2 0.8 

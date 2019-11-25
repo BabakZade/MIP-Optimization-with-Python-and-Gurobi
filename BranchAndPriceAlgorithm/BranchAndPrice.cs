@@ -61,6 +61,7 @@ namespace BranchAndPriceAlgorithm
             new ArrayInitializer().CreateArray(ref BrnchIntern_i, data.General.Interns, false);
             allBranches = new ArrayList();
             allBranches.Add(new Branch()); // adding the root
+            best_sol = -data.AlgSettings.BigM;
         }
 
         public void branch_and_price( string insName)

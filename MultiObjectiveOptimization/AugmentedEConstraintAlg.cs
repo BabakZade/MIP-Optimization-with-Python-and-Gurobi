@@ -20,6 +20,7 @@ namespace MultiObjectiveOptimization
         public ArrayList paretoSol;
         public int augCounter;
         public bool[][][][] warmStartTime_itdh;
+        public int[][][][][][] range_DdREMR;
         public Stopwatch elapsedSW;
         public AugmentedEConstraintAlg(DataLayer.AllData alldata, string InsName) {
             
@@ -53,7 +54,7 @@ namespace MultiObjectiveOptimization
                 rangeQ_o[o] = 0;
 
             }
-            rangeQ_o = new int[] { 3, 5, 5, 5, 5, 5 };
+            rangeQ_o = new int[] { 3, 4, 4, 4, 4, 4 };
             data = alldata;
             eConstraitn = new ArrayList();
             paretoSol = new ArrayList();
@@ -133,6 +134,7 @@ namespace MultiObjectiveOptimization
                     rangeQ_o[o] = (int)(maxRange_o[o] - minRange_o[o]); // the loops from hear can consider 0
                 }
             }
+
             int counter = 0;
             for (int mnD = 0; mnD <= rangeQ_o[1]; mnD++)
             {

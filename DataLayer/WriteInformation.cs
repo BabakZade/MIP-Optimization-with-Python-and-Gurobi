@@ -298,6 +298,7 @@ namespace DataLayer
                 {
                     tmpdisciplineInfos[d].Duration_p[p] = random_.Next(1, (int)((double)tmpGeneral.TimePriods / totalInternship));
                     tmpdisciplineInfos[d].CourseCredit_p[p] = random_.Next(1, 10) >= 7 ? 2 : 1;
+                    tmpdisciplineInfos[d].CourseCredit_p[p] = 1;
                 }
             }
 
@@ -466,7 +467,7 @@ namespace DataLayer
                 tmpRegionInfos[r] = new RegionInfo(tmpGeneral.TimePriods);
                 tmpRegionInfos[r].Name = "Reg_" + r;
                 tmpRegionInfos[r].SQLID = r;
-                int MIN = random_.Next(0, 2);
+                int MIN = random_.Next(0, 3);
                 for (int t = 0; t < tmpGeneral.TimePriods; t++)
                 {
                     tmpRegionInfos[r].AvaAcc_t[t] = MIN;
@@ -484,8 +485,8 @@ namespace DataLayer
             tmpalgorithmSettings.NodeTime = 3600;
             tmpalgorithmSettings.BigM = 40000;
             tmpalgorithmSettings.MotivationBM = tmpalgorithmSettings.BigM / 100;
-            tmpalgorithmSettings.bucketBasedImpPercentage = 0.5;
-            tmpalgorithmSettings.internBasedImpPercentage = 0.1;
+            tmpalgorithmSettings.bucketBasedImpPercentage = 1;
+            tmpalgorithmSettings.internBasedImpPercentage = 0.5;
 
 
 

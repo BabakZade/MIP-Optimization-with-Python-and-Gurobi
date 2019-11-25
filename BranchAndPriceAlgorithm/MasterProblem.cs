@@ -444,7 +444,7 @@ namespace BranchAndPriceAlgorithm
                                 }
                             }
 
-                            double upperbound = double.MaxValue;
+                            double upperbound = data.Hospital[hh].ReservedCap_tw[tt][ww];
                             double lowerbound = 0;
                             foreach (Branch tmpbr in AllBranches)
                             {
@@ -549,7 +549,7 @@ namespace BranchAndPriceAlgorithm
                                 }
                             }
 
-                            double upperbound = double.MaxValue;
+                            double upperbound = data.Hospital[hh].EmergencyCap_tw[tt][ww];
                             double lowerbound = 0;
                             foreach (Branch tmpbr in AllBranches)
                             {

@@ -13,12 +13,12 @@ namespace MedicalTraineeScheduling
         public void createInstanceObjCoeff(int totalInstance)
         {
             DataLayer.InstanceSetting inssetting = new InstanceSetting();
-            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeffEjor", "NHA", "");
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeffWYear", "NHA", "");
             foreach (InstanceSetting insset in inssetting.AllinstanceSettings)
             {
                 for (int i = 0; i < totalInstance; i++)
                 {
-                    SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("ObjCoeffEjor", "", "G_");
+                    SetAllPathForResult allpath = new DataLayer.SetAllPathForResult("ObjCoeffWYear", "", "G_");
                     WriteInformation TMPinstance = new WriteInformation(insset, allpath.InstanceLocation + "\\", "Instance_" + i, false);
                     using (StreamWriter file = new StreamWriter(allpath.InstanceLocation + "\\FeasibleResult.txt", true))
                     {
@@ -827,8 +827,8 @@ namespace MedicalTraineeScheduling
 
         public void solveEConstriant() 
         {
-            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeff", "eConstraint", "");
-            ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeff", "eConstraint", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
+            SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult("ObjCoeffWYear", "eConstraint", "");
+            ReadInformation read = new ReadInformation(allpathTotal.CurrentDir, "ObjCoeffWYear", "eConstraint", "G_" + (0 + 1).ToString(), "Instance_" + 0 + ".txt");
             //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP mip = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, (0).ToString(),true,7200);
             MultiObjectiveOptimization.AugmentedEConstraintAlg augmeconstraint = new MultiObjectiveOptimization.AugmentedEConstraintAlg(read.data, (0).ToString());
             foreach (MultiObjectiveOptimization.ParetoPoints pareto in augmeconstraint.paretoSol)
@@ -987,7 +987,36 @@ namespace MedicalTraineeScheduling
                     NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());
                     stopwatch.Stop();
                     int time = (int)stopwatch.ElapsedMilliseconds / 1000;
+                    using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result1.txt", true))
+                    {
+                        file.WriteLine(i + "\t" + time
+                            // NHA first Sol
+                            + "\t" + nha.TimeForNHA + "\t" + nha.nhaResult.Obj + "\t" + nha.nhaResult.AveDes + "\t" + String.Join(" \t ", nha.nhaResult.MinDis)
+                            + "\t" + nha.nhaResult.EmrDemand + "\t" + nha.nhaResult.ResDemand
+                            + "\t" + nha.nhaResult.SlackDem + "\t" + nha.nhaResult.NotUsedAccTotal
+                            + "\t" + nha.nhaResult.wieghtedSumInHosPrf + "\t" + nha.nhaResult.wieghtedSumInDisPrf
+                             + "\t" + nha.nhaResult.wieghtedSumPrDisPrf + "\t" + nha.nhaResult.wieghtedSumInChnPrf
+                             + "\t" + nha.nhaResult.wieghtedSumInWaiPrf
 
+                            // NHA bucket list improvement
+                            + "\t" + nha.improvementStep.TimeForbucketListImp + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.Obj + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.demandBaseLocalSearch.Global.MinDis)
+                            + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.EmrDemand + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.ResDemand
+                            + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.SlackDem + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.NotUsedAccTotal
+                            + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInHosPrf + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInDisPrf
+                             + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumPrDisPrf + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInChnPrf
+                             + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.wieghtedSumInWaiPrf
+
+                            // NHA intern based improvement 
+                            + "\t" + nha.improvementStep.TimeForInternBaseImp + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.Obj + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.AveDes + "\t" + String.Join(" \t ", nha.improvementStep.internBasedLocalSearch.finalSol.MinDis)
+                            + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.EmrDemand + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.ResDemand
+                            + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.SlackDem + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.NotUsedAccTotal
+                            + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInHosPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInDisPrf
+                             + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumPrDisPrf + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInChnPrf
+                             + "\t" + nha.improvementStep.internBasedLocalSearch.finalSol.wieghtedSumInWaiPrf
+                             + "\t" + nha.improvementStep.demandBaseLocalSearch.Global.maxDesGap // from the last step
+
+                            );
+                    }
                     using (StreamWriter file = new StreamWriter(read.data.allPath.OutPutLocation + "\\Result.txt", true))
                     {
 

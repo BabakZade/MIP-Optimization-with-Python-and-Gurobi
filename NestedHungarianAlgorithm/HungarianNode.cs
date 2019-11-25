@@ -583,7 +583,7 @@ namespace NestedHungarianAlgorithm
                             }
 
                             // discipline prf and Training Program prf
-                            if (false && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
+                            if (true && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
                             {
                                 CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }

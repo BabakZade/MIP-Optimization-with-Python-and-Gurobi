@@ -47,6 +47,10 @@ namespace NestedHungarianAlgorithm
 				solI.copyRosters(finalSol.Intern_itdh);
 				solI.WriteSolution(data.allPath.OutPutGr, "tmpImprovedSol" + Name);
 				int theI = findCandidateForDP(ref i, solI);
+                if (theI < 0)
+                {
+                    return;
+                }
                 double OLD = solI.Des_i[theI];
 				if (theI < 0)
 				{
@@ -139,7 +143,7 @@ namespace NestedHungarianAlgorithm
 						candidate = i;
                         if (incumbentSol.MinDis[data.Intern[i].ProgramID] == incumbentSol.Des_i[i])
                         {
-                            break;
+                            //break;
                         }
 					}
                     

@@ -13,8 +13,8 @@ namespace MedicalTraineeScheduling
 		static void Main(string[] args)
 		{
             //new SolveMe().createInstanceObjCoeff(5);
-            // new SolveMe().solveObjCoeffGammaDelta(24,5,8);
-            new SolveMe().solveThisDataSetBP(9, 5, "ResourcePool", "BandP");
+            new SolveMe().solveThisDataSetForAlgorithmicBlockImprovment();
+           // new SolveMe().solveThisDataSetNHA(24, 5, "ObjCoeffWYear", "NHA");
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //new SolveMe().solveAddaptiveWeight();

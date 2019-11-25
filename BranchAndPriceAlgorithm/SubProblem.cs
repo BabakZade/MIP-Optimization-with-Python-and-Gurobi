@@ -1143,7 +1143,7 @@ namespace BranchAndPriceAlgorithm
                         if (MIPModel.GetValue(s_dth[d][t][h], solpoolIndex) > 1 - 0.5)
                         {
                             theColumn.S_tdh[t][d - 1][h] = true;
-                            theColumn.theRoster.Add(new RoosterPosition
+                            theColumn.theRoster.Add(new RosterPosition
                             {
                                 theDiscipline = d - 1,
                                 theHospital = h,

@@ -1429,7 +1429,7 @@ namespace GeneralMIPAlgorithm
             RBigM_obj = new INumVar[augmentedaddon.totalObjective];
             for (int o = 0; o < augmentedaddon.totalObjective; o++)
             {
-                s_obj[o] = MIPModel.NumVar(augmentedaddon.lowerBound_o[o], augmentedaddon.upperBound_o[o], "slack_[" + o + "]");
+                s_obj[o] = MIPModel.NumVar(0, augmentedaddon.upperBound_o[o] - augmentedaddon.lowerBound_o[o], "slack_[" + o + "]");
                 RBigM_obj[o] = MIPModel.NumVar(0, augmentedaddon.upperBound_o[o], "RBigM_[" + o + "]");
             }
         }
