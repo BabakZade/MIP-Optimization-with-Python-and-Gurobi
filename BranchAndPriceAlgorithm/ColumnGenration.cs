@@ -6,6 +6,7 @@ using DataLayer;
 using System.Diagnostics;
 using ColumnAndBranchInfo;
 using SubProblemMIP;
+using SubProblemCP;
 
 namespace BranchAndPriceAlgorithm
 {
@@ -45,14 +46,14 @@ namespace BranchAndPriceAlgorithm
         public int DisciplineGr;
         public AllData data;
 
-        public ColumnGenration(DataLayer.AllData allData, ArrayList FathersColumn, ArrayList AllBranches, string insName)
+        public ColumnGenration(DataLayer.AllData allData, ArrayList FathersColumn, ArrayList AllBranches, string insName, int procedureType)
         {
             data = allData;
             initial();
-            SolveCG(AllBranches, FathersColumn ,insName);
+            SolveCG(AllBranches, FathersColumn ,insName, procedureType);
         }
 
-        public void SolveCG(ArrayList AllBranches, ArrayList FathersColumn, string insName)
+        public void SolveCG(ArrayList AllBranches, ArrayList FathersColumn, string insName, int procedureType)
         {            
             double lagrangian_LB;
            
@@ -74,7 +75,7 @@ namespace BranchAndPriceAlgorithm
 
 
             int counter = 0;
-            while (SolveSubProblem(AllBranches, dual, insName))
+            while (addColumn(AllBranches, dual, insName, procedureType))
             {
                 Iteration++;
                 Stopwatch sw1 = new Stopwatch();
@@ -170,7 +171,7 @@ namespace BranchAndPriceAlgorithm
             
         }
 
-        public bool SolveSubProblem(ArrayList AllBranches, double[] dual, string insName)
+        public bool SolveSubProblemMIP(ArrayList AllBranches, double[] dual, string insName)
         {
 
             int totalColumn = 0;
@@ -204,6 +205,55 @@ namespace BranchAndPriceAlgorithm
             }
 
 
+        }
+
+        public bool SolveSubProblemCP(ArrayList AllBranches, double[] dual, string insName)
+        {
+
+            int totalColumn = 0;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            bool firstCol = false;
+            for (int i = 0; i < Interns; i++)
+            {
+                GC.Collect();
+                CPModelRosterGeneration sp = new CPModelRosterGeneration(dual, i, AllBranches, data);
+                if (sp.KeepGoing(dual, insName))
+                {
+                    foreach (ColumnInternBasedDecomposition column in sp.theColumns)
+                    {
+                        totalColumn++;
+                        RMP.addColumn(column);
+                    }
+
+                }
+            }
+            sw.Stop();
+            count_MIP += totalColumn;
+            subMIP_time += sw.ElapsedMilliseconds / 1000;
+            if (totalColumn > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
+        }
+
+        public bool addColumn(ArrayList AllBranches, double[] dual, string insName, int procedureType) 
+        {
+            switch (procedureType)
+            {
+                case 0: // sub problem MIP 
+                    return SolveSubProblemMIP(AllBranches, dual, insName);
+                case 1: // sub problem CP
+                    return SolveSubProblemCP(AllBranches, dual, insName);
+                default:
+                    return false;
+            }
         }
     }
 }

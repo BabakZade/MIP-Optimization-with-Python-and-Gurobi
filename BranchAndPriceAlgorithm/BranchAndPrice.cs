@@ -40,15 +40,15 @@ namespace BranchAndPriceAlgorithm
         
         AllData data;
 
-        public BranchAndPrice(DataLayer.AllData allData, string insName)
+        public BranchAndPrice(DataLayer.AllData allData, string insName, int procedureType)
         {
-            Algorithem(allData, insName);
+            Algorithem(allData, insName, procedureType);
         }
 
-        public void Algorithem(DataLayer.AllData allData, string insName)
+        public void Algorithem(DataLayer.AllData allData, string insName, int procedureType)
         {
             Initialize(allData,insName) ;
-            branch_and_price(insName);
+            branch_and_price(insName, procedureType);
         }
 
         public void Initialize(DataLayer.AllData allData, string insName)
@@ -65,7 +65,7 @@ namespace BranchAndPriceAlgorithm
             best_sol = -data.AlgSettings.BigM;
         }
 
-        public void branch_and_price( string insName)
+        public void branch_and_price( string insName, int procedureType)
         {
             Stopwatch stopNow = new Stopwatch();
             stopNow.Start();
@@ -75,7 +75,7 @@ namespace BranchAndPriceAlgorithm
             tree_level = 0;
             active_list_count = 0;
 
-            Node root = new Node(data, insName);
+            Node root = new Node(data, insName, procedureType);
             
             ElappsedTime = root.ElappsedTime;
             
@@ -112,12 +112,12 @@ namespace BranchAndPriceAlgorithm
                     break;
                 }
                 branch_counter += 2;
-                Branching(insName);
+                Branching(insName, procedureType);
             }
 
         }
 
-        public void Branching(string insName)
+        public void Branching(string insName, int procedureType)
         {
             if (((Node)active_list[0]).Upperbound - best_sol < data.AlgSettings.RCepsi)
             {
@@ -157,7 +157,7 @@ namespace BranchAndPriceAlgorithm
             left_node.BrID = lastBr.BrID * 2 + 1;
             right_node.BrID = left_node.BrID + 1;
 
-            Node tmp_left = new Node(data, (Node)active_list[0], allColumns, left_node, insName);
+            Node tmp_left = new Node(data, (Node)active_list[0], allColumns, left_node, insName, procedureType);
 
             
             ElappsedTime += tmp_left.ElappsedTime;
@@ -171,7 +171,7 @@ namespace BranchAndPriceAlgorithm
             tmp_left.Node_id = 2 * tmp_left.fatherNodeId + 1;
             tmp_left.level = ((Node)active_list[0]).level + 1;
 
-            Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName);
+            Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName, procedureType);
 
             left_node.BrObj = Math.Round( tmp_left.Upperbound, 2);
             right_node.BrObj = Math.Round(tmp_right.Upperbound,2);

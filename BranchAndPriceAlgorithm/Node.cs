@@ -33,7 +33,7 @@ namespace BranchAndPriceAlgorithm
         public double[][][] resDem_twh;
         public double[][][] emrDem_twh;
 
-        public Node(DataLayer.AllData allData, string insName)
+        public Node(DataLayer.AllData allData, string insName, int procedureType)
         {
             data = allData;
             Upperbound = -1; 
@@ -44,11 +44,11 @@ namespace BranchAndPriceAlgorithm
             }
             branch_trace = new ArrayList();                
 
-            node_procedure(new ArrayList(), new ArrayList(), insName);
+            node_procedure(new ArrayList(), new ArrayList(), insName, procedureType);
 
         }
 
-        public Node(AllData allData, Node FatherNode, ArrayList allColumn, Branch new_branch, string insName)
+        public Node(AllData allData, Node FatherNode, ArrayList allColumn, Branch new_branch, string insName, int procedureType)
         {
             data = allData;
             branch_trace = new ArrayList();
@@ -63,7 +63,7 @@ namespace BranchAndPriceAlgorithm
                 CopyBranchTrace(FatherNode.branch_trace);
             }
 
-            node_procedure(allColumn, branch_trace, insName);
+            node_procedure(allColumn, branch_trace, insName, procedureType);
         }
 
         public void CopyBranchTrace(ArrayList FatherBranch)
@@ -76,11 +76,11 @@ namespace BranchAndPriceAlgorithm
 
 
 
-        public void node_procedure(ArrayList FatherColumn, ArrayList AllBranch, string insName)
+        public void node_procedure(ArrayList FatherColumn, ArrayList AllBranch, string insName, int procedureType)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            NodeCG = new ColumnGenration(data, FatherColumn, AllBranch, insName);
+            NodeCG = new ColumnGenration(data, FatherColumn, AllBranch, insName, procedureType);
             sw.Stop();
             ElappsedTime = sw.ElapsedMilliseconds / 1000;
             

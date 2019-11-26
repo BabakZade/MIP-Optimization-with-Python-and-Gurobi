@@ -39,10 +39,23 @@ namespace SubProblemCP
         public DataLayer.AllData data;
         public int theIntern;
 
-
-
-        public void initial() 
+        public CPModelRosterGeneration(double[] dual,int theIntern,ArrayList allBranches, DataLayer.AllData alldata) 
         {
+            initial(theIntern,alldata);
+            CPAlg(dual, theIntern, alldata, allBranches);
+        }
+        public void CPAlg(double[] dual, int theIntern, DataLayer.AllData allData, ArrayList allBranches)
+        {
+            initialVar(allBranches);
+            setTheConstraint();
+            setTheObjectiveFunction(dual);
+        }
+        
+
+        public void initial(int theIntern,DataLayer.AllData alldata) 
+        {
+            this.theIntern = theIntern;
+            data = alldata;
             new DataLayer.ArrayInitializer().CreateArray(ref RCStart_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
             new DataLayer.ArrayInitializer().CreateArray(ref RCDual_tdh,data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
         }
@@ -50,10 +63,11 @@ namespace SubProblemCP
         /// <summary>
         /// intial all CP var
         /// </summary>
-        public void initialVar()
+        public void initialVar(ArrayList allBranches)
         {
             roster = new CP();
-
+            // reduced cost
+            ReducedCost = roster.NumExpr();
             // intern availbility
             resource_AveIntern = roster.NumToNumStepFunction(0, data.General.TimePriods, 100, "AvailibilityOfIntern");
             for (int t = 0; t < data.General.TimePriods; t++)
@@ -72,21 +86,19 @@ namespace SubProblemCP
                 for (int h = 0; h < data.General.Hospitals; h++)
                 {
                     resource_AveDisc_dh[d][h] = roster.NumToNumStepFunction(0, data.General.TimePriods, 100, "AvailibilityFunction");
-                    bool flag = false;
-                    for (int w = 0; w < data.General.HospitalWard && !flag; w++)
+                    bool heCan = false;
+                    for (int w = 0; w < data.General.HospitalWard; w++)
                     {
-                        if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[theIntern].Abi_dh[d][h]) // existance of discipline in hospital + ability
+                        if (data.Hospital[h].Hospital_dw[d][w]  && data.Intern[theIntern].Abi_dh[d][h])
                         {
-                            flag = true;
+                            heCan = true;
+                            break;
                         }
                     }
 
-                    if (flag)
+                    if (heCan)
                     {
-                        for (int t = 0; t < data.General.TimePriods; t++)
-                        {
-                            resource_AveIntern.SetValue(t, t + 1, 0);
-                        }
+                        resource_AveDisc_dh[d][h] = roster.NumToNumStepFunction(0, data.General.TimePriods, 0, "AvailibilityFunction");
                     }
                 }
             }
@@ -297,6 +309,45 @@ namespace SubProblemCP
                 }
             }
 
+
+            // Branches
+            foreach (Branch item in allBranches)
+            {
+                if (item.BrIntern == theIntern)
+                {
+                    if (item.branch_status)
+                    {
+                        if (item.BrTypePrecedence)
+                        {
+                            roster.Add(roster.Eq(roster.PresenceOf(disc_d[item.BrPrDisc]), roster.PresenceOf(disc_d[item.BrDisc])));
+                            roster.Add(roster.EndAtStart(disc_d[item.BrPrDisc], disc_d[item.BrDisc]));
+                            discHosp_dh[item.BrDisc][item.BrHospital].SetPresent();
+                        }
+                        if (item.BrTypeStartTime)
+                        {
+                            discHosp_dh[item.BrDisc][item.BrHospital].SetPresent();
+                            discHosp_dh[item.BrDisc][item.BrHospital].StartMax = item.BrTime;
+                            discHosp_dh[item.BrDisc][item.BrHospital].StartMin = item.BrTime;                 
+                        }
+                    }
+                    else
+                    {
+                        if (item.BrTypePrecedence)
+                        {
+                            IIntVar brLeft = roster.IntVar(0, 1, item.displayYdDHIndex());
+                            roster.Add(roster.IfThen(roster.And(roster.PresenceOf(discHosp_dh[item.BrPrDisc][item.BrHospital]), roster.Eq(roster.TypeOfNext(sequenceDis, disc_d[item.BrPrDisc], item.BrPrDisc, item.BrPrDisc), item.BrDisc)),roster.AddEq(brLeft,1)));
+                            ReducedCost = roster.Sum(ReducedCost, roster.Prod(-data.AlgSettings.BigM, brLeft));
+                        }
+                        if (item.BrTypeStartTime)
+                        {
+                            roster.Add(roster.Neq(roster.StartOf(discHosp_dh[item.BrDisc][item.BrHospital]), item.BrTime));
+                        }
+
+                    }
+                }
+
+            }
+
         }
 
 
@@ -342,7 +393,7 @@ namespace SubProblemCP
             {
                 roster.Add(roster.Le(hospUsage_h[h], data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp));
             }
-            for (int dh = 0; dh < data.General.Disciplines * data.General.Hospitals; dh++)
+            for (int dh = 0; dh < data.General.Disciplines * (data.General.Hospitals + 1); dh++)
             {
                 int dIndex = dh % data.General.Disciplines;
                 int hIndex = dh / data.General.Disciplines;
@@ -396,12 +447,23 @@ namespace SubProblemCP
             // prf
             for (int d = 0; d < data.General.Disciplines; d++)
             {
-                for (int h = 0; h < data.General.Hospitals + 1; h++)
+                for (int h = 0; h < data.General.Hospitals; h++)
                 {
                     desCons = roster.Sum(desCons, roster.Prod(-(data.Intern[theIntern].Prf_d[d]
-                                                                + data.Intern[theIntern].Prf_h[d]
+                                                                + data.Intern[theIntern].Prf_h[h]
                                                                 + data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d]), roster.PresenceOf(discHosp_dh[d][h])));
                 }
+                for (int t = 0; t < data.General.TimePriods; t++)
+                {
+                    if (data.Intern[theIntern].OverSea_dt[d][t])
+                    {
+                        desCons = roster.Sum(desCons, roster.Prod(-(data.Intern[theIntern].Prf_d[d]
+                                                                + data.Intern[theIntern].Prf_h[data.General.Hospitals + 1]
+                                                                + data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d]), roster.PresenceOf(discHosp_dh[d][data.General.Hospitals + 1])));
+
+                    }
+                }
+
             }
             // desire Waiting time
 
@@ -547,7 +609,7 @@ namespace SubProblemCP
         {
             try
             {
-                ReducedCost = roster.NumExpr();
+                
                 ReducedCost = roster.Sum(ReducedCost, roster.Prod(data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi, desire));
 
 
@@ -632,8 +694,10 @@ namespace SubProblemCP
             }
         }
 
-        public void setTheObjectiveFunction() 
+        public void setTheObjectiveFunction(double[] dual) 
         {
+            setRCStart(dual);
+            setTheRC(dual);
             // add it to be greater than zero
             roster.AddGe(ReducedCost, 2 * data.AlgSettings.RCepsi);
             roster.AddMaximize(ReducedCost);
@@ -641,6 +705,7 @@ namespace SubProblemCP
 
         public bool KeepGoing(double[] dual, string InsName)
         {
+            bool flag = false;
             theColumns = new ArrayList();
             
             roster.SetParameter(CP.IntParam.TimeMode, CP.ParameterValues.ElapsedTime);
@@ -653,20 +718,30 @@ namespace SubProblemCP
             {
                 roster.ExportModel(data.allPath.OutPutGr + "Roster" + InsName + ".cpo");
                 ColumnInternBasedDecomposition column = new ColumnInternBasedDecomposition(data);
+                column.desire = roster.GetValue(desire);
+                
                 for (int d = 0; d < data.General.Disciplines; d++)
                 {
                     for (int h = 0; h < data.General.Hospitals + 1; h++)
                     {
                         if (roster.IsPresent(discHosp_dh[d][h]))
                         {
-
+                            int theT = roster.GetStart(discHosp_dh[d][h]);
+                            column.S_tdh[theT][d][h] = true;
                         }
                     }
                 }
-
+                column.setYdDFromStartTime(data);
+                column.setRosterFromStartTime(data);
+                column.setReducedCost(dual,data);
+                if (column.setReducedCost(dual, data) > data.AlgSettings.RCepsi)
+                {
+                    theColumns.Add(column);
+                }
+                flag = true;
             }
             roster.End();
-            return false;
+            return flag;
         }
     }
 }

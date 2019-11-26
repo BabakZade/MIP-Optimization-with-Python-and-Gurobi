@@ -595,9 +595,10 @@ namespace ColumnAndBranchInfo
             return IsFeasible;
         }
 
-        public void setOtherInfoFromStartTime(DataLayer.AllData data) 
+        public void setYdDFromStartTime(DataLayer.AllData data) 
         {
             totalChange = 0;
+            
             for (int t = 0; t < data.General.TimePriods; t++)
             {
                 int dis1 = 0;
@@ -610,6 +611,7 @@ namespace ColumnAndBranchInfo
                     {
                         if (S_tdh[t][d][h])
                         {
+                            status_d[d] = true;
                             if (hosp1 < 0)
                             {
                                 hosp1 = h;
@@ -617,15 +619,43 @@ namespace ColumnAndBranchInfo
                             else 
                             {
                                 hosp2 = h;
-                            }
-                            
+                            }                         
                                
                             if (hosp2 != hosp1)
                             {
                                 totalChange++;
                                 hosp1 = hosp2;                                
                             }
-                            
+                            dis2 = d + 1;
+                            if (dis2 != dis1)
+                            {
+                                Y_dDh[dis1][dis2][h] = true;
+                                dis1 = dis2;
+                            }                            
+                        }
+                    }
+                }
+            }
+        }
+
+        public void setRosterFromStartTime(DataLayer.AllData data)
+        {
+            totalChange = 0;
+
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int d = 0; d < data.General.Disciplines; d++)
+                {
+                    for (int h = 0; h < data.General.Hospitals + 1; h++)
+                    {
+                        if (S_tdh[t][d][h])
+                        {
+                            theRoster.Add(new RosterPosition
+                            {
+                                theDiscipline = d,
+                                theHospital = h,
+                                theTime = t,
+                            });
                         }
                     }
                 }

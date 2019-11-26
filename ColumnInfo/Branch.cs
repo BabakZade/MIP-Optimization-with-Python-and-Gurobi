@@ -78,6 +78,10 @@ namespace ColumnAndBranchInfo
         public string displayMe() {
             return BrIntern+": "+ BrPrDisc + "=>" + BrDisc + "@ "+BrHospital;
         }
+        public string displayYdDHIndex()
+        {
+            return "Y_dDh[" + BrDisc + "][" + BrPrDisc + "][" + BrHospital + "]";
+        }
 
         public void WriteXML(string Path)
         {
