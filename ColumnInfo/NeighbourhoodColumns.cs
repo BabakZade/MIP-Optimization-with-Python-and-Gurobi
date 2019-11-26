@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Text;
 
-namespace BranchAndPriceAlgorithm
+namespace ColumnAndBranchInfo
 {
     // in order to have some idea about the function name pleas read the paper => Umbarkar, A. J., & Sheth, P. D. (2015). CROSSOVER OPERATORS IN GENETIC ALGORITHMS: A REVIEW. ICTACT journal on soft computing, 6(1).
     public class NeighbourhoodColumns

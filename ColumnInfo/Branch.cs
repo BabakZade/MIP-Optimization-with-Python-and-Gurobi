@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BranchAndPriceAlgorithm
+namespace ColumnAndBranchInfo
 {
     public class Branch
     {

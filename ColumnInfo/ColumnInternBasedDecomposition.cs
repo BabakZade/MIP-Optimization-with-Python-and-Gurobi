@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Text;
 
-namespace BranchAndPriceAlgorithm
+namespace ColumnAndBranchInfo
 {
-    struct RosterPosition {
+    public struct RosterPosition {
         public int theTime;
         public int theHospital;
         public int theDiscipline;
@@ -593,6 +593,43 @@ namespace BranchAndPriceAlgorithm
                 && !infeasibilityKdiscOneHosp;
 
             return IsFeasible;
+        }
+
+        public void setOtherInfoFromStartTime(DataLayer.AllData data) 
+        {
+            totalChange = 0;
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                int dis1 = 0;
+                int dis2 = -1;
+                int hosp1 = -1;
+                int hosp2 = -1;
+                for (int d = 0; d < data.General.Disciplines; d++)
+                {
+                    for (int h = 0; h < data.General.Hospitals + 1; h++)
+                    {
+                        if (S_tdh[t][d][h])
+                        {
+                            if (hosp1 < 0)
+                            {
+                                hosp1 = h;
+                            }
+                            else 
+                            {
+                                hosp2 = h;
+                            }
+                            
+                               
+                            if (hosp2 != hosp1)
+                            {
+                                totalChange++;
+                                hosp1 = hosp2;                                
+                            }
+                            
+                        }
+                    }
+                }
+            }
         }
     }
 }

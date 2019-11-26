@@ -3,6 +3,7 @@ using System.Collections;
 using System.Text;
 using DataLayer;
 using System.Diagnostics;
+using ColumnAndBranchInfo;
 
 namespace BranchAndPriceAlgorithm
 {

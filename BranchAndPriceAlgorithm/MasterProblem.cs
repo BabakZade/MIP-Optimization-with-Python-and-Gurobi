@@ -7,7 +7,7 @@ using System.Collections;
 using System.IO;
 using System.Diagnostics;
 using DataLayer;
-
+using ColumnAndBranchInfo;
 namespace BranchAndPriceAlgorithm
 {
     public class MasterProblem

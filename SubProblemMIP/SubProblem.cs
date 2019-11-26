@@ -7,8 +7,10 @@ using System.Collections;
 using System.IO;
 using System.Diagnostics;
 using DataLayer;
+using ColumnAndBranchInfo;
 
-namespace BranchAndPriceAlgorithm
+
+namespace SubProblemMIP
 {
     public class SubProblem
     {

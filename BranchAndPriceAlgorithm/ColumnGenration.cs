@@ -4,6 +4,8 @@ using System.Text;
 using System.IO;
 using DataLayer;
 using System.Diagnostics;
+using ColumnAndBranchInfo;
+using SubProblemMIP;
 
 namespace BranchAndPriceAlgorithm
 {
