@@ -400,56 +400,237 @@ namespace SubProblemMIP
         public void CreateModel()
         {
             // Discipline List  
-            for (int i = 0; i < Interns; i++)
+            int i = theIntern;
+
+            for (int g = 0; g < DisciplineGr; g++)
             {
+                ILinearNumExpr mandatory = MIPModel.LinearNumExpr();
+                int fulfilled = 0;
+                for (int d = 1; d < Disciplins; d++)
+                {
+                    if (data.Intern[theIntern].DisciplineList_dg[d - 1][g])
+                    {
+                        for (int h = 0; h < Hospitals - 1; h++)
+                        {
+                            if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
+                            {
+                                fulfilled += data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID];
+                            }
+                        }
+
+                        for (int dd = 0; dd < Disciplins; dd++)
+                        {
+                            for (int h = 0; h < Hospitals; h++)
+                            {
+                                mandatory.AddTerm(y_dDh[dd][d][h], data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID]);
+                            }
+                        }
+                    }
+                }
+
+                MIPModel.AddGe(mandatory, data.Intern[theIntern].ShouldattendInGr_g[g] - fulfilled, "DisciplineGroupIG_" + i + "_" + g);
+
+            }
+
+
+            // All disciplines == Sum_g
+
+            ILinearNumExpr AllDiscipline = MIPModel.LinearNumExpr();
+            // check if the training program and involved mandatory discipline
+            int totalFulfilled = 0;
+            for (int d = 1; d < Disciplins; d++)
+            {
+                for (int h = 0; h < Hospitals - 1; h++)
+                {
+                    if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
+                    {
+                        totalFulfilled += data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID];
+                    }
+
+                }
+            }
+            for (int d = 1; d < Disciplins; d++)
+            {
+                bool dexist = false;
                 for (int g = 0; g < DisciplineGr; g++)
                 {
-                    ILinearNumExpr mandatory = MIPModel.LinearNumExpr();
-                    int fulfilled = 0;
-                    for (int d = 1; d < Disciplins; d++)
+                    if (data.Intern[theIntern].DisciplineList_dg[d - 1][g])
                     {
-                        if (data.Intern[theIntern].DisciplineList_dg[d - 1][g])
-                        {
-                            for (int h = 0; h < Hospitals - 1; h++)
-                            {
-                                if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
-                                {
-                                    fulfilled += data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID];
-                                }
-                            }
+                        dexist = true;
+                    }
+                }
+                for (int dd = 0; dd < Disciplins && dexist; dd++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        AllDiscipline.AddTerm(y_dDh[dd][d][h], data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID]);
+                    }
+                }
+            }
+            int totalList = 0;
+            for (int g = 0; g < DisciplineGr; g++)
+            {
+                totalList += data.Intern[theIntern].ShouldattendInGr_g[g];
+            }
+            MIPModel.AddEq(AllDiscipline, totalList - totalFulfilled, "AllDisciplineI" + "_" + i);
 
+
+            // Each discipline Once,
+
+            for (int d = 1; d < Disciplins; d++)
+            {
+                ILinearNumExpr DiscAssign = MIPModel.LinearNumExpr();
+
+                // taking course 
+                for (int dd = 0; dd < Disciplins; dd++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        DiscAssign.AddTerm(1, y_dDh[dd][d][h]);
+                    }
+                }
+                // AKA_dD
+                for (int D = 1; D < Disciplins; D++)
+                {
+                    for (int p = 0; p < TrainingPr; p++)
+                    {
+                        if (data.TrainingPr[p].AKA_dD[d - 1][D - 1])
+                        {
                             for (int dd = 0; dd < Disciplins; dd++)
                             {
                                 for (int h = 0; h < Hospitals; h++)
                                 {
-                                    mandatory.AddTerm(y_dDh[dd][d][h], data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID]);
+                                    DiscAssign.AddTerm(1, y_dDh[dd][D][h]);
                                 }
                             }
                         }
                     }
 
-                    MIPModel.AddGe(mandatory, data.Intern[theIntern].ShouldattendInGr_g[g] - fulfilled, "DisciplineGroupIG_" + i + "_" + g);
-
                 }
-            }
 
-            // All disciplines == Sum_g
-            for (int i = 0; i < Interns; i++)
-            {
-                ILinearNumExpr AllDiscipline = MIPModel.LinearNumExpr();
-                // check if the training program and involved mandatory discipline
-                int totalFulfilled = 0;
-                for (int d = 1; d < Disciplins; d++)
+                int totalFF = 0;
+
+
+                // fullfiled d
+                for (int h = 0; h < Hospitals - 1; h++)
+                {
+                    for (int p = 0; p < TrainingPr; p++)
+                    {
+                        if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][p])
+                        {
+                            totalFF++;
+
+                        }
+                    }
+                }
+                // fulfilled AKA_dd
+                for (int dd = 1; dd < Disciplins; dd++)
                 {
                     for (int h = 0; h < Hospitals - 1; h++)
                     {
-                        if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
+                        for (int p = 0; p < TrainingPr; p++)
                         {
-                            totalFulfilled += data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID];
-                        }
+                            if (data.Intern[theIntern].Fulfilled_dhp[dd - 1][h][p] && data.TrainingPr[p].AKA_dD[d - 1][dd - 1])
+                            {
+                                totalFF++;
 
+                            }
+                        }
                     }
                 }
+
+
+                MIPModel.AddLe(DiscAssign, 1 - totalFF, "AssignOnceID_" + i + "_" + d);
+            }
+
+
+            // Foreign Hospital
+
+            for (int d = 1; d < Disciplins; d++)
+            {
+                // check if there are oversea demand
+                bool FH = false;
+                for (int t = 0; t < Timepriods; t++)
+                {
+                    for (int g = 0; g < DisciplineGr; g++)
+                    {
+                        if (data.Intern[theIntern].DisciplineList_dg[d - 1][g] && data.Intern[theIntern].OverSea_dt[d - 1][t])
+                        {
+                            FH = true;
+                        }
+                    }
+                }
+                if (FH)
+                {
+                    ILinearNumExpr OverseaH = MIPModel.LinearNumExpr();
+                    for (int dd = 0; dd < Disciplins; dd++)
+                    {
+                        OverseaH.AddTerm(1, y_dDh[dd][d][Hospitals - 1]);
+                    }
+                    MIPModel.AddEq(OverseaH, 1, "OverseaID_" + i + "_" + d);
+                }
+
+            }
+
+
+            // Ability Hospital related
+            // we consider it in variable definition 
+
+            // total allowed change in hospital
+
+            for (int h = 0; h < Hospitals - 1; h++)
+            {
+                ILinearNumExpr change = MIPModel.LinearNumExpr();
+                for (int d = 1; d < Disciplins; d++)
+                {
+                    for (int dd = 0; dd < Disciplins; dd++)
+                    {
+                        change.AddTerm(1, y_dDh[dd][d][h]);
+                    }
+                }
+                int fulfilled = 0;
+                for (int d = 1; d < Disciplins; d++)
+                {
+                    if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
+                    {
+                        fulfilled++;
+                    }
+                }
+                int RHS = data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp - fulfilled;
+                MIPModel.AddLe(change, RHS, "ChangeIH_" + i + "_" + h);
+            }
+
+
+            // follow each discipline 
+
+            for (int dd = 1; dd < Disciplins; dd++)
+            {
+                ILinearNumExpr follownext = MIPModel.LinearNumExpr();
+                // check if the training program and involved mandatory discipline
+                for (int d = 1; d < Disciplins; d++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        follownext.AddTerm(y_dDh[dd][d][h], 1);
+                    }
+                }
+                for (int d = 0; d < Disciplins; d++)
+                {
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        follownext.AddTerm(y_dDh[d][dd][h], -1);
+                    }
+                }
+                MIPModel.AddLe(follownext, 0, "follownextID" +
+                    "_" + i + "_" + dd);
+            }
+
+
+            // dummy discipline 
+
+            if (data.Intern[theIntern].K_AllDiscipline > 0)
+            {
+                ILinearNumExpr dummy = MIPModel.LinearNumExpr();
                 for (int d = 1; d < Disciplins; d++)
                 {
                     bool dexist = false;
@@ -460,483 +641,294 @@ namespace SubProblemMIP
                             dexist = true;
                         }
                     }
-                    for (int dd = 0; dd < Disciplins && dexist; dd++)
+                    bool hexist = false;
+                    for (int h = 0; h < Hospitals && dexist; h++)
                     {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            AllDiscipline.AddTerm(y_dDh[dd][d][h], data.Discipline[d - 1].CourseCredit_p[data.Intern[theIntern].ProgramID]);
-                        }
-                    }
-                }
-                int totalList = 0;
-                for (int g = 0; g < DisciplineGr; g++)
-                {
-                    totalList += data.Intern[theIntern].ShouldattendInGr_g[g];
-                }
-                MIPModel.AddEq(AllDiscipline, totalList - totalFulfilled, "AllDisciplineI" + "_" + i);
-            }
 
-            // Each discipline Once,
-            for (int i = 0; i < Interns; i++)
-            {
-                for (int d = 1; d < Disciplins; d++)
-                {
-                    ILinearNumExpr DiscAssign = MIPModel.LinearNumExpr();
-
-                    // taking course 
-                    for (int dd = 0; dd < Disciplins; dd++)
-                    {
-                        for (int h = 0; h < Hospitals; h++)
+                        for (int w = 0; w < Wards && h < Hospitals - 1; w++)
                         {
-                            DiscAssign.AddTerm(1, y_dDh[dd][d][h]);
-                        }
-                    }
-                    // AKA_dD
-                    for (int D = 1; D < Disciplins; D++)
-                    {
-                        for (int p = 0; p < TrainingPr; p++)
-                        {
-                            if (data.TrainingPr[p].AKA_dD[d - 1][D - 1])
+                            if (data.Hospital[h].Hospital_dw[d - 1][w])
                             {
-                                for (int dd = 0; dd < Disciplins; dd++)
-                                {
-                                    for (int h = 0; h < Hospitals; h++)
-                                    {
-                                        DiscAssign.AddTerm(1, y_dDh[dd][D][h]);
-                                    }
-                                }
+                                hexist = true;
                             }
                         }
+                        if (hexist || h == Hospitals - 1)
+                        {
+                            dummy.AddTerm(y_dDh[0][d][h], 1);
+                        }
 
                     }
-
-                    int totalFF = 0;
-
-
-                    // fullfiled d
-                    for (int h = 0; h < Hospitals - 1; h++)
-                    {
-                        for (int p = 0; p < TrainingPr; p++)
-                        {
-                            if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][p])
-                            {
-                                totalFF++;
-
-                            }
-                        }
-                    }
-                    // fulfilled AKA_dd
-                    for (int dd = 1; dd < Disciplins; dd++)
-                    {
-                        for (int h = 0; h < Hospitals - 1; h++)
-                        {
-                            for (int p = 0; p < TrainingPr; p++)
-                            {
-                                if (data.Intern[theIntern].Fulfilled_dhp[dd - 1][h][p] && data.TrainingPr[p].AKA_dD[d - 1][dd - 1])
-                                {
-                                    totalFF++;
-
-                                }
-                            }
-                        }
-                    }
-
-
-                    MIPModel.AddLe(DiscAssign, 1 - totalFF, "AssignOnceID_" + i + "_" + d);
-                }
-            }
-
-            // Foreign Hospital
-            for (int i = 0; i < Interns; i++)
-            {
-                for (int d = 1; d < Disciplins; d++)
-                {
-                    // check if there are oversea demand
-                    bool FH = false;
-                    for (int t = 0; t < Timepriods; t++)
-                    {
-                        for (int g = 0; g < DisciplineGr; g++)
-                        {
-                            if (data.Intern[theIntern].DisciplineList_dg[d - 1][g] && data.Intern[theIntern].OverSea_dt[d - 1][t])
-                            {
-                                FH = true;
-                            }
-                        }
-                    }
-                    if (FH)
-                    {
-                        ILinearNumExpr OverseaH = MIPModel.LinearNumExpr();
-                        for (int dd = 0; dd < Disciplins; dd++)
-                        {
-                            OverseaH.AddTerm(1, y_dDh[dd][d][Hospitals - 1]);
-                        }
-                        MIPModel.AddEq(OverseaH, 1, "OverseaID_" + i + "_" + d);
-                    }
-
-                }
-            }
-
-            // Ability Hospital related
-            // we consider it in variable definition 
-
-            // total allowed change in hospital
-            for (int i = 0; i < Interns; i++)
-            {
-                for (int h = 0; h < Hospitals - 1; h++)
-                {
-                    ILinearNumExpr change = MIPModel.LinearNumExpr();
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        for (int dd = 0; dd < Disciplins; dd++)
-                        {
-                            change.AddTerm(1, y_dDh[dd][d][h]);
-                        }
-                    }
-                    int fulfilled = 0;
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
-                        {
-                            fulfilled++;
-                        }
-                    }
-                    int RHS = data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp - fulfilled;
-                    MIPModel.AddLe(change, RHS, "ChangeIH_" + i + "_" + h);
-                }
-            }
-
-            // follow each discipline 
-            for (int i = 0; i < Interns; i++)
-            {
-                for (int dd = 1; dd < Disciplins; dd++)
-                {
-                    ILinearNumExpr follownext = MIPModel.LinearNumExpr();
-                    // check if the training program and involved mandatory discipline
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            follownext.AddTerm(y_dDh[dd][d][h], 1);
-                        }
-                    }
-                    for (int d = 0; d < Disciplins; d++)
-                    {
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            follownext.AddTerm(y_dDh[d][dd][h], -1);
-                        }
-                    }
-                    MIPModel.AddLe(follownext, 0, "follownextID" +
-                        "_" + i + "_" + dd);
-                }
-            }
-
-            // dummy discipline 
-            for (int i = 0; i < Interns; i++)
-            {
-                if (data.Intern[theIntern].K_AllDiscipline > 0)
-                {
-                    ILinearNumExpr dummy = MIPModel.LinearNumExpr();
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        bool dexist = false;
-                        for (int g = 0; g < DisciplineGr; g++)
-                        {
-                            if (data.Intern[theIntern].DisciplineList_dg[d - 1][g])
-                            {
-                                dexist = true;
-                            }
-                        }
-                        bool hexist = false;
-                        for (int h = 0; h < Hospitals && dexist; h++)
-                        {
-
-                            for (int w = 0; w < Wards && h < Hospitals - 1; w++)
-                            {
-                                if (data.Hospital[h].Hospital_dw[d - 1][w])
-                                {
-                                    hexist = true;
-                                }
-                            }
-                            if (hexist || h == Hospitals - 1)
-                            {
-                                dummy.AddTerm(y_dDh[0][d][h], 1);
-                            }
-
-                        }
-                    }
-
-                    MIPModel.AddEq(dummy, 1, "dummyI_" + i);
                 }
 
+                MIPModel.AddEq(dummy, 1, "dummyI_" + i);
             }
 
 
             // one start time for each discipline 
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
             {
-                for (int d = 1; d < Disciplins; d++)
+                for (int h = 0; h < Hospitals; h++)
                 {
-                    for (int h = 0; h < Hospitals; h++)
+                    ILinearNumExpr onestarttime = MIPModel.LinearNumExpr();
+                    // check if the training program and involved mandatory discipline
+
+                    for (int t = 0; t < Timepriods; t++)
                     {
-                        ILinearNumExpr onestarttime = MIPModel.LinearNumExpr();
-                        // check if the training program and involved mandatory discipline
-
-                        for (int t = 0; t < Timepriods; t++)
-                        {
-                            onestarttime.AddTerm(s_dth[d][t][h], 1);
-
-                        }
-                        for (int dd = 0; dd < Disciplins; dd++)
-                        {
-                            onestarttime.AddTerm(y_dDh[dd][d][h], -1);
-                        }
-                        MIPModel.AddEq(onestarttime, 0, "OneStartIDH" +
-                            "_" + i + "_" + d + "_" + h);
+                        onestarttime.AddTerm(s_dth[d][t][h], 1);
 
                     }
+                    for (int dd = 0; dd < Disciplins; dd++)
+                    {
+                        onestarttime.AddTerm(y_dDh[dd][d][h], -1);
+                    }
+                    MIPModel.AddEq(onestarttime, 0, "OneStartIDH" +
+                        "_" + i + "_" + d + "_" + h);
+
                 }
             }
+
 
             // Start time si <= wi + sj + dj + BM
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
             {
-                for (int d = 1; d < Disciplins; d++)
+                for (int dd = 0; dd < Disciplins; dd++)
                 {
-                    for (int dd = 0; dd < Disciplins; dd++)
+                    ILinearNumExpr starttime = MIPModel.LinearNumExpr();
+
+                    int dur = 0;
+                    if (dd != 0)
                     {
-                        ILinearNumExpr starttime = MIPModel.LinearNumExpr();
-
-                        int dur = 0;
-                        if (dd != 0)
-                        {
-                            dur = data.Discipline[dd - 1].Duration_p[data.Intern[theIntern].ProgramID];
-                        }
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            starttime.AddTerm(y_dDh[dd][d][h], Timepriods);
-
-                            for (int tt = 0; tt < Timepriods; tt++)
-                            {
-                                starttime.AddTerm(s_dth[dd][tt][h], -(tt + dur));
-                                starttime.AddTerm(s_dth[d][tt][h], tt);
-                            }
-                        }
-
-                        starttime.AddTerm(w_d[d], -1);
-
-                        MIPModel.AddLe(starttime, Timepriods, "StartWaitIdD_" + i + "_" + d + "_" + dd);
-
+                        dur = data.Discipline[dd - 1].Duration_p[data.Intern[theIntern].ProgramID];
                     }
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        starttime.AddTerm(y_dDh[dd][d][h], Timepriods);
+
+                        for (int tt = 0; tt < Timepriods; tt++)
+                        {
+                            starttime.AddTerm(s_dth[dd][tt][h], -(tt + dur));
+                            starttime.AddTerm(s_dth[d][tt][h], tt);
+                        }
+                    }
+
+                    starttime.AddTerm(w_d[d], -1);
+
+                    MIPModel.AddLe(starttime, Timepriods, "StartWaitIdD_" + i + "_" + d + "_" + dd);
+
                 }
             }
+
 
             // Start time si >= wi + sj + dj - BM
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
             {
-                for (int d = 1; d < Disciplins; d++)
+                for (int dd = 0; dd < Disciplins; dd++)
                 {
-                    for (int dd = 0; dd < Disciplins; dd++)
+                    ILinearNumExpr starttime = MIPModel.LinearNumExpr();
+                    int dur = 0;
+                    if (dd != 0)
                     {
-                        ILinearNumExpr starttime = MIPModel.LinearNumExpr();
-                        int dur = 0;
-                        if (dd != 0)
-                        {
-                            dur = data.Discipline[dd - 1].Duration_p[data.Intern[theIntern].ProgramID];
-                        }
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            starttime.AddTerm(y_dDh[dd][d][h], -Timepriods);
-
-                            for (int tt = 0; tt < Timepriods; tt++)
-                            {
-                                starttime.AddTerm(s_dth[dd][tt][h], -(tt + dur));
-                                starttime.AddTerm(s_dth[d][tt][h], tt);
-                            }
-                        }
-                        starttime.AddTerm(w_d[d], -1);
-
-                        MIPModel.AddGe(starttime, -Timepriods, "StartIdD_" + i + "_" + d + "_" + dd);
+                        dur = data.Discipline[dd - 1].Duration_p[data.Intern[theIntern].ProgramID];
                     }
+                    for (int h = 0; h < Hospitals; h++)
+                    {
+                        starttime.AddTerm(y_dDh[dd][d][h], -Timepriods);
+
+                        for (int tt = 0; tt < Timepriods; tt++)
+                        {
+                            starttime.AddTerm(s_dth[dd][tt][h], -(tt + dur));
+                            starttime.AddTerm(s_dth[d][tt][h], tt);
+                        }
+                    }
+                    starttime.AddTerm(w_d[d], -1);
+
+                    MIPModel.AddGe(starttime, -Timepriods, "StartIdD_" + i + "_" + d + "_" + dd);
                 }
             }
+
 
             // availability for interns 
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
             {
-                for (int d = 1; d < Disciplins; d++)
+                for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int t = 0; t < Timepriods; t++)
+                    ILinearNumExpr avail = MIPModel.LinearNumExpr();
+                    for (int h = 0; h < Hospitals; h++)
                     {
-                        ILinearNumExpr avail = MIPModel.LinearNumExpr();
-                        for (int h = 0; h < Hospitals; h++)
-                        {
-                            avail.AddTerm(s_dth[d][t][h], data.Discipline[d - 1].Duration_p[data.Intern[theIntern].ProgramID]);
-                        }
-                        int rhs = 0;
-                        for (int tt = t; tt < t + data.Discipline[d - 1].Duration_p[data.Intern[theIntern].ProgramID] && tt < Timepriods; tt++)
-                        {
-                            rhs += data.Intern[theIntern].Ave_t[tt] ? 1 : 0;
-                        }
-                        MIPModel.AddLe(avail, rhs, "AvailbilityIDT_" + i + "_" + d + "_" + t);
+                        avail.AddTerm(s_dth[d][t][h], data.Discipline[d - 1].Duration_p[data.Intern[theIntern].ProgramID]);
                     }
+                    int rhs = 0;
+                    for (int tt = t; tt < t + data.Discipline[d - 1].Duration_p[data.Intern[theIntern].ProgramID] && tt < Timepriods; tt++)
+                    {
+                        rhs += data.Intern[theIntern].Ave_t[tt] ? 1 : 0;
+                    }
+                    MIPModel.AddLe(avail, rhs, "AvailbilityIDT_" + i + "_" + d + "_" + t);
                 }
             }
+
 
             // oversea start time 
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
             {
-                for (int d = 1; d < Disciplins; d++)
+                for (int t = 0; t < Timepriods; t++)
                 {
-                    for (int t = 0; t < Timepriods; t++)
+                    if (data.Intern[theIntern].OverSea_dt[d - 1][t])
                     {
-                        if (data.Intern[theIntern].OverSea_dt[d - 1][t])
-                        {
-                            ILinearNumExpr OverseaStart = MIPModel.LinearNumExpr();
-                            int RHS = 0;
-                            OverseaStart.AddTerm(t, s_dth[d][t][Hospitals - 1]);
-                            RHS = t;
-                            MIPModel.AddEq(OverseaStart, RHS, "OverSeaStartID_" + i + "_" + d);
-                            break;
-                        }
+                        ILinearNumExpr OverseaStart = MIPModel.LinearNumExpr();
+                        int RHS = 0;
+                        OverseaStart.AddTerm(t, s_dth[d][t][Hospitals - 1]);
+                        RHS = t;
+                        MIPModel.AddEq(OverseaStart, RHS, "OverSeaStartID_" + i + "_" + d);
+                        break;
                     }
-
-
                 }
+
+
             }
+
 
             // oversea Requirement 
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
             {
-                for (int d = 1; d < Disciplins; d++)
+                bool oversea = false;
+                for (int t = 0; t < Timepriods; t++)
                 {
-                    bool oversea = false;
-                    for (int t = 0; t < Timepriods; t++)
+                    if (data.Intern[theIntern].OverSea_dt[d - 1][t])
                     {
-                        if (data.Intern[theIntern].OverSea_dt[d - 1][t])
-                        {
-                            oversea = true;
-                            break;
-                        }
-                    }
-                    for (int dd = 1; dd < Disciplins && oversea; dd++)
-                    {
-                        ILinearNumExpr fhRequirement = MIPModel.LinearNumExpr();
-                        for (int t = 0; t < Timepriods; t++)
-                        {
-                            fhRequirement.AddTerm(t, s_dth[d][t][Hospitals - 1]);
-                        }
-                        if (data.Intern[theIntern].FHRequirment_d[dd - 1])
-                        {
-                            for (int t = 0; t < Timepriods; t++)
-                            {
-                                for (int h = 0; h < Hospitals; h++)
-                                {
-                                    fhRequirement.AddTerm(-t, s_dth[dd][t][h]);
-                                }
-                            }
-                        }
-                        MIPModel.AddGe(fhRequirement, 0, "FHrequirementIdD_" + i + "_" + d + "_" + dd);
+                        oversea = true;
+                        break;
                     }
                 }
+                for (int dd = 1; dd < Disciplins && oversea; dd++)
+                {
+                    ILinearNumExpr fhRequirement = MIPModel.LinearNumExpr();
+                    for (int t = 0; t < Timepriods; t++)
+                    {
+                        fhRequirement.AddTerm(t, s_dth[d][t][Hospitals - 1]);
+                    }
+                    if (data.Intern[theIntern].FHRequirment_d[dd - 1])
+                    {
+                        for (int t = 0; t < Timepriods; t++)
+                        {
+                            for (int h = 0; h < Hospitals; h++)
+                            {
+                                fhRequirement.AddTerm(-t, s_dth[dd][t][h]);
+                            }
+                        }
+                    }
+                    MIPModel.AddGe(fhRequirement, 0, "FHrequirementIdD_" + i + "_" + d + "_" + dd);
+                }
             }
+
 
 
             // skill
-            for (int i = 0; i < Interns; i++)
+
+            for (int d = 1; d < Disciplins; d++)
+            {
+                for (int dd = 1; dd < Disciplins; dd++)
+                {
+                    bool fulfilled = false;
+                    for (int h = 0; h < Hospitals - 1; h++)
+                    {
+                        if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
+                        {
+                            fulfilled = true;
+                        }
+                    }
+                    int trPr = data.Intern[theIntern].ProgramID;
+                    if (data.Discipline[d - 1].Skill4D_dp[dd - 1][trPr] && !fulfilled)
+                    {
+                        ILinearNumExpr skill = MIPModel.LinearNumExpr();
+
+                        for (int h = 0; h < Hospitals; h++)
+                        {
+                            for (int tt = 0; tt < Timepriods; tt++)
+                            {
+                                skill.AddTerm(s_dth[d][tt][h], tt);
+                                skill.AddTerm(s_dth[dd][tt][h], -tt);
+                                skill.AddTerm(s_dth[d][tt][h], -Timepriods);
+                                skill.AddTerm(s_dth[dd][tt][h], Timepriods);
+                            }
+                        }
+                        MIPModel.AddGe(skill, 0, "SkillIDd_" + i + "_" + d + "_" + dd);
+                    }
+                }
+            }
+
+
+            // change 
+
+            if (data.Intern[theIntern].wieght_ch != 0)
             {
                 for (int d = 1; d < Disciplins; d++)
                 {
                     for (int dd = 1; dd < Disciplins; dd++)
                     {
-                        bool fulfilled = false;
                         for (int h = 0; h < Hospitals - 1; h++)
                         {
-                            if (data.Intern[theIntern].Fulfilled_dhp[d - 1][h][data.Intern[theIntern].ProgramID])
+                            if (d == dd)
                             {
-                                fulfilled = true;
+                                break;
                             }
-                        }
-                        int trPr = data.Intern[theIntern].ProgramID;
-                        if (data.Discipline[d - 1].Skill4D_dp[dd - 1][trPr] && !fulfilled)
-                        {
-                            ILinearNumExpr skill = MIPModel.LinearNumExpr();
+                            ILinearNumExpr change = MIPModel.LinearNumExpr();
 
-                            for (int h = 0; h < Hospitals; h++)
+                            change.AddTerm(ch_d[d], 1);
+                            change.AddTerm(y_dDh[dd][d][h], -1);
+                            for (int ddd = 0; ddd < Disciplins; ddd++)
                             {
-                                for (int tt = 0; tt < Timepriods; tt++)
-                                {
-                                    skill.AddTerm(s_dth[d][tt][h], tt);
-                                    skill.AddTerm(s_dth[dd][tt][h], -tt);
-                                    skill.AddTerm(s_dth[d][tt][h], -Timepriods);
-                                    skill.AddTerm(s_dth[dd][tt][h], Timepriods);
-                                }
+                                change.AddTerm(y_dDh[ddd][dd][h], 1);
                             }
-                            MIPModel.AddGe(skill, 0, "SkillIDd_" + i + "_" + d + "_" + dd);
+
+
+                            MIPModel.AddGe(change, 0, "ChangeIdDH_" + i + "_" + d + "_" + dd + "_" + h);
                         }
                     }
                 }
             }
 
-            // change 
-            for (int i = 0; i < Interns; i++)
-            {
-                if (data.Intern[theIntern].wieght_ch != 0)
-                {
-                    for (int d = 1; d < Disciplins; d++)
-                    {
-                        for (int dd = 1; dd < Disciplins; dd++)
-                        {
-                            for (int h = 0; h < Hospitals - 1; h++)
-                            {
-                                if (d == dd)
-                                {
-                                    break;
-                                }
-                                ILinearNumExpr change = MIPModel.LinearNumExpr();
-
-                                change.AddTerm(ch_d[d], 1);
-                                change.AddTerm(y_dDh[dd][d][h], -1);
-                                for (int ddd = 0; ddd < Disciplins; ddd++)
-                                {
-                                    change.AddTerm(y_dDh[ddd][dd][h], 1);
-                                }
-
-
-                                MIPModel.AddGe(change, 0, "ChangeIdDH_" + i + "_" + d + "_" + dd + "_" + h);
-                            }
-                        }
-                    }
-                }
-            }
 
             // des
-            for (int i = 0; i < Interns; i++)
-            {
-                ILinearNumExpr internDes = MIPModel.LinearNumExpr();
-                internDes.AddTerm(des, 1);
-                for (int d = 1; d < Disciplins; d++)
-                {
-                    internDes.AddTerm(ch_d[d], -(double)data.Intern[theIntern].wieght_ch);
-                    internDes.AddTerm(w_d[d], -(double)data.Intern[theIntern].wieght_w);
-                    for (int dd = 0; dd < Disciplins; dd++)
-                    {
-                        for (int h = 0; h < Hospitals - 1; h++)
-                        {
-                            internDes.AddTerm(y_dDh[dd][d][h], -(double)data.Intern[theIntern].Prf_d[d - 1] * data.Intern[theIntern].wieght_d);
-                            internDes.AddTerm(y_dDh[dd][d][h], -(double)data.Intern[theIntern].Prf_h[h] * data.Intern[theIntern].wieght_h);
-                            internDes.AddTerm(y_dDh[dd][d][h], -(double)data.TrainingPr[data.Intern[theIntern].ProgramID].weight_p * data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d - 1]);
 
-                            // consecutive 
-                            if (dd > 0 && data.TrainingPr[data.Intern[theIntern].ProgramID].cns_dD[dd - 1][d - 1] > 0)
-                            {
-                                internDes.AddTerm(y_dDh[dd][d][h], -(double)data.TrainingPr[data.Intern[theIntern].ProgramID].cns_dD[dd - 1][d - 1] * data.Intern[theIntern].wieght_cns);
-                            }
+            ILinearNumExpr internDes = MIPModel.LinearNumExpr();
+            internDes.AddTerm(des, 1);
+            for (int d = 1; d < Disciplins; d++)
+            {
+                internDes.AddTerm(ch_d[d], -(double)data.Intern[theIntern].wieght_ch);
+                internDes.AddTerm(w_d[d], -(double)data.Intern[theIntern].wieght_w);
+                for (int dd = 0; dd < Disciplins; dd++)
+                {
+                    for (int h = 0; h < Hospitals - 1; h++)
+                    {
+                        internDes.AddTerm(y_dDh[dd][d][h], -(double)data.Intern[theIntern].Prf_d[d - 1] * data.Intern[theIntern].wieght_d);
+                        internDes.AddTerm(y_dDh[dd][d][h], -(double)data.Intern[theIntern].Prf_h[h] * data.Intern[theIntern].wieght_h);
+                        internDes.AddTerm(y_dDh[dd][d][h], -(double)data.TrainingPr[data.Intern[theIntern].ProgramID].weight_p * data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d - 1]);
+
+                        // consecutive 
+                        if (dd > 0 && data.TrainingPr[data.Intern[theIntern].ProgramID].cns_dD[dd - 1][d - 1] > 0)
+                        {
+                            internDes.AddTerm(y_dDh[dd][d][h], -(double)data.TrainingPr[data.Intern[theIntern].ProgramID].cns_dD[dd - 1][d - 1] * data.Intern[theIntern].wieght_cns);
+                        }
+                    }
+                    for (int t = 0; t < Timepriods; t++) // oversea
+                    {
+                        if (data.Intern[theIntern].OverSea_dt[d - 1][t])
+                        {
+                            internDes.AddTerm(y_dDh[dd][d][Hospitals - 1], -(double)data.Intern[theIntern].Prf_d[d - 1] * data.Intern[theIntern].wieght_d);
+                            internDes.AddTerm(y_dDh[dd][d][Hospitals - 1], -(double)data.TrainingPr[data.Intern[theIntern].ProgramID].weight_p * data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d - 1]);
+
                         }
                     }
                 }
-                MIPModel.AddEq(internDes, 0, "DesI" + i);
             }
+            MIPModel.AddEq(internDes, 0, "DesI" + i);
+
 
         }
         public void setReducedCost(double[] dual)
@@ -1050,7 +1042,7 @@ namespace SubProblemMIP
 
                 // Constraint 6
                 
-                    for (int i = 0; i < Interns; i++)
+                for (int i = 0; i < Interns; i++)
                     {
                         int theP = data.Intern[theIntern].ProgramID;
                         if (data.Intern[i].ProgramID == theP && theIntern == i)
@@ -1062,7 +1054,7 @@ namespace SubProblemMIP
                 
 
                 MIPModel.AddMaximize(TmpRC, "ReducedCost_"+theIntern);
-                MIPModel.AddGe(TmpRC, 3 * data.AlgSettings.RCepsi, "RCconstraint_" + theIntern); // feasibility problem
+                MIPModel.AddGe(TmpRC, 2 * data.AlgSettings.RCepsi, "RCconstraint_" + theIntern); // feasibility problem
             }
             catch (ILOG.Concert.Exception e)
             {
@@ -1109,8 +1101,12 @@ namespace SubProblemMIP
                 {
 
                     ColumnInternBasedDecomposition tmpColumn = setColumn(i);
-
-                    if (tmpColumn.setReducedCost(dual, data) > data.AlgSettings.RCepsi)
+                    double RCColumn = tmpColumn.setReducedCost(dual, data);
+                    if (Math.Abs(RCColumn - MIPModel.GetObjValue(i)) > data.AlgSettings.RCepsi)
+                    {
+                        Console.WriteLine("MIP objective {0} != Column objective {1}", MIPModel.GetObjValue(i), RCColumn);
+                    }
+                    if (RCColumn > data.AlgSettings.RCepsi)
                     {
                         theColumns.Add(tmpColumn);
                     }
@@ -1126,7 +1122,7 @@ namespace SubProblemMIP
 
         public ColumnInternBasedDecomposition setColumn(int solpoolIndex)
         {
-            ColumnInternBasedDecomposition theColumn = new ColumnInternBasedDecomposition(data);
+            ColumnInternBasedDecomposition theColumn = new ColumnInternBasedDecomposition(data,theIntern);
             theColumn.theIntern = theIntern;
             theColumn.objectivefunction = MIPModel.GetObjValue(solpoolIndex);
             theColumn.desire = MIPModel.GetValue(des, solpoolIndex);
@@ -1140,7 +1136,7 @@ namespace SubProblemMIP
             {
                 for (int d = 1; d < Disciplins; d++)
                 {
-                    for (int h = 0; h < Hospitals + 1; h++)
+                    for (int h = 0; h < Hospitals; h++)
                     {
                         if (MIPModel.GetValue(s_dth[d][t][h], solpoolIndex) > 1 - 0.5)
                         {
@@ -1151,8 +1147,6 @@ namespace SubProblemMIP
                                 theHospital = h,
                                 theTime = t
                             });
-
-
                         }
                     }
                 }

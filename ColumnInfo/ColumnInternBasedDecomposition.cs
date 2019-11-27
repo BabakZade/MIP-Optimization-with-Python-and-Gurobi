@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace ColumnAndBranchInfo
@@ -26,21 +27,22 @@ namespace ColumnAndBranchInfo
         public double xVal;
         public double objectivefunction;
         public bool[][][] Y_dDh;
-        public ArrayList theRoster;
+        public List<RosterPosition> theRoster;
         public ColumnInternBasedDecomposition()
         {
         }
-        public ColumnInternBasedDecomposition(DataLayer.AllData data)
+        public ColumnInternBasedDecomposition(DataLayer.AllData data, int theIntern)
         {
-            initial(data);
+            initial(data,theIntern);
         }
 
-        public void initial(DataLayer.AllData data)
+        public void initial(DataLayer.AllData data, int theIntern)
         {
-            theIntern = -1;
+            this.theIntern = theIntern;
             new DataLayer.ArrayInitializer().CreateArray(ref S_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals + 1, false);
             new DataLayer.ArrayInitializer().CreateArray(ref Y_dDh, data.General.Disciplines + 1, data.General.Disciplines + 1, data.General.Hospitals + 1, false);
-            theRoster = new ArrayList();
+            new DataLayer.ArrayInitializer().CreateArray(ref status_d, data.General.Disciplines , false);
+            theRoster = new List<RosterPosition>();
             totalChange = 0;
             desire = 0;
             xRC = 0;
@@ -50,13 +52,14 @@ namespace ColumnAndBranchInfo
 
         public ColumnInternBasedDecomposition(ColumnInternBasedDecomposition copyable, DataLayer.AllData data)
         {
-            initial(data);
+            initial(data,copyable.theIntern);
             theIntern = copyable.theIntern;
 
             for (int t = 0; t < data.General.TimePriods; t++)
             {
                 for (int d = 0; d < data.General.Disciplines; d++)
                 {
+                    status_d[d] = copyable.status_d[d];
                     for (int h = 0; h < data.General.Hospitals + 1; h++)
                     {
                         S_tdh[t][d][h] = copyable.S_tdh[t][d][h];
@@ -70,6 +73,7 @@ namespace ColumnAndBranchInfo
             objectivefunction = copyable.objectivefunction;
             for (int d = 0; d < data.General.Disciplines + 1; d++)
             {
+                
                 for (int D = 0; D < data.General.Disciplines + 1; D++)
                 {
                     for (int h = 0; h < data.General.Hospitals + 1; h++)
@@ -88,7 +92,7 @@ namespace ColumnAndBranchInfo
         public double setReducedCost(double[] dual, DataLayer.AllData data)
         {
             double reducedcost = 0;
-            desire = (int)desire;
+            desire = (int) Math.Round(desire,0);
 
             reducedcost += data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi * desire;
 
@@ -586,7 +590,7 @@ namespace ColumnAndBranchInfo
                 IsFeasible = false;
 
             }
-           // Console.WriteLine(Result);
+           //Console.WriteLine(Result);
             IsFeasible = !infeasibilityChangesInHospital
                 && !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve
                 && !infeasibilitySkill  && !infeasibilityOverlap
@@ -598,13 +602,13 @@ namespace ColumnAndBranchInfo
         public void setYdDFromStartTime(DataLayer.AllData data) 
         {
             totalChange = 0;
-            
+            int dis1 = 0;
+            int dis2 = -1;
+            int hosp1 = -1;
+            int hosp2 = -1;
             for (int t = 0; t < data.General.TimePriods; t++)
             {
-                int dis1 = 0;
-                int dis2 = -1;
-                int hosp1 = -1;
-                int hosp2 = -1;
+                
                 for (int d = 0; d < data.General.Disciplines; d++)
                 {
                     for (int h = 0; h < data.General.Hospitals + 1; h++)
@@ -621,7 +625,7 @@ namespace ColumnAndBranchInfo
                                 hosp2 = h;
                             }                         
                                
-                            if (hosp2 != hosp1)
+                            if (hosp2 != hosp1 && hosp2>=0)
                             {
                                 totalChange++;
                                 hosp1 = hosp2;                                
@@ -660,6 +664,46 @@ namespace ColumnAndBranchInfo
                     }
                 }
             }
+        }
+
+        public void calculteDes(DataLayer.AllData data) 
+        {
+            setYdDFromStartTime(data);
+            int wait = 0;
+            desire = 0;
+            int cMax = 0;
+            int timeusage = 0;
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                for (int d = 0; d < data.General.Disciplines; d++)
+                {
+                    for (int h = 0; h < data.General.Hospitals + 1; h++)
+                    {
+                        if (S_tdh[t][d][h])
+                        {
+                            cMax = t + data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID];
+                            timeusage += data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID];
+                            double x = 0;
+                            if (h < data.General.Hospitals)
+                            {
+                                x = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[d]
+                               + data.Intern[theIntern].wieght_h * data.Intern[theIntern].Prf_h[h]
+                               + data.TrainingPr[data.Intern[theIntern].ProgramID].weight_p * data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d];
+                            }
+                            else
+                            {
+                                x = data.Intern[theIntern].wieght_d * data.Intern[theIntern].Prf_d[d]
+                              + data.TrainingPr[data.Intern[theIntern].ProgramID].weight_p * data.TrainingPr[data.Intern[theIntern].ProgramID].Prf_d[d];
+                            }
+                            desire += x;
+                        }
+                    }
+                }
+            }
+
+            wait = cMax - timeusage;
+            desire += data.Intern[theIntern].wieght_w * wait;
+            desire += data.Intern[theIntern].wieght_ch * totalChange;
         }
     }
 }

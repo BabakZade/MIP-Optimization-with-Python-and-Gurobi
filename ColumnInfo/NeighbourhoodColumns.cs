@@ -21,8 +21,7 @@ namespace ColumnAndBranchInfo
 
         public ColumnInternBasedDecomposition createTheColumn(ColumnInternBasedDecomposition theColumn) 
         {
-            ColumnInternBasedDecomposition column = new ColumnInternBasedDecomposition(data);
-            
+            ColumnInternBasedDecomposition column = new ColumnInternBasedDecomposition(data, theColumn.theIntern);        
 
 
 
