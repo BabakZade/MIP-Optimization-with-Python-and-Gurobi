@@ -64,7 +64,7 @@ namespace BranchAndPriceAlgorithm
             initialCplexVar();
             createModelAndIdividualVar(AllBranches ,InsName);
             addAllFatherColumn(FathersColumn, AllBranches);
-            //setSol(37);
+            setSol(0);
             solveRMP(InsName);
         }
 
@@ -680,7 +680,7 @@ namespace BranchAndPriceAlgorithm
                 //Objective 
                 double objCoeff = 0;
                 int theP = data.Intern[theColumn.theIntern].ProgramID;
-                objCoeff = data.TrainingPr[theP].CoeffObj_MinDesi;
+                objCoeff = data.TrainingPr[theP].CoeffObj_SumDesi;
 
                 Column new_col = RMP.Column(RMPObj, objCoeff * theColumn.desire);
 

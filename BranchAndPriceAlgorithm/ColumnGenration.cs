@@ -75,7 +75,7 @@ namespace BranchAndPriceAlgorithm
 
 
             int counter = 0;
-            while (addColumn(AllBranches, dual, insName, procedureType))
+            while (findAndAddColumn(AllBranches, dual, insName, procedureType))
             {
                 Iteration++;
                 Stopwatch sw1 = new Stopwatch();
@@ -243,7 +243,7 @@ namespace BranchAndPriceAlgorithm
 
         }
 
-        public bool addColumn(ArrayList AllBranches, double[] dual, string insName, int procedureType) 
+        public bool findAndAddColumn(ArrayList AllBranches, double[] dual, string insName, int procedureType) 
         {
             switch (procedureType)
             {

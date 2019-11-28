@@ -59,13 +59,17 @@ namespace SubProblemMIP
             Initial();
             InitialMIPVar(AllBranches);
             setReducedCost(dual);
-            CreateModel();            
+            CreateModel();
+            
         }
         public void SetSol()
         {
             ILinearNumExpr sol = MIPModel.LinearNumExpr();
-            //sol.AddTerm(w_d[1][1], 1);
-            MIPModel.AddEq(sol, 7);
+            sol.AddTerm(s_dth[9][0][1], 1);
+            sol.AddTerm(s_dth[8][8][1], 1);
+            sol.AddTerm(s_dth[10][16][1], 1);
+            sol.AddTerm(s_dth[12][18][1], 1);
+            MIPModel.AddEq(sol, 4);
         }
         public void Initial()
         {
@@ -1077,7 +1081,7 @@ namespace SubProblemMIP
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //*************set program
-           // MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "SP.lp");
+            MIPModel.ExportModel(data.allPath.OutPutGr + InsName + "SP.lp");
             MIPModel.SetParam(Cplex.DoubleParam.EpRHS, 0.00000001);
             MIPModel.SetParam(Cplex.DoubleParam.EpOpt, data.AlgSettings.RCepsi);
             MIPModel.SetParam(Cplex.IntParam.Threads, 3);

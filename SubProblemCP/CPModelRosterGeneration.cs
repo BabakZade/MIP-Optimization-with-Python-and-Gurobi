@@ -15,12 +15,7 @@ namespace SubProblemCP
 
         public IIntervalVar[] disc_d;
         public IIntervalVar[][] discHosp_dh;
-        public IIntervalVar[] discHospOneLine_dh;
-        public ICumulFunctionExpr allK;
-        public IIntervalVar[] discNReNR_d;
-        public ICumulFunctionExpr[] hospUsage_h;
-        
-        public IIntervalVar[][] discHospNReNR_dh;
+        public IIntervalVar[] discHospOneLine_dh;        
         public IIntervalSequenceVar sequenceDis;
         public IIntervalSequenceVar sequenceDisHosp;
         public IIntVar desire;
@@ -125,7 +120,13 @@ namespace SubProblemCP
             // no overlap for disciplines
             sequenceDis = roster.IntervalSequenceVar(disc_d, typeDis, "sequenceDis");
             roster.Add(roster.NoOverlap(sequenceDis));
-
+            // total discipline 
+            IIntExpr allK = roster.IntExpr();
+            for (int d = 0; d < data.General.Disciplines; d++)
+            {
+                allK = roster.Sum(allK, roster.PresenceOf(disc_d[d]));
+            }
+            roster.AddEq(allK, data.Intern[theIntern].K_AllDiscipline);
 
             // hospital assignment 
             discHosp_dh = new IIntervalVar[data.General.Disciplines][];
@@ -186,60 +187,7 @@ namespace SubProblemCP
                     }
 
                 }
-
-            }
-
-
-
-            // total number of courses
-            allK = roster.CumulFunctionExpr("AllCourses");
-
-            // discipline for not renewable resoureces 
-            discNReNR_d = new IIntervalVar[data.General.Disciplines];
-            for (int d = 0; d < data.General.Disciplines; d++)
-            {
-                discNReNR_d[d] = roster.IntervalVar("discNReNR_d[" + d + "]");
-                discNReNR_d[d].EndMax = data.General.TimePriods;
-                discNReNR_d[d].EndMin = data.General.TimePriods;
-                discNReNR_d[d].LengthMax = data.General.TimePriods;
-                discNReNR_d[d].LengthMin = data.General.TimePriods;
-                discNReNR_d[d].SizeMax = data.General.TimePriods;
-                discNReNR_d[d].SizeMin = data.General.TimePriods;
-                discNReNR_d[d].StartMax = 0;
-                discNReNR_d[d].StartMin = 0;
-                discNReNR_d[d].SetOptional();
-                allK.Add(roster.Pulse(discNReNR_d[d], data.Discipline[d].CourseCredit_p[data.Intern[theIntern].ProgramID]));
-                roster.Add(roster.IfThen(roster.PresenceOf(disc_d[d]), roster.PresenceOf(discNReNR_d[d])));
-            }
-
-            // change in hospital
-            hospUsage_h = new ICumulFunctionExpr[data.General.Hospitals];
-            for (int h = 0; h < data.General.Hospitals; h++)
-            {
-                hospUsage_h[h] = roster.CumulFunctionExpr("hospUsage_h[" + h + "]");
-            }
-
-            // hospital assignment 
-            discHospNReNR_dh = new IIntervalVar[data.General.Disciplines][];
-            for (int d = 0; d < data.General.Disciplines; d++)
-            {
-                discHospNReNR_dh[d] = new IIntervalVar[data.General.Hospitals];
-                for (int h = 0; h < data.General.Hospitals; h++)
-                {
-                    discHospNReNR_dh[d][h] = roster.IntervalVar("discHospNReNR_dh[" + d + "][" + h + "]");
-                    discHospNReNR_dh[d][h].EndMax = data.General.TimePriods;
-                    discHospNReNR_dh[d][h].EndMin = data.General.TimePriods;
-                    discHospNReNR_dh[d][h].LengthMax = data.General.TimePriods;
-                    discHospNReNR_dh[d][h].LengthMin = data.General.TimePriods;
-                    discHospNReNR_dh[d][h].SizeMax = data.General.TimePriods;
-                    discHospNReNR_dh[d][h].SizeMin = data.General.TimePriods;
-                    discHospNReNR_dh[d][h].StartMax = 0;
-                    discHospNReNR_dh[d][h].StartMin = 0;
-                    discHospNReNR_dh[d][h].SetOptional();
-                    allK.Add(roster.Pulse(discHospNReNR_dh[d][h], 1));
-                    roster.IfThen(roster.PresenceOf(discHosp_dh[d][h]), roster.PresenceOf(discHospNReNR_dh[d][h]));
-                }
-
+                roster.Add(roster.Alternative(disc_d[d], discHosp_dh[d]));
             }
 
             // one line schedule
@@ -283,8 +231,6 @@ namespace SubProblemCP
             //waiting time 
             waitingTime = roster.IntVar(0, data.General.TimePriods, "WaitingTime");
 
-            
-
 
             // Branches
             foreach (Branch item in allBranches)
@@ -295,7 +241,7 @@ namespace SubProblemCP
                     {
                         if (item.BrTypePrecedence)
                         {
-                            roster.Add(roster.Eq(roster.PresenceOf(disc_d[item.BrPrDisc]), roster.PresenceOf(disc_d[item.BrDisc])));
+                            roster.Add(roster.Eq(roster.PresenceOf(disc_d[item.BrPrDisc-1]), roster.PresenceOf(disc_d[item.BrDisc-1])));
                             roster.Add(roster.EndAtStart(disc_d[item.BrPrDisc], disc_d[item.BrDisc]));
                             discHosp_dh[item.BrDisc][item.BrHospital].SetPresent();
                         }
@@ -333,17 +279,6 @@ namespace SubProblemCP
         public void setTheConstraint()
         {
             internVar = roster.IntVar(1, 1, "TheIntern_" + theIntern);
-            
-
-            // 1 discipline 1 hospital
-            for (int d = 0; d < data.General.Disciplines; d++)
-            {
-                roster.Add(roster.Alternative(disc_d[d], discHosp_dh[d]));
-            }
-
-            // total discipline 
-            roster.Add(roster.Le(allK, data.Intern[theIntern].K_AllDiscipline));
-
             // group assignment
             for (int g = 0; g < data.General.DisciplineGr; g++)
             {
@@ -366,7 +301,13 @@ namespace SubProblemCP
             // total change in hospital 
             for (int h = 0; h < data.General.Hospitals; h++)
             {
-                roster.Add(roster.Le(hospUsage_h[h], data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp));
+                IIntExpr changeHosp = roster.IntExpr();
+                for (int d = 0; d < data.General.Disciplines; d++)
+                {
+                    changeHosp = roster.Sum(changeHosp, roster.PresenceOf(discHosp_dh[d][h]));
+                }
+                roster.AddLe(changeHosp, data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp);
+                //roster.Add(roster.Le(hospUsage_h[h], data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp));
             }
             for (int dh = 0; dh < data.General.Disciplines * (data.General.Hospitals + 1); dh++)
             {
@@ -741,7 +682,7 @@ namespace SubProblemCP
                 ColumnInternBasedDecomposition column = new ColumnInternBasedDecomposition(data,theIntern);
                 
                 column.desire = roster.GetValue(desire);
-                Console.WriteLine();
+                
                 for (int d = 0; d < data.General.Disciplines; d++)
                 {
                     for (int h = 0; h < data.General.Hospitals + 1; h++)
@@ -750,52 +691,16 @@ namespace SubProblemCP
                         {
                             int theT = roster.GetStart(discHosp_dh[d][h]);
                             column.S_tdh[theT][d][h] = true;
-                            Console.WriteLine("d: " + d + " h: " + h + " t: " + theT);
+                            //Console.WriteLine("d: " + d + " h: " + h + " t: " + theT);
                         }
                     }
                 }
                 column.setYdDFromStartTime(data);
                 column.setRosterFromStartTime(data);
                 column.setReducedCost(dual,data);
-                double RCColumn = column.setReducedCost(dual, data);
-                int totalChnage = 0;
+                double RCColumn = column.setReducedCost(dual, data);           
                 
-                for (int d = 0; d < data.General.Disciplines; d++)
-                {
-                    if (roster.GetValue(change_d[d]) > 0.5)
-                    {
-                        Console.WriteLine("change for " + d);
-                        totalChnage++;
-                    }
-                }
-
-                for (int dh = 0; dh < data.General.Disciplines * (data.General.Hospitals + 1); dh++)
-                {
-                    int dIndex = dh % data.General.Disciplines;
-                    int hIndex = dh / data.General.Disciplines;
-                    if (roster.IsPresent(discHospOneLine_dh[dh]))
-                    {
-                        Console.WriteLine(typeHosp[dh]);
-                        Console.WriteLine(roster.GetNext(sequenceDisHosp, discHospOneLine_dh[dh]));
-                    }
-                }
-
-                column.calculteDes(data);
-                if (Math.Abs(roster.GetValue(desire) - column.desire) > data.AlgSettings.RCepsi)
-                {
-                    Console.WriteLine("CP objective {0} != Column objective {1}", roster.GetValue(desire), column.desire);
-                    Console.WriteLine("Waiting {0}, totalChanges {1}", roster.GetValue(waitingTime), totalChnage);
-                    Console.WriteLine(data.Intern[theIntern].wieght_ch);
-                    int x = 0;
-                }
-                if (Math.Abs( RCColumn - roster.GetObjValue(0)) > data.AlgSettings.RCepsi)
-                {
-                    Console.WriteLine("CP objective {0} != Column objective {1}", roster.GetObjValue(0), RCColumn);
-                }
-                if (!column.isColumnFeasible(data))
-                {
-                    Console.WriteLine();
-                }
+                
                 if (RCColumn > data.AlgSettings.RCepsi)
                 {
                     theColumns.Add(column);

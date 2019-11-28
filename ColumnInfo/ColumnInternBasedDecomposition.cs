@@ -640,6 +640,7 @@ namespace ColumnAndBranchInfo
                     }
                 }
             }
+            calculteDes(data);
         }
 
         public void setRosterFromStartTime(DataLayer.AllData data)
@@ -668,7 +669,6 @@ namespace ColumnAndBranchInfo
 
         public void calculteDes(DataLayer.AllData data) 
         {
-            setYdDFromStartTime(data);
             int wait = 0;
             desire = 0;
             int cMax = 0;
