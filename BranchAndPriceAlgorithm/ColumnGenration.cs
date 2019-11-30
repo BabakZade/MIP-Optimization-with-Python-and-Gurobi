@@ -29,6 +29,8 @@ namespace BranchAndPriceAlgorithm
         public int count_MIP;
         public bool isMIP;
         public long writingX;
+        public double[][][][] RCStart_itdh;
+        public double[][][][] RCDual_itdh;
 
         public MasterProblem RMP;
         
@@ -125,6 +127,7 @@ namespace BranchAndPriceAlgorithm
             Hospitals = data.General.Hospitals;
             Timepriods = data.General.TimePriods;
             TrainingPr = data.General.TrainingPr;
+            
         }
         public void display_dual(double[] dual, string insName)
         {
@@ -253,6 +256,144 @@ namespace BranchAndPriceAlgorithm
                     return SolveSubProblemCP(AllBranches, dual, insName);
                 default:
                     return false;
+            }
+        }
+
+        /// <summary>
+        /// calculates the coefficient for each discipline and hospital if they start at the specefic time
+        /// it also initialze the RCStartTime_tdh
+        /// </summary>
+        /// <param name="dual">the dual comming from Master problem</param>
+        public void setRCStart(double[] dual)
+        {
+            new ArrayInitializer().CreateArray(ref RCDual_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref RCStart_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
+            try
+            {
+                int Constraint_Counter = 0;
+
+                // Constraint 2
+                for (int i = 0; i < data.General.Interns; i++)
+                {
+                    Constraint_Counter++;
+                }
+
+                // Constraint 3 
+                for (int r = 0; r < data.General.Region; r++)
+                {
+                    for (int t = 0; t < data.General.TimePriods; t++)
+                    {
+                        for (int i = 0; i < data.General.Interns; i++)
+                        {
+                            if (data.Intern[i].TransferredTo_r[r])
+                            {
+                                for (int d = 0; d < data.General.Disciplines; d++)
+                                {
+                                    for (int h = 0; h < data.General.Hospitals; h++)
+                                    {
+                                        if (data.Hospital[h].InToRegion_r[r])
+                                        {
+                                            RCDual_itdh[i][t][d][h] -= dual[Constraint_Counter];
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Constraint_Counter++;
+                    }
+                }
+
+                // Constraint 4 
+
+                for (int t = 0; t < data.General.TimePriods; t++)
+                {
+                    for (int w = 0; w < data.General.HospitalWard; w++)
+                    {
+                        for (int h = 0; h < data.General.Hospitals; h++)
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                for (int i = 0; i < data.General.Interns; i++)
+                                {
+                                    if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[i].isProspective)
+                                    {
+                                        RCDual_itdh[i][t][d][h] -= dual[Constraint_Counter];
+                                    }
+                                }
+                            }
+
+                            Constraint_Counter++;
+
+                        }
+                    }
+                }
+
+                // Constraint 5
+
+                for (int t = 0; t < data.General.TimePriods; t++)
+                {
+                    for (int w = 0; w < data.General.HospitalWard; w++)
+                    {
+                        for (int h = 0; h < data.General.Hospitals; h++)
+                        {
+                            for (int d = 0; d < data.General.Disciplines; d++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w])
+                                {
+                                    for (int i = 0; i < data.General.Interns; i++)
+                                    {
+                                        RCDual_itdh[i][t][d][h] -= dual[Constraint_Counter];
+                                    }                                    
+                                }
+                            }
+
+                            Constraint_Counter++;
+
+                        }
+                    }
+                }
+
+                //for (int h = 0; h < data.General.Hospitals; h++)
+                //{
+                //    Console.WriteLine("Hospital " + h );
+                //    for (int d = 0; d < data.General.Disciplines; d++)
+                //    {
+                //        for (int t = 0; t < data.General.TimePriods; t++)
+                //        {
+
+                //            Console.Write(RCDual_tdh[t][d][h] + " ");
+                //        }
+
+                //        Console.WriteLine();
+                //    }
+                //}
+
+                for (int t = 0; t < data.General.TimePriods; t++)
+                {
+                    for (int d = 0; d < data.General.Disciplines; d++)
+                    {
+                        for (int h = 0; h < data.General.Hospitals; h++)
+                        {
+                            for (int i = 0; i < data.General.Interns; i++)
+                            {
+                                int theP = data.Intern[i].ProgramID;
+                                for (int tt = t; tt < t + data.Discipline[d].Duration_p[theP] && tt < data.General.TimePriods; tt++)
+                                {
+                                    RCStart_itdh[i][t][d][h] += RCDual_itdh[i][tt][d][h];
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+               
+            }
+            catch (ILOG.Concert.Exception e)
+            {
+
+                System.Console.WriteLine("Concert exception '" + e + "' caught");
             }
         }
     }

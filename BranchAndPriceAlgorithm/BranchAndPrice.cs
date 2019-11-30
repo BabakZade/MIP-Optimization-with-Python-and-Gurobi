@@ -321,7 +321,7 @@ namespace BranchAndPriceAlgorithm
             int discIndex = -1;
             int discPrIndex = -1;
             int hospIndex = -1;
-            for (int d = 0; d < data.General.Disciplines + 1; d++)
+            for (int d = 1; d < data.General.Disciplines + 1; d++)
             {
                 for (int D = 0; D < data.General.Disciplines + 1; D++)
                 {

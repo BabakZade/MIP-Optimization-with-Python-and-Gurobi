@@ -242,8 +242,8 @@ namespace SubProblemCP
                         if (item.BrTypePrecedence)
                         {
                             roster.Add(roster.Eq(roster.PresenceOf(disc_d[item.BrPrDisc-1]), roster.PresenceOf(disc_d[item.BrDisc-1])));
-                            roster.Add(roster.EndAtStart(disc_d[item.BrPrDisc], disc_d[item.BrDisc]));
-                            discHosp_dh[item.BrDisc][item.BrHospital].SetPresent();
+                            roster.Add(roster.EndAtStart(disc_d[item.BrPrDisc-1], disc_d[item.BrDisc-1]));
+                            discHosp_dh[item.BrDisc-1][item.BrHospital].SetPresent();
                         }
                         if (item.BrTypeStartTime)
                         {
@@ -257,12 +257,14 @@ namespace SubProblemCP
                         if (item.BrTypePrecedence)
                         {
                             IIntVar brLeft = roster.IntVar(0, 1, item.displayYdDHIndex());
-                            roster.Add(roster.IfThen(roster.And(roster.PresenceOf(discHosp_dh[item.BrPrDisc][item.BrHospital]), roster.Eq(roster.TypeOfNext(sequenceDis, disc_d[item.BrPrDisc], item.BrPrDisc, item.BrPrDisc), item.BrDisc)), roster.AddEq(brLeft, 1)));
+                            roster.Add(roster.IfThen(roster.And(roster.PresenceOf(discHosp_dh[item.BrPrDisc - 1][item.BrHospital]), roster.Eq(roster.TypeOfNext(sequenceDis, disc_d[item.BrPrDisc - 1], item.BrPrDisc - 1, item.BrPrDisc - 1), item.BrDisc - 1)), roster.AddEq(brLeft, 1)));
                             ReducedCost = roster.Sum(ReducedCost, roster.Prod(-data.AlgSettings.BigM, brLeft));
+                            
                         }
                         if (item.BrTypeStartTime)
                         {
                             roster.Add(roster.Neq(roster.StartOf(discHosp_dh[item.BrDisc][item.BrHospital]), item.BrTime));
+                            
                         }
 
                     }
@@ -673,6 +675,7 @@ namespace SubProblemCP
             roster.SetParameter(CP.IntParam.TimeMode, CP.ParameterValues.ElapsedTime);
             roster.SetParameter(CP.IntParam.LogVerbosity, CP.ParameterValues.Quiet);
             roster.SetParameter(CP.DoubleParam.TimeLimit, data.AlgSettings.SubTime) ;
+            //roster.Propagate();
             roster.StartNewSearch();
             //roster.ExportModel(data.allPath.OutPutGr + "Roster" + InsName + ".cpo");
             // solve it now 

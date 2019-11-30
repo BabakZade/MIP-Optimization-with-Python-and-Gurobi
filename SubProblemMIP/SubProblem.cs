@@ -291,8 +291,8 @@ namespace SubProblemMIP
                         }
                         if (item.BrTypeStartTime)
                         {
-                            s_dth[item.BrDisc][item.BrTime][item.BrHospital] = MIPModel.IntVar(1, 1, S_dth[item.BrDisc][item.BrTime][item.BrHospital]);
-                            MIPModel.Add(s_dth[item.BrDisc][item.BrTime][item.BrHospital]);
+                            s_dth[item.BrDisc][item.BrTime][item.BrHospital] = MIPModel.IntVar(1, 1, S_dth[item.BrDisc + 1][item.BrTime][item.BrHospital]);
+                            MIPModel.Add(s_dth[item.BrDisc + 1][item.BrTime][item.BrHospital]);
                         }
                     }
                     else
@@ -304,8 +304,8 @@ namespace SubProblemMIP
                         }
                         if (item.BrTypeStartTime)
                         {
-                            s_dth[item.BrDisc][item.BrTime][item.BrHospital] = MIPModel.IntVar(0, 0, S_dth[item.BrDisc][item.BrTime][item.BrHospital]);
-                            MIPModel.Add(s_dth[item.BrDisc][item.BrTime][item.BrHospital]);
+                            s_dth[item.BrDisc][item.BrTime][item.BrHospital] = MIPModel.IntVar(0, 0, S_dth[item.BrDisc + 1][item.BrTime][item.BrHospital]);
+                            MIPModel.Add(s_dth[item.BrDisc + 1][item.BrTime][item.BrHospital]);
                         }
 
                     }
