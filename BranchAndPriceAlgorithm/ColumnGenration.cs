@@ -31,6 +31,9 @@ namespace BranchAndPriceAlgorithm
         public long writingX;
         public double[][][][] RCStart_itdh;
         public double[][][][] RCDual_itdh;
+        public double[] RCPi2_i;
+        public double[] RCDes_i;
+
 
         public MasterProblem RMP;
         
@@ -268,13 +271,20 @@ namespace BranchAndPriceAlgorithm
         {
             new ArrayInitializer().CreateArray(ref RCDual_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
             new ArrayInitializer().CreateArray(ref RCStart_itdh, data.General.Interns, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref RCPi2_i, data.General.Interns, 0);
+            new ArrayInitializer().CreateArray(ref RCDes_i, data.General.Interns, 0);
             try
             {
+                for (int i = 0; i < data.General.Interns; i++)
+                {
+                    RCDes_i[i] = data.TrainingPr[data.Intern[i].ProgramID].CoeffObj_SumDesi;
+                }
                 int Constraint_Counter = 0;
 
                 // Constraint 2
                 for (int i = 0; i < data.General.Interns; i++)
                 {
+                    RCPi2_i[i] -= dual[Constraint_Counter];
                     Constraint_Counter++;
                 }
 
@@ -355,20 +365,14 @@ namespace BranchAndPriceAlgorithm
                     }
                 }
 
-                //for (int h = 0; h < data.General.Hospitals; h++)
-                //{
-                //    Console.WriteLine("Hospital " + h );
-                //    for (int d = 0; d < data.General.Disciplines; d++)
-                //    {
-                //        for (int t = 0; t < data.General.TimePriods; t++)
-                //        {
+                // Constraint 6   
+                for (int i = 0; i < data.General.Interns; i++)
+                {
+                    RCDes_i[i] += dual[Constraint_Counter];
+                    
+                    Constraint_Counter++;
+                }
 
-                //            Console.Write(RCDual_tdh[t][d][h] + " ");
-                //        }
-
-                //        Console.WriteLine();
-                //    }
-                //}
 
                 for (int t = 0; t < data.General.TimePriods; t++)
                 {
@@ -395,6 +399,12 @@ namespace BranchAndPriceAlgorithm
 
                 System.Console.WriteLine("Concert exception '" + e + "' caught");
             }
+        }
+
+        public void preStopProcedure(double[] dual, int theIntern) 
+        {
+            double RCtmp = 0;
+
         }
     }
 }

@@ -396,6 +396,7 @@ namespace BranchAndPriceAlgorithm
             int counter = -1;
             foreach (ColumnInternBasedDecomposition clmn in theNode.relatedColumn)
             {
+                bool flagCheckThisCol = false;
                 counter++;
                 if (clmn.xVal < data.AlgSettings.RCepsi || clmn.xVal > 1 - data.AlgSettings.RCepsi)
                 {
@@ -414,11 +415,16 @@ namespace BranchAndPriceAlgorithm
                                     continue;
                                 }
                                 s_itdh[clmn.theIntern][t][d][h]++;
+                                flagCheckThisCol = true;
                             }
                         }
                     }
                 }
-                internColumn[clmn.theIntern]++;
+                if (flagCheckThisCol)
+                {
+                    internColumn[clmn.theIntern]++;
+                }
+               
                 if (internColumn[clmn.theIntern] > MaxVal)
                 {
                     MaxVal = internColumn[clmn.theIntern];
