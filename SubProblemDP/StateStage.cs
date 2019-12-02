@@ -3,7 +3,7 @@ using System.Collections;
 using System.Text;
 using DataLayer;
 
-namespace NestedDynamicProgrammingAlgorithm
+namespace SubProblemDP
 {
 	public class StateSchedule
 	{

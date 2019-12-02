@@ -27,7 +27,7 @@ namespace BranchAndPriceAlgorithm
         public int all_const;
         public int ColumnID;
         public int preIterationColumnID;
-
+        public double[] maxDesire_i;
 
         //output
         public double elapsed_time;
@@ -57,10 +57,10 @@ namespace BranchAndPriceAlgorithm
         public int Regions;
         public int DisciplineGr;
         public AllData data;
-        public MasterProblem(AllData InputData, ArrayList FathersColumn, ArrayList AllBranches, string InsName)
+        public MasterProblem(AllData InputData, double[] maxDes_i, ArrayList FathersColumn, ArrayList AllBranches, string InsName)
         {
             data = InputData;
-            initial();
+            initial(maxDes_i);
             initialCplexVar();
             createModelAndIdividualVar(AllBranches ,InsName);
             addAllFatherColumn(FathersColumn, AllBranches);
@@ -68,7 +68,7 @@ namespace BranchAndPriceAlgorithm
             solveRMP(InsName);
         }
 
-        public void initial()
+        public void initial(double[] maxDes_i)
         {
             Interns = data.General.Interns;
             DataColumn = new ArrayList();
@@ -86,6 +86,19 @@ namespace BranchAndPriceAlgorithm
             new ArrayInitializer().CreateArray(ref minDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals,0);
             new ArrayInitializer().CreateArray(ref resDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
             new ArrayInitializer().CreateArray(ref emrDem_twh, data.General.TimePriods, data.General.HospitalWard, data.General.Hospitals, 0);
+            new ArrayInitializer().CreateArray(ref maxDesire_i,  data.General.Interns, 0);
+            for (int i = 0; i < data.General.Interns; i++)
+            {
+                if (maxDes_i[i] == 0)
+                {
+                    maxDesire_i[i] = data.Intern[i].MaxPrf;
+                }
+                else
+                {
+                    maxDesire_i[i] = maxDes_i[i];
+                }
+                
+            }
         }
 
         public void initialCplexVar()
@@ -647,7 +660,7 @@ namespace BranchAndPriceAlgorithm
 
                     // Constraint 6
                    
-                        for (int i = 0; i < Interns; i++)
+                    for (int i = 0; i < Interns; i++)
                         {
                             if (data.Intern[i].ProgramID == pp)
                             {
@@ -657,8 +670,17 @@ namespace BranchAndPriceAlgorithm
                             
                             Constraint_Counter++;
                         }
-                    
-                    X_var.Add(RMP.NumVar(new_col, double.MinValue, double.MaxValue, "MinDesire_" + pp ));
+                    double upperBound = double.MaxValue;
+                    for (int i = 0; i < Interns; i++)
+                    {
+                        if (data.Intern[i].ProgramID == pp && upperBound > maxDesire_i[i])
+                        {
+                           // upperBound = maxDesire_i[i];
+                        }
+                    }
+
+
+                    X_var.Add(RMP.NumVar(new_col, double.MinValue, upperBound, "MinDesire_" + pp ));
 
                 }
                 catch (ILOG.Concert.Exception e)

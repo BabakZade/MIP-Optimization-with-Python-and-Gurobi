@@ -27,15 +27,20 @@ namespace BranchAndPriceAlgorithm
        
 
         public ArrayList branch_trace;
+        public bool[][][][] BrnchHistory_yidDh;
+        public bool[][][][] BrnchHistory_Sidth;
+        public bool[] BrnchIntern_i;
 
         public ColumnGenration NodeCG;
         public double[][][] minDem_twh;
         public double[][][] resDem_twh;
         public double[][][] emrDem_twh;
 
+
         public Node(DataLayer.AllData allData, string insName, int procedureType)
         {
             data = allData;
+            intial();
             Upperbound = -1; 
             BranchCounter_i = new int[allData.General.Interns];
             for (int i = 0; i < allData.General.Interns; i++)
@@ -51,26 +56,52 @@ namespace BranchAndPriceAlgorithm
         public Node(AllData allData, Node FatherNode, ArrayList allColumn, Branch new_branch, string insName, int procedureType)
         {
             data = allData;
-            branch_trace = new ArrayList();
+            intial();
             BranchCounter_i = new int[allData.General.Interns];
             for (int i = 0; i < allData.General.Interns; i++)
             {
                 BranchCounter_i[i] = 1;
             }
-            branch_trace.Add(new Branch(new_branch));
-            if (FatherNode.branch_trace.Count > 0)
+            
+            if (new_branch.BrHospital >= 0)
             {
-                CopyBranchTrace(FatherNode.branch_trace);
+                CopyBranchTrace(FatherNode.branch_trace,new_branch);
             }
 
             node_procedure(allColumn, branch_trace, insName, procedureType);
         }
-
-        public void CopyBranchTrace(ArrayList FatherBranch)
+        public void intial() 
         {
+            // initialize
+            branch_trace = new ArrayList();
+            new ArrayInitializer().CreateArray(ref BrnchHistory_yidDh, data.General.Interns, data.General.Disciplines + 1, data.General.Disciplines + 1, data.General.Hospitals, false);
+            new ArrayInitializer().CreateArray(ref BrnchHistory_Sidth, data.General.Interns, data.General.Disciplines, data.General.TimePriods, data.General.Hospitals, false);
+            new ArrayInitializer().CreateArray(ref BrnchIntern_i, data.General.Interns, false);
+        }
+        public void CopyBranchTrace(ArrayList FatherBranch, Branch newBranch)
+        {
+            
+
+            branch_trace.Add(new Branch(newBranch));
+
             foreach (Branch item in FatherBranch)
             {
                 branch_trace.Add(new Branch(item));
+            }
+
+            foreach (Branch brnch in branch_trace)
+            {
+                
+                if (brnch.BrTypeStartTime)
+                {
+                    BrnchIntern_i[brnch.BrIntern] = true;
+                    BrnchHistory_Sidth[brnch.BrIntern][brnch.BrDisc][brnch.BrTime][brnch.BrHospital] = true;
+                }
+                if (brnch.BrTypePrecedence)
+                {
+                    BrnchHistory_yidDh[brnch.BrIntern][brnch.BrPrDisc][brnch.BrDisc][brnch.BrHospital] = true;
+                    BrnchIntern_i[brnch.BrIntern] = true;
+                }
             }
         }
 

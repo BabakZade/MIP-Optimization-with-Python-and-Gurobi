@@ -32,9 +32,7 @@ namespace BranchAndPriceAlgorithm
 
         public int totalNumberOfColumn;
         public int totalCreatedColumn;
-        public bool[][][][] BrnchHistory_yidDh;
-        public bool[][][][] BrnchHistory_Sidth;
-        public bool[] BrnchIntern_i;
+        
         ArrayList allBranches;
         ArrayList allColumns;
         
@@ -57,10 +55,7 @@ namespace BranchAndPriceAlgorithm
             allColumns = new ArrayList();
             optimalSol = new OptimalSolution(data);
             active_list = new ArrayList();
-            new ArrayInitializer().CreateArray(ref BrnchHistory_yidDh, data.General.Interns, data.General.Disciplines+1, data.General.Disciplines + 1, data.General.Hospitals, false);
-            new ArrayInitializer().CreateArray(ref BrnchHistory_Sidth, data.General.Interns, data.General.Disciplines, data.General.TimePriods, data.General.Hospitals, false);
-            new ArrayInitializer().CreateArray(ref BrnchIntern_i, data.General.Interns, false);
-            allBranches = new ArrayList();
+             allBranches = new ArrayList();
             allBranches.Add(new Branch()); // adding the root
             best_sol = -data.AlgSettings.BigM;
         }
@@ -310,7 +305,7 @@ namespace BranchAndPriceAlgorithm
                     internIndex = clmn.theIntern;
                     columnIndex = counter;
                 }
-                if (BrnchIntern_i[clmn.theIntern])
+                if (theNode.BrnchIntern_i[clmn.theIntern])
                 {
                     break;
                 }
@@ -327,7 +322,7 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals; h++)
                     {
-                        if (y_idDh[internIndex][d][D][h] > 0 && !BrnchHistory_yidDh[internIndex][d][D][h])
+                        if (y_idDh[internIndex][d][D][h] > 0 && !theNode.BrnchHistory_yidDh[internIndex][d][D][h])
                         {
                             spreadedDisc_D[D]++;
                         }
@@ -351,8 +346,7 @@ namespace BranchAndPriceAlgorithm
             if (hospIndex != -1)
             {
 
-                BrnchHistory_yidDh[brnch.BrIntern][brnch.BrPrDisc][brnch.BrDisc][brnch.BrHospital] = true;
-                BrnchIntern_i[brnch.BrIntern] = true;
+                
             }
             return brnch;
         }
@@ -410,7 +404,7 @@ namespace BranchAndPriceAlgorithm
                         {
                             if (clmn.S_tdh[t][d][h])
                             {
-                                if (BrnchHistory_Sidth[clmn.theIntern][d][t][h])
+                                if (theNode.BrnchHistory_Sidth[clmn.theIntern][d][t][h])
                                 {
                                     continue;
                                 }
@@ -459,14 +453,72 @@ namespace BranchAndPriceAlgorithm
                 {
                     for (int h = 0; h < data.General.Hospitals; h++)
                     {
-                        if (s_itdh[internIndex][t][d][h] > 0 && !BrnchHistory_Sidth[internIndex][d][t][h])
+                        if (s_itdh[internIndex][t][d][h] > 0 && !theNode.BrnchHistory_Sidth[internIndex][d][t][h])
                         {
                             spreadedDisc_D[d]++;
                         }
                         if (spreadedDisc_D[d] > MaxCout)
                         {
                             discIndex = d;
-                            MaxCout = spreadedDisc_D[d];                         
+                            MaxCout = spreadedDisc_D[d];
+                            bool otherVar = false;
+                            for (int w = 0; w < data.General.HospitalWard; w++)
+                            {
+                                double value = Math.Round(theNode.resDem_twh[t][w][h], 2);
+                                if (Math.Ceiling(value) != Math.Floor(value))
+                                {
+                                    otherVar = true;
+                                    break;
+                                }
+                                value = Math.Round(theNode.emrDem_twh[t][w][h], 2);
+                                if (Math.Ceiling(value) != Math.Floor(value))
+                                {
+                                    otherVar = true;
+                                    break;
+                                }
+                                value = Math.Round(theNode.minDem_twh[t][w][h], 2);
+                                if (Math.Ceiling(value) != Math.Floor(value))
+                                {
+                                    otherVar = true;
+                                    break;
+                                }
+                            }
+
+                            if (otherVar)
+                            {
+                                break;
+                            }
+                        }
+                        else if (spreadedDisc_D[d] == MaxCout)
+                        {
+                            bool otherVar = false;
+                            for (int w = 0; w < data.General.HospitalWard; w++)
+                            {
+                                double value = Math.Round(theNode.resDem_twh[t][w][h], 2);
+                                if (Math.Ceiling(value) != Math.Floor(value))
+                                {
+                                    otherVar = true;
+                                    break;
+                                }
+                                value = Math.Round(theNode.emrDem_twh[t][w][h], 2);
+                                if (Math.Ceiling(value) != Math.Floor(value))
+                                {
+                                    otherVar = true;
+                                    break;
+                                }
+                                value = Math.Round(theNode.minDem_twh[t][w][h], 2);
+                                if (Math.Ceiling(value) != Math.Floor(value))
+                                {
+                                    otherVar = true;
+                                    break;
+                                }
+                            }
+                            if (otherVar)
+                            {
+                                discIndex = d;
+                                MaxCout = spreadedDisc_D[d];
+                            }
+                            
                         }
                     }
                 }
@@ -488,12 +540,7 @@ namespace BranchAndPriceAlgorithm
             brnch.BrIntern = internIndex;
             brnch.BrDisc = discIndex;
             brnch.BrHospital = hospitalIndex;
-            if (hospitalIndex != -1)
-            {
-
-                BrnchIntern_i[brnch.BrIntern] = true;
-                BrnchHistory_Sidth[brnch.BrIntern][brnch.BrDisc][brnch.BrTime][brnch.BrHospital] = true;
-            }
+            
             return brnch;
         }
 
@@ -643,7 +690,7 @@ namespace BranchAndPriceAlgorithm
             //{
             //    branch = new Branch(findBranchStrategyResDemand(theNode));                
             //}
-            
+
             //if (branch.BrHospital != -1)
             //{
             //    return branch;
@@ -653,20 +700,20 @@ namespace BranchAndPriceAlgorithm
             //    branch = new Branch(findBranchStrategyMinDemand(theNode));
             //}
 
-            if (branch.BrHospital != -1)
-            {
-                return branch;
-            }
-            else // precedence 
-            {
-                branch = new Branch(findBranchStrategyDisciplinePrecedence(theNode));
-            }
+            //if (branch.BrHospital != -1)
+            //{
+            //    return branch;
+            //}
+            //else // precedence 
+            //{
+            //    branch = new Branch(findBranchStrategyDisciplinePrecedence(theNode));
+            //}
 
-            if (branch.BrHospital != -1)
-            {
-                return branch;
-            }
-            // precedence 
+            //if (branch.BrHospital != -1)
+            //{
+            //    return branch;
+            //}
+            //// precedence 
 
             branch = new Branch(findBranchStrategyDisciplineStartTime(theNode));
             return branch;

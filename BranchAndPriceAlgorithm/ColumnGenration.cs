@@ -33,7 +33,7 @@ namespace BranchAndPriceAlgorithm
         public double[][][][] RCDual_itdh;
         public double[] RCPi2_i;
         public double[] RCDes_i;
-
+        public double[] maxDesire_i;
 
         public MasterProblem RMP;
         
@@ -65,13 +65,14 @@ namespace BranchAndPriceAlgorithm
             subMIP_time = 0;
           
 
-            RMP = new MasterProblem(data, FathersColumn, AllBranches, insName);
+            RMP = new MasterProblem(data,maxDesire_i, FathersColumn, AllBranches, insName);
 
             BestSolution = RMP.RMP.ObjValue;
 
 
             //rmp solve himself in structor
             dual = RMP.pi;
+            
             display_dual(dual, insName);
             Stopwatch cgTime = new Stopwatch();
             cgTime.Start();
@@ -121,7 +122,7 @@ namespace BranchAndPriceAlgorithm
         {
             Interns = data.General.Interns;
 
-
+            
             Disciplins = data.General.Disciplines;
             Wards = data.General.HospitalWard;
             Regions = data.General.Region;
@@ -130,10 +131,15 @@ namespace BranchAndPriceAlgorithm
             Hospitals = data.General.Hospitals;
             Timepriods = data.General.TimePriods;
             TrainingPr = data.General.TrainingPr;
-            
+            maxDesire_i = new double[Interns];
+            for (int i = 0; i < Interns; i++)
+            {
+                maxDesire_i[i] = 0;
+            }
         }
         public void display_dual(double[] dual, string insName)
         {
+            setRCStart(dual);
             int tmp1, tmp2;
             int[] cons = {
                 Interns , Timepriods * Regions , Timepriods * Wards * Hospitals,Timepriods * Wards * Hospitals,  Interns
@@ -223,12 +229,17 @@ namespace BranchAndPriceAlgorithm
             for (int i = 0; i < Interns; i++)
             {
                 GC.Collect();
+                preStopProcedure(dual, i);
                 CPModelRosterGeneration sp = new CPModelRosterGeneration(dual, i, AllBranches, data);
                 if (sp.KeepGoing(dual, insName))
                 {
                     foreach (ColumnInternBasedDecomposition column in sp.theColumns)
                     {
                         totalColumn++;
+                        if (maxDesire_i[i] < column.desire)
+                        {
+                            maxDesire_i[i] = column.desire;
+                        }
                         RMP.addColumn(column);
                     }
 
@@ -304,6 +315,7 @@ namespace BranchAndPriceAlgorithm
                                         if (data.Hospital[h].InToRegion_r[r])
                                         {
                                             RCDual_itdh[i][t][d][h] -= dual[Constraint_Counter];
+                                            
                                         }
 
                                     }
@@ -403,7 +415,93 @@ namespace BranchAndPriceAlgorithm
 
         public void preStopProcedure(double[] dual, int theIntern) 
         {
+            
             double RCtmp = 0;
+            RCtmp += RCPi2_i[theIntern];
+            if (maxDesire_i[theIntern] == 0)
+            {
+                RCtmp += RCDes_i[theIntern] * data.Intern[theIntern].MaxPrf;
+            }
+            else
+            {
+                RCtmp += RCDes_i[theIntern] * maxDesire_i[theIntern];
+            }
+            
+            bool[] disStatus = new bool[data.General.Disciplines];
+            int[] ShouldattendInGr_g = new int[data.General.DisciplineGr];
+            for (int g = 0; g < data.General.DisciplineGr; g++)
+            {
+                ShouldattendInGr_g[g] = data.Intern[theIntern].ShouldattendInGr_g[g];
+            }
+            for (int d = 0; d < data.General.Disciplines; d++)
+            {
+                disStatus[d] = false;
+                bool flag = false;
+                for (int g = 0; g < data.General.DisciplineGr; g++)
+                {
+                    
+                    if (data.Intern[theIntern].DisciplineList_dg[d][g] && data.Intern[theIntern].ShouldattendInGr_g[g] > 0)
+                    {
+                        flag = true;
+                    }
+                }
+                if (!flag)
+                {
+                    disStatus[d] = true;
+                }
+            }
+            for (int g = 0; g < data.General.DisciplineGr; g++)
+            {
+                double maxVal = 0;
+                int tIndex = -1;
+                int hIndex = -1;
+                int dIndex = -1;
+                for (int d = 0; d < data.General.Disciplines; d++)
+                { 
+                    if (ShouldattendInGr_g[g] < 1 || !data.Intern[theIntern].DisciplineList_dg[d][g] || disStatus[d])
+                    {
+                        continue;
+                    }
+                    for (int t = 0; t < data.General.TimePriods; t++)
+                    {
+                        for (int h = 0; h < data.General.Hospitals; h++)
+                        {
+                            bool flag = false;
+                            for (int w = 0; w < Wards; w++)
+                            {
+                                if (data.Hospital[h].Hospital_dw[d][w])
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (flag && maxVal < RCStart_itdh[theIntern][t][d][h])
+                            {
+                               
+                                maxVal = RCStart_itdh[theIntern][t][d][h];
+                                tIndex = t;
+                                hIndex = h;
+                                dIndex = d;
+                            }
+
+                        }
+                    }
+                }
+
+                if (maxVal > 0)
+                {
+                    RCtmp += maxVal;
+                    disStatus[dIndex] = true;
+                    ShouldattendInGr_g[g]--;
+                }
+
+            }
+
+            Console.WriteLine(RCtmp);
+            if (RCtmp <= 0)
+            {
+                Console.WriteLine();
+            }
 
         }
     }
