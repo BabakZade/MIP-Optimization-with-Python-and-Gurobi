@@ -1135,7 +1135,7 @@ namespace MedicalTraineeScheduling
 
         }
 
-        public void solveThisDataSetBP(int totalGroup, int totalInstance, string datasetName, string nameOfProcsdure)
+        public void solveThisDataSetBP(int totalGroup, int totalInstance, string datasetName, string nameOfProcsdure, int theProcedure)
         {
             int groupCounter = 0;
             SetAllPathForResult allpathTotal = new DataLayer.SetAllPathForResult(datasetName, nameOfProcsdure, "");
@@ -1153,7 +1153,7 @@ namespace MedicalTraineeScheduling
                     read.data.AlgSettings.internBasedImpPercentage = 0.5;
                     Stopwatch stopwatch = new Stopwatch();
                     stopwatch.Start();
-                    BranchAndPriceAlgorithm.BranchAndPrice bp = new BranchAndPriceAlgorithm.BranchAndPrice(read.data, "Ins_" + i, 1);
+                    BranchAndPriceAlgorithm.BranchAndPrice bp = new BranchAndPriceAlgorithm.BranchAndPrice(read.data, "Ins_" + i, theProcedure);
                     //MultiLevelSolutionMethodology.SequentialMethodology xy = new MultiLevelSolutionMethodology.SequentialMethodology(read.data, i.ToString());
                     //GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP xx = new GeneralMIPAlgorithm.MedicalTraineeSchedulingMIP(read.data, i.ToString(), false, 7200);
                     //NestedHungarianAlgorithm.NHA nha = new NestedHungarianAlgorithm.NHA(read.data, i.ToString());

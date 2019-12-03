@@ -260,6 +260,47 @@ namespace BranchAndPriceAlgorithm
 
         }
 
+        public bool SolveSubProblemDP(ArrayList AllBranches, double[] dual, string insName)
+        {
+
+            int totalColumn = 0;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            bool firstCol = false;
+            for (int i = 0; i < Interns; i++)
+            {
+                GC.Collect();
+                preStopProcedure(dual, i);
+                SubProblemDP.DP sp = new SubProblemDP.DP(dual, AllBranches, data, i);
+                if (sp.allColumns.Count >= 0)
+                {
+                    foreach (ColumnInternBasedDecomposition column in sp.allColumns)
+                    {
+                        totalColumn++;
+                        if (maxDesire_i[i] < column.desire)
+                        {
+                            maxDesire_i[i] = column.desire;
+                        }
+                        RMP.addColumn(column);
+                    }
+
+                }
+            }
+            sw.Stop();
+            count_MIP += totalColumn;
+            subMIP_time += sw.ElapsedMilliseconds / 1000;
+            if (totalColumn > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
+        }
+
         public bool findAndAddColumn(ArrayList AllBranches, double[] dual, string insName, int procedureType) 
         {
             switch (procedureType)
@@ -268,6 +309,8 @@ namespace BranchAndPriceAlgorithm
                     return SolveSubProblemMIP(AllBranches, dual, insName);
                 case 1: // sub problem CP
                     return SolveSubProblemCP(AllBranches, dual, insName);
+                case 2: // sub problem DP
+                    return SolveSubProblemDP(AllBranches, dual, insName);
                 default:
                     return false;
             }

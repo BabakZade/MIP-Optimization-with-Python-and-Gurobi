@@ -138,8 +138,11 @@ namespace SubProblemDP
 						totalChange = stateInput.totalChange + 1;
 
 					}
-
-                    Fx += desireCoeff * data.Intern[theI].wieght_cns * data.TrainingPr[data.Intern[theI].ProgramID].cns_dD[stateInput.x_Disc][xInput.x_Disc];
+                    if (stateInput.x_Disc >= 0 && xInput.x_Disc >= 0)
+                    {
+                        Fx += desireCoeff * data.Intern[theI].wieght_cns * data.TrainingPr[data.Intern[theI].ProgramID].cns_dD[stateInput.x_Disc][xInput.x_Disc];
+                    }
+                    
                 }
 			}
 			

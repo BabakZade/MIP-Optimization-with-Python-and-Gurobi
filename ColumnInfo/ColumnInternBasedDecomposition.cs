@@ -27,6 +27,7 @@ namespace ColumnAndBranchInfo
         public double xVal;
         public double objectivefunction;
         public bool[][][] Y_dDh;
+        public string columnDescription;
         public List<RosterPosition> theRoster;
         public ColumnInternBasedDecomposition()
         {
@@ -54,7 +55,7 @@ namespace ColumnAndBranchInfo
         {
             initial(data,copyable.theIntern);
             theIntern = copyable.theIntern;
-
+            columnDescription = copyable.columnDescription;
             for (int t = 0; t < data.General.TimePriods; t++)
             {
                 for (int d = 0; d < data.General.Disciplines; d++)
@@ -96,7 +97,31 @@ namespace ColumnAndBranchInfo
 
             reducedcost += data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi * desire;
 
+            columnDescription = "";
+            columnDescription += theIntern + "\n";
+            for (int t = 0; t < data.General.TimePriods; t++)
+            {
+                bool flagwait = true;
+                for (int h = 0; h < data.General.Hospitals && flagwait; h++)
+                {
+                    for (int d = 0; d < data.General.Disciplines && flagwait; d++)
+                    {
+                        if (S_tdh[t][d][h])
+                        {
+                            columnDescription += "intern " + theIntern + " took discipline " + d + " at time " + t + " in hospital " + h + " till " + (t + data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID]) + "\n";
+                            t += data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID];
+                            flagwait = false;
+                        }
 
+                    }
+
+                }
+                if (flagwait)
+                {
+                    columnDescription += "intern " + theIntern + " waited at time " + t + "\n";
+                }
+            }
+            
             int Constraint_Counter = 0;
 
             // Constraint 2
@@ -105,6 +130,7 @@ namespace ColumnAndBranchInfo
                 if (i == theIntern)
                 {
                     reducedcost -= dual[Constraint_Counter];
+                    
                 }
                 Constraint_Counter++;
             }
@@ -129,6 +155,7 @@ namespace ColumnAndBranchInfo
                                         if (S_tdh[tt][d][h])
                                         {
                                             reducedcost -= dual[Constraint_Counter];
+                                            
                                         }
                                     }
                                 }

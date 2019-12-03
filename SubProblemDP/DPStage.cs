@@ -21,11 +21,12 @@ namespace SubProblemDP
         public ArrayList[] activeStatesValue;
         public ArrayList FutureActiveState;
         public int ActiveStatesCount;
-
+        bool isHeuristic;
         public int MaxProcessedNode;
         public int RealProcessedNode;
-        public DPStage(ref StateStage finalSchedule, ArrayList AllBranches, double[] dual, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot)
+        public DPStage(ref ArrayList finalSchedules, ArrayList AllBranches, double[] dual, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, bool isHeuristic)
         {
+            this.isHeuristic = isHeuristic;
             data = alldata;
             theIntern = theI;
             stageTime = theTime;
@@ -45,7 +46,7 @@ namespace SubProblemDP
                 rootStage = false;
                 parentNode = parent;
             }
-            DPStageProcedure(ref finalSchedule, AllBranches);
+            DPStageProcedure(ref finalSchedules, AllBranches);
 
         }
 
@@ -53,7 +54,7 @@ namespace SubProblemDP
         {
 
         }
-        public void setStateStage(ref StateStage finalSchedule, ArrayList AllBranches)
+        public void setStateStage(ref ArrayList finalSchedules, ArrayList AllBranches)
         {
             solutionFound = false;
             if (rootStage)
@@ -99,15 +100,13 @@ namespace SubProblemDP
                     }
                 }
 
-                // if no one added to fututre state add wait
-                if (activeStatesValue[0].Count == 1)
-                {
+               
                     // wait 
                     StateStage tmpwait = new StateStage(data);
                     tmpwait.isRoot = true;
                     tmpwait.x_wait = true;
                     activeStatesValue[0].Add(tmpwait);
-                }
+                
             }
             else
             {
@@ -173,26 +172,22 @@ namespace SubProblemDP
                                 }
                             }
                         }
-                        // if there was no future state add wait and intern is available
-                        if (activeStatesValue[counter].Count == 1 && data.Intern[theIntern].AveDur * ((StateStage)activeStatesValue[counter][0]).x_K < data.General.TimePriods - stageTime)
+                        // the wait 
+                        if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline<0)
                         {
-                            // the wait 
+                            
                             StateStage tmpwait = new StateStage(data);
                             tmpwait.x_wait = true;
                             activeStatesValue[counter].Add(tmpwait);
                         }
+                            
+                        
                     }
                     else
                     {
                         // it is a complete  solution 
-                        // we need the best one 						
-
-                        if (((StateStage)parentNode.FutureActiveState[c]).Fx > finalSchedule.Fx)
-                        {
-                            finalSchedule = (StateStage)parentNode.FutureActiveState[c];
-                            solutionFound = true;
-                            //break;
-                        }
+                        // we need all						
+                        finalSchedules.Add(((StateStage)parentNode.FutureActiveState[c]));
                     }
 
                 }
@@ -200,74 +195,6 @@ namespace SubProblemDP
 
         }
 
-        public bool NotOptiamalAndCutTheBranches(double FinalObj, StateStage curentStat)
-        {
-            bool result = false;
-            double obj = curentStat.Fx;
-            if (curentStat.x_K > 0)
-            {
-                bool[] disStatus = new bool[data.General.Disciplines];
-                for (int d = 0; d < data.General.Disciplines; d++)
-                {
-                    disStatus[d] = false;
-                }
-                for (int g = 0; g < data.General.DisciplineGr; g++)
-                {
-                    if (curentStat.x_K_g[g] > 0)
-                    {
-                        int length = curentStat.x_K_g[g];
-
-
-                        foreach (DataLayer.DesirePos item in data.Intern[theIntern].sortedPrf)
-                        {
-                            int theH = item.theH;
-                            bool itCanbeIntheHosp = true;
-                            if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp == 1)
-                            {
-                                for (int t = 0; t < data.General.TimePriods; t++)
-                                {
-                                    if (curentStat.theSchedule_t[t].theHospital == theH)
-                                    {
-                                        itCanbeIntheHosp = false;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!itCanbeIntheHosp)
-                            {
-                                continue;
-                            }
-
-                            int theD = item.theD;
-                            if (!disStatus[theD] && !curentStat.activeDisc[theD])
-                            {
-                                obj += item.AbsDesire * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
-                                disStatus[theD] = true;
-                                length--;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            if (length == 0)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            if (obj <= FinalObj)
-            {
-                result = true;
-            }
-            return result;
-
-        }
 
         public void setFutureState(ArrayList AllBranches)
         {
@@ -281,7 +208,7 @@ namespace SubProblemDP
                     StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], RCDes, theIntern, data, stageTime, rootStage);
                     foreach (StateStage item in tmp.possibleStates)
                     {
-                        item.Fx -= returnDemandCost(item.x_Disc, item.x_Hosp, stageTime, item.x_wait);
+                        item.Fx += returnDemandCost(item.x_Disc, item.x_Hosp, stageTime, item.x_wait);
 
                         // Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
                         FutureActiveState.Add(item);
@@ -319,7 +246,7 @@ namespace SubProblemDP
                 result = -data.AlgSettings.BigM;
                 return result;
             }
-
+            result = RCStart_tdh[theT][theD][theH];
             return result;
         }
 
@@ -327,7 +254,7 @@ namespace SubProblemDP
         {
             //chooseBestHospIfChangeIsNecessary(); // we will face shorage in rare discipline and vital	
             MaxProcessedNode = FutureActiveState.Count;
-
+            
             Console.WriteLine("Before one disc: " + FutureActiveState.Count);
             // it will not work with unstable demand structure => at t we are in regular demand, t+1 it is reserved demand
             keepOneDisci();
@@ -361,7 +288,12 @@ namespace SubProblemDP
                 {
                     continue;
                 }
-                for (int l = 2; l <= length; l++)
+                int lowerbound = length;
+                if (isHeuristic)
+                {
+                    lowerbound = 2;
+                }
+                for (int l = lowerbound; l <= length; l++)
                 {
                     int[] theH = new int[l];
 
@@ -422,7 +354,11 @@ namespace SubProblemDP
                                     theHStatus[current.theSchedule_t[t].theHospital] = true;
                                     lastoneStart = t;
                                     t += data.Discipline[current.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theIntern].ProgramID];
-
+                                    if (t > stageTime)
+                                    {
+                                        noSeq = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -566,10 +502,10 @@ namespace SubProblemDP
         // keep only one discipline 
         public void keepOneDisci()
         {
-            //if (data.TrainingPr[data.Intern[theIntern].ProgramID].DiscChangeInOneHosp > 1)
-            //{
-            //	return;
-            //}
+            if (!isHeuristic)
+            {
+                return;
+            }
             int counter = -1;
             int p = data.Intern[theIntern].ProgramID;
             bool[] discStatus = new bool[data.General.Disciplines];
@@ -629,8 +565,8 @@ namespace SubProblemDP
                     double demCost = returnDemandCost(state.x_Disc, state.x_Hosp, stageTime, state.x_wait);
                     double tmpdemCost = returnDemandCost(current.x_Disc, current.x_Hosp, stageTime, current.x_wait);
 
-                    double obj1 = -demCost + prfX1 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
-                    double obj2 = -tmpdemCost + prfX2 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+                    double obj1 = demCost + prfX1 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
+                    double obj2 = tmpdemCost + prfX2 * (data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi);
                     if (obj2 > obj1)
                     {
                         continue;
@@ -680,9 +616,9 @@ namespace SubProblemDP
 
         }
 
-        public void DPStageProcedure(ref StateStage finalSchedule, ArrayList AllBranches)
+        public void DPStageProcedure(ref ArrayList finalSchedules, ArrayList AllBranches)
         {
-            setStateStage(ref finalSchedule, AllBranches);
+            setStateStage(ref finalSchedules, AllBranches);
             if (solutionFound)
             {
                 return;
