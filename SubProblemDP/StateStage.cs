@@ -104,7 +104,8 @@ namespace SubProblemDP
 					x_Disc = -1;
 					x_Hosp = -1;
 					x_group = -1;
-				}
+                    Fx = desireCoeff * data.Intern[theI].wieght_w; // if it is root the x_k == 0 so it was not calculated above 
+                }
 			}
 			else
 			{

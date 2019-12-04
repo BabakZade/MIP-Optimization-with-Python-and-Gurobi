@@ -17,5 +17,9 @@ namespace DataLayer
 		public int DisciplineGr;
 		public int HospitalWard;
 		public int Region;
-	}
+        public int[] sortedTime;
+        public int[] sortedTimeOrder;
+    }
+
+    
 }

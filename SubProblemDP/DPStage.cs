@@ -198,10 +198,10 @@ namespace SubProblemDP
 
         public void setFutureState(ArrayList AllBranches)
         {
-            // Console.WriteLine("====== Stage " + stageTime + " ======");
+            //Console.WriteLine("====== Stage " + stageTime + " ======");
             for (int c = 0; c < ActiveStatesCount; c++)
             {
-                // Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+                //Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
                 // 0 is the current state
                 for (int i = 1; i < activeStatesValue[c].Count; i++)
                 {
@@ -210,7 +210,7 @@ namespace SubProblemDP
                     {
                         item.Fx += returnDemandCost(item.x_Disc, item.x_Hosp, stageTime, item.x_wait);
 
-                        // Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+                         //Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
                         FutureActiveState.Add(item);
                         //int index = 0;
                         //foreach (StateStage futur in FutureActiveState)
@@ -238,12 +238,10 @@ namespace SubProblemDP
             double result = 0;
             if (theH == data.General.Hospitals)
             {
-                result = -data.AlgSettings.BigM;
                 return result;
             }
             if (waitingLable || theD < 0)
             {
-                result = -data.AlgSettings.BigM;
                 return result;
             }
             result = RCStart_tdh[theT][theD][theH];
@@ -261,7 +259,7 @@ namespace SubProblemDP
             Console.WriteLine("After one disc: " + FutureActiveState.Count);
             cleanRedundantSequence();
             Console.WriteLine("After cleaning redundant node: " + FutureActiveState.Count);
-            removeNodesViolatingBranches(allBranches);
+            removeInfeasibleNode(allBranches);
             Console.WriteLine("After cutting infeasible branches: " + FutureActiveState.Count);
 
             Console.WriteLine();
@@ -330,11 +328,15 @@ namespace SubProblemDP
 
                             for (int ll = 0; ll < l; ll++)
                             {
+                                if (t > stageTime)
+                                {
+                                    noSeq = true;
+                                    break;
+                                }
                                 if (current.theSchedule_t[t].theDiscipline == -1)
                                 {
                                     t++;
                                     ll--;
-
                                     if (t > stageTime)
                                     {
                                         noSeq = true;
@@ -354,11 +356,7 @@ namespace SubProblemDP
                                     theHStatus[current.theSchedule_t[t].theHospital] = true;
                                     lastoneStart = t;
                                     t += data.Discipline[current.theSchedule_t[t].theDiscipline].Duration_p[data.Intern[theIntern].ProgramID];
-                                    if (t > stageTime)
-                                    {
-                                        noSeq = true;
-                                        break;
-                                    }
+                                    
                                 }
                             }
                         }
@@ -626,9 +624,30 @@ namespace SubProblemDP
             setFutureState(AllBranches);
         }
 
-        public void removeNodesViolatingBranches(ArrayList AllBranches)
+        public void removeInfeasibleNode(ArrayList AllBranches)
         {
+            int counterr = -1;
+            while (counterr < FutureActiveState.Count - 1)
+            {
+                counterr++;
+                StateStage state = (StateStage)FutureActiveState[counterr];
+                int timeLine = stageTime;
+                for (int t = stageTime + 1; t < data.General.TimePriods; t++)
+                {
+                    if (state.theSchedule_t[t].theDiscipline == -1)
+                    {
+                        timeLine = t;
+                        break;
+                    }
+                }
 
+                int requiredTime = data.Intern[theIntern].requiredTime(state.activeDisc, state.x_K_g, state.x_K,data);
+                if (requiredTime + timeLine > data.General.TimePriods)
+                {
+                    FutureActiveState.RemoveAt(counterr);
+                    counterr--;
+                }
+            }
             int p = data.Intern[theIntern].ProgramID;
             foreach (ColumnAndBranchInfo.Branch brnch in AllBranches)
             {

@@ -64,6 +64,8 @@ namespace DataLayer
 		public double AveDur;
         public bool[] twinIntern;
 
+        public int[] sortedTimeOrder;
+
 		public double[] requieredTimeForRemianed;
 		public InternInfo(int Hospitals, int Disciplines, int TimePeriods, int DisciplineGr, int TrainingPr, int Region)
 		{
@@ -83,7 +85,7 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref OverSea_dt, Disciplines, TimePeriods, false);
 			new ArrayInitializer().CreateArray(ref AllDes_dh,Disciplines, Hospitals, -1);
 			new ArrayInitializer().CreateArray(ref takingDiscPercentage, Disciplines, 0);
-            
+            new ArrayInitializer().CreateArray(ref sortedTimeOrder, Disciplines, -1);
             wieght_d = 0;
 			wieght_h = 0;
 			wieght_w = 0;
@@ -209,6 +211,7 @@ namespace DataLayer
 				K_AllDiscipline += this.ShouldattendInGr_g[g];
 
 			}
+            sortTime(allData);
 		}
 
 		public void setAveInfo(AllData allData)
@@ -547,6 +550,73 @@ namespace DataLayer
                 }
             }
 
+        }
+
+        public void sortTime(AllData allData) 
+        {
+            for (int d = 0; d < allData.General.Disciplines; d++)
+            {
+                sortedTimeOrder[d] = d;
+            }
+
+            for (int d = 0; d < allData.General.Disciplines; d++)
+            {
+                for (int dd = d + 1; dd < allData.General.Disciplines; dd++)
+                {
+                    int dInd = sortedTimeOrder[d];
+                    int ddInd = sortedTimeOrder[dd];
+                    if (allData.Discipline[dInd].Duration_p[ProgramID] > allData.Discipline[ddInd].Duration_p[ProgramID])
+                    {
+                        sortedTimeOrder[d] = ddInd;
+                        sortedTimeOrder[dd] = dInd;
+                    }
+                }
+            }
+
+        }
+
+        public int requiredTime(bool[] involvedDisc, int[] remainedK_g,int remaindedKall, AllData allData) 
+        {
+            int result = 0;
+            int[] K_g = new int[allData.General.DisciplineGr];
+            bool[] disStatus = new bool[allData.General.Disciplines];
+            int Kall = remaindedKall;
+            for (int g = 0; g < allData.General.DisciplineGr; g++)
+            {
+                K_g[g] = remainedK_g[g];
+            }
+            for (int d = 0; d < allData.General.Disciplines; d++)
+            {
+                disStatus[d] = involvedDisc[d];
+            }
+            for (int d = 0; d < allData.General.Disciplines && remaindedKall > 0; d++)
+            {
+                int dIndex = sortedTimeOrder[d];
+                if (disStatus[dIndex])
+                {
+                    continue;
+                }
+                bool flg = false;
+                int gInd = -1;
+                for (int g = 0; g < allData.General.DisciplineGr; g++)
+                {
+                    if (DisciplineList_dg[dIndex][g] && K_g[g] > 0)
+                    {
+                        flg = true;
+                        gInd = g;
+                    }
+                }
+                if (flg)
+                {
+                    result += allData.Discipline[dIndex].Duration_p[ProgramID];
+                    K_g[gInd]--;
+                    disStatus[dIndex] = true;
+                    remaindedKall--;
+                }
+            }
+
+
+            return result;
         }
 	}
 }
