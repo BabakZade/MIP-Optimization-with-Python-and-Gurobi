@@ -50,7 +50,7 @@ namespace BranchAndPriceAlgorithm
         public int Regions;
         public int DisciplineGr;
         public AllData data;
-
+        public ArrayList allColumns;
         public ColumnGenration(DataLayer.AllData allData, ArrayList FathersColumn, ArrayList AllBranches, string insName, int procedureType)
         {
             data = allData;
@@ -136,6 +136,7 @@ namespace BranchAndPriceAlgorithm
             {
                 maxDesire_i[i] = 0;
             }
+            allColumns = new ArrayList();
         }
         public void display_dual(double[] dual, string insName)
         {
@@ -281,6 +282,7 @@ namespace BranchAndPriceAlgorithm
                         {
                             maxDesire_i[i] = column.desire;
                         }
+                        addTheColumn(column);
                         RMP.addColumn(column);
                     }
 
@@ -546,6 +548,18 @@ namespace BranchAndPriceAlgorithm
                 Console.WriteLine();
             }
 
+        }
+
+        public void addTheColumn(ColumnAndBranchInfo.ColumnInternBasedDecomposition column)
+        {
+            foreach (ColumnAndBranchInfo.ColumnInternBasedDecomposition columnIntern in allColumns)
+            {
+                if (columnIntern.Compare(column, data))
+                {
+                    return;
+                }
+            }
+            allColumns.Add(column);
         }
     }
 }

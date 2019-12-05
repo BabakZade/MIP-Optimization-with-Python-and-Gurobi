@@ -15,6 +15,24 @@ namespace ColumnAndBranchInfo
             theHospital = copyable.theHospital;
             theDiscipline = copyable.theDiscipline;
         }
+        public bool compare(RosterPosition pos) 
+        {
+            bool result = true;
+            if (theTime != pos.theTime)
+            {
+                result = false;
+            }
+            else if (theHospital != pos.theHospital)
+            {
+                result = false;
+            }
+            else if(theDiscipline != pos.theDiscipline)
+            {
+                result = false;
+            }
+
+            return result;
+        }
     }
     public class ColumnInternBasedDecomposition
     {
@@ -25,6 +43,8 @@ namespace ColumnAndBranchInfo
         public double desire;
         public double xRC;
         public double xVal;
+        public double RCInitial;
+        public double RCCalculated;
         public double objectivefunction;
         public bool[][][] Y_dDh;
         public string columnDescription;
@@ -48,6 +68,8 @@ namespace ColumnAndBranchInfo
             desire = 0;
             xRC = 0;
             xVal = 0;
+            RCInitial = 0;
+            RCCalculated = 0;
             objectivefunction = 0;
         }
 
@@ -71,6 +93,8 @@ namespace ColumnAndBranchInfo
             desire = copyable.desire;
             xRC = copyable.xRC;
             xVal = copyable.xVal;
+            RCInitial = copyable.RCInitial;
+            RCCalculated = copyable.RCCalculated;
             objectivefunction = copyable.objectivefunction;
             for (int d = 0; d < data.General.Disciplines + 1; d++)
             {
@@ -273,6 +297,7 @@ namespace ColumnAndBranchInfo
         public bool Compare(ColumnInternBasedDecomposition compareableColumn, DataLayer.AllData data)
         {
             bool result = true;
+            
             if (theIntern != compareableColumn.theIntern)
             {
                 result = false;
@@ -294,7 +319,7 @@ namespace ColumnAndBranchInfo
                         if (S_tdh[t][d][h] != compareableColumn.S_tdh[t][d][h])
                         {
                             result = false;
-
+                            break;
                         }
                     }
                 }

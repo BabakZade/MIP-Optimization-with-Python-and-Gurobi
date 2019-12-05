@@ -5,6 +5,7 @@ using DataLayer;
 
 namespace SubProblemDP
 {
+    
     public class DPStage
     {
         public DPStage parentNode;
@@ -24,14 +25,17 @@ namespace SubProblemDP
         bool isHeuristic;
         public int MaxProcessedNode;
         public int RealProcessedNode;
-        public DPStage(ref ArrayList finalSchedules, ArrayList AllBranches, double[] dual, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, bool isHeuristic)
+        public ArrayList bestPos;
+        public DPStage(ref ArrayList finalSchedules, ArrayList AllBranches, double[][][] RCStart_tdh, double RCPi2, double RCDes, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, bool isHeuristic)
         {
             this.isHeuristic = isHeuristic;
             data = alldata;
             theIntern = theI;
             stageTime = theTime;
+            this.RCStart_tdh = RCStart_tdh;
+            this.RCPi2 = RCPi2;
+            this.RCDes = RCDes;
             Initial(alldata);
-            setRCStart(dual);
             FutureActiveState = new ArrayList();
             //if (!data.Intern[theI].Ave_t[theTime])
             //{
@@ -52,7 +56,7 @@ namespace SubProblemDP
 
         public void Initial(AllData alldata)
         {
-
+            bestPosAfterHere = new ArrayList();
         }
         public void setStateStage(ref ArrayList finalSchedules, ArrayList AllBranches)
         {
@@ -186,7 +190,8 @@ namespace SubProblemDP
                     else
                     {
                         // it is a complete  solution 
-                        // we need all						
+                        // we need all	
+                        ((StateStage)parentNode.FutureActiveState[c]).Fx += RCPi2;
                         finalSchedules.Add(((StateStage)parentNode.FutureActiveState[c]));
                     }
 
@@ -701,6 +706,71 @@ namespace SubProblemDP
             }
         }
 
+        public void removeNotPromissingNodes()
+        {
+            int counterr = -1;
+            while (counterr < FutureActiveState.Count - 1)
+            {
+                counterr++;
+                StateStage state = (StateStage)FutureActiveState[counterr];
+                double fxTmp = state.Fx;
+                int remaindDisc = state.x_K;
+                int timeLine = stageTime;
+                for (int t = stageTime + 1; t < data.General.TimePriods; t++)
+                {
+                    if (state.theSchedule_t[t].theDiscipline == -1)
+                    {
+                        timeLine = t;
+                        break;
+                    }
+                }
+                bool[] timeStatus = new bool[data.General.TimePriods];
+                bool[] discStatus = new bool[data.General.Disciplines];
+                for (int t = 0; t < data.General.TimePriods; t++)
+                {
+                    timeStatus[t] = false;
+                    if (t < timeLine)
+                    {
+                        timeStatus[t] = true;
+                    }
+                }
+                for (int d = 0; d < data.General.Disciplines; d++)
+                {
+                    discStatus[d] = state.activeDisc[d];
+                    if (state.activeDisc[d] == false)
+                    {
+                        bool flag = true;
+                        for (int g = 0; g < data.General.DisciplineGr; g++)
+                        {
+                            if (data.Intern[theIntern].DisciplineList_dg[d][g])
+                            {
+                                flag = false;
+                            }
+                        }
+                        discStatus[d] = flag;
+                    }
+                    
+                }
+                while (remaindDisc > 0)
+                {
+                    BestPosition tmp = findTheBestPosition(discStatus,timeStatus);
+                    if (tmp.discIndex >=0)
+                    {
+                        fxTmp += tmp.desire;
+                        timeStatus[tmp.timeIndex] = true;
+                        discStatus[tmp.discIndex] = true;
+                        remaindDisc++;
+                    }
+                }
+                int requiredTime = data.Intern[theIntern].requiredTime(state.activeDisc, state.x_K_g, state.x_K, data);
+                if (requiredTime + timeLine > data.General.TimePriods)
+                {
+                    FutureActiveState.RemoveAt(counterr);
+                    counterr--;
+                }
+            }
+        }
+
         public bool checkDiscipline(int theDisc, int theH, ArrayList AllBranches, StateStage theState)
         {
             bool result = true;
@@ -982,136 +1052,28 @@ namespace SubProblemDP
             return result;
         }
 
-        /// <summary>
-        /// calculates the coefficient for each discipline and hospital if they start at the specefic time
-        /// it also initialze the RCStartTime_tdh
-        /// </summary>
-        /// <param name="dual">the dual comming from Master problem</param>
-        public void setRCStart(double[] dual)
+        public BestPosition findTheBestPosition(bool[] activeDis, bool[] activeTime) 
         {
-            new ArrayInitializer().CreateArray(ref RCDual_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
-            new ArrayInitializer().CreateArray(ref RCStart_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
-            RCPi2 = 0;
-            RCDes = 0;
-
-            RCDes = data.TrainingPr[data.Intern[theIntern].ProgramID].CoeffObj_SumDesi;
-
-            int Constraint_Counter = 0;
-
-            // Constraint 2
-            for (int i = 0; i < data.General.Interns; i++)
+            BestPosition tmp = new BestPosition()
             {
-                if (i == theIntern)
+                discIndex = -1,
+                hospIndex = -1,
+                timeIndex = -1,
+                desire = -1,
+            };
+            foreach (BestPosition best in bestPos)
+            {
+                if (activeDis[best.discIndex] || activeTime[best.timeIndex])
                 {
-                    RCPi2 -= dual[Constraint_Counter];
+                    continue;
                 }
-
-                Constraint_Counter++;
-            }
-
-            // Constraint 3 
-            for (int r = 0; r < data.General.Region; r++)
-            {
-                for (int t = 0; t < data.General.TimePriods; t++)
+                else
                 {
-                    if (data.Intern[theIntern].TransferredTo_r[r])
-                    {
-                        for (int d = 0; d < data.General.Disciplines; d++)
-                        {
-                            for (int h = 0; h < data.General.Hospitals; h++)
-                            {
-                                if (data.Hospital[h].InToRegion_r[r])
-                                {
-                                    RCDual_tdh[t][d][h] -= dual[Constraint_Counter];
-
-                                }
-
-                            }
-                        }
-
-                    }
-
-                    Constraint_Counter++;
+                    return best;
                 }
             }
 
-            // Constraint 4 
-
-            for (int t = 0; t < data.General.TimePriods; t++)
-            {
-                for (int w = 0; w < data.General.HospitalWard; w++)
-                {
-                    for (int h = 0; h < data.General.Hospitals; h++)
-                    {
-                        for (int d = 0; d < data.General.Disciplines; d++)
-                        {
-
-                            if (data.Hospital[h].Hospital_dw[d][w] && data.Intern[theIntern].isProspective)
-                            {
-                                RCDual_tdh[t][d][h] -= dual[Constraint_Counter];
-                            }
-
-                        }
-
-                        Constraint_Counter++;
-
-                    }
-                }
-            }
-
-            // Constraint 5
-
-            for (int t = 0; t < data.General.TimePriods; t++)
-            {
-                for (int w = 0; w < data.General.HospitalWard; w++)
-                {
-                    for (int h = 0; h < data.General.Hospitals; h++)
-                    {
-                        for (int d = 0; d < data.General.Disciplines; d++)
-                        {
-                            if (data.Hospital[h].Hospital_dw[d][w])
-                            {
-                                RCDual_tdh[t][d][h] -= dual[Constraint_Counter];
-
-                            }
-                        }
-
-                        Constraint_Counter++;
-
-                    }
-                }
-            }
-
-            // Constraint 6   
-            for (int i = 0; i < data.General.Interns; i++)
-            {
-                if (theIntern == i)
-                {
-                    RCDes += dual[Constraint_Counter];
-                }
-
-
-                Constraint_Counter++;
-            }
-
-
-            for (int t = 0; t < data.General.TimePriods; t++)
-            {
-                for (int d = 0; d < data.General.Disciplines; d++)
-                {
-                    for (int h = 0; h < data.General.Hospitals; h++)
-                    {
-                        int theP = data.Intern[theIntern].ProgramID;
-                        for (int tt = t; tt < t + data.Discipline[d].Duration_p[theP] && tt < data.General.TimePriods; tt++)
-                        {
-                            RCStart_tdh[t][d][h] += RCDual_tdh[tt][d][h];
-                        }
-
-
-                    }
-                }
-            }
-
+            return tmp;
         }
     }
 }
