@@ -37,17 +37,20 @@ namespace ColumnAndBranchInfo
     public class ColumnInternBasedDecomposition
     {
         public int theIntern;
-        public bool[][][] S_tdh;
-        public bool[] status_d;
+        public string columnDescription;
+        public string columnInfDescription;
         public int totalChange;
+        public int totalWait;
         public double desire;
         public double xRC;
         public double xVal;
         public double RCInitial;
         public double RCCalculated;
         public double objectivefunction;
+        public bool[][][] S_tdh;
+        public bool[] status_d;
         public bool[][][] Y_dDh;
-        public string columnDescription;
+        
         public List<RosterPosition> theRoster;
         public ColumnInternBasedDecomposition()
         {
@@ -126,14 +129,14 @@ namespace ColumnAndBranchInfo
             for (int t = 0; t < data.General.TimePriods; t++)
             {
                 bool flagwait = true;
-                for (int h = 0; h < data.General.Hospitals && flagwait; h++)
+                for (int h = 0; h < data.General.Hospitals + 1&& flagwait; h++)
                 {
                     for (int d = 0; d < data.General.Disciplines && flagwait; d++)
                     {
                         if (S_tdh[t][d][h])
                         {
                             columnDescription += "intern " + theIntern + " took discipline " + d + " at time " + t + " in hospital " + h + " till " + (t + data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID]) + "\n";
-                            t += data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID];
+                            t += data.Discipline[d].Duration_p[data.Intern[theIntern].ProgramID] - 1; // for t++
                             flagwait = false;
                         }
 
@@ -145,6 +148,7 @@ namespace ColumnAndBranchInfo
                     columnDescription += "intern " + theIntern + " waited at time " + t + "\n";
                 }
             }
+            //Console.WriteLine(columnDescription);
             
             int Constraint_Counter = 0;
 
@@ -263,7 +267,7 @@ namespace ColumnAndBranchInfo
                 }
                 Constraint_Counter++;
             }
-
+            RCCalculated = reducedcost;
             return reducedcost;
         }
 
@@ -642,6 +646,7 @@ namespace ColumnAndBranchInfo
                 IsFeasible = false;
 
             }
+            columnInfDescription = Result;
            //Console.WriteLine(Result);
             IsFeasible = !infeasibilityChangesInHospital
                 && !infeasibilityK_Assigned && !infeasibilityOverseaAbilityAve
@@ -754,6 +759,7 @@ namespace ColumnAndBranchInfo
             }
 
             wait = cMax - timeusage;
+            totalWait = wait;
             desire += data.Intern[theIntern].wieght_w * wait;
             desire += data.Intern[theIntern].wieght_ch * totalChange;
         }

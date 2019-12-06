@@ -26,7 +26,7 @@ namespace SubProblemDP
         public int MaxProcessedNode;
         public int RealProcessedNode;
         public ArrayList bestPos;
-        public DPStage(ref ArrayList finalSchedules, ArrayList AllBranches, double[][][] RCStart_tdh, double RCPi2, double RCDes, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, bool isHeuristic)
+        public DPStage(ref ArrayList finalSchedules, ArrayList AllBranches, ArrayList bestPositions, double[][][] RCStart_tdh, double RCPi2, double RCDes, AllData alldata, DPStage parent, int theI, int theTime, bool isRoot, bool isHeuristic)
         {
             this.isHeuristic = isHeuristic;
             data = alldata;
@@ -35,6 +35,7 @@ namespace SubProblemDP
             this.RCStart_tdh = RCStart_tdh;
             this.RCPi2 = RCPi2;
             this.RCDes = RCDes;
+            bestPos = bestPositions;
             Initial(alldata);
             FutureActiveState = new ArrayList();
             //if (!data.Intern[theI].Ave_t[theTime])
@@ -56,7 +57,6 @@ namespace SubProblemDP
 
         public void Initial(AllData alldata)
         {
-            bestPosAfterHere = new ArrayList();
         }
         public void setStateStage(ref ArrayList finalSchedules, ArrayList AllBranches)
         {
@@ -83,6 +83,7 @@ namespace SubProblemDP
                             if (h < data.General.Hospitals && data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
                                 && checkDiscipline(d, h, AllBranches, new StateStage(data) { }))
                             {
+                                
                                 StateStage tmp = new StateStage(data);
                                 tmp.isRoot = true;
                                 tmp.x_Hosp = h;
@@ -144,6 +145,7 @@ namespace SubProblemDP
                         activeStatesValue[counter].Add(parentNode.FutureActiveState[c]);
 
                         // if you have to change every time choose the best one each time
+                        bool noOversea = true;
                         for (int d = 0; d < data.General.Disciplines; d++)
                         {
                             if (!((StateStage)parentNode.FutureActiveState[c]).activeDisc[d])
@@ -168,7 +170,7 @@ namespace SubProblemDP
                                             tmp.isRoot = false;
                                             tmp.x_Hosp = h;
                                             tmp.x_Disc = d;
-
+                                            noOversea = false;
                                             activeStatesValue[counter].Add(tmp);
                                             break; // there is no ward checking 
                                         }
@@ -176,8 +178,8 @@ namespace SubProblemDP
                                 }
                             }
                         }
-                        // the wait 
-                        if (((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline<0)
+                        // the wait, it happens if there is no oversea request otherwise it is infeasible 
+                        if (noOversea && ((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline<0)
                         {
                             
                             StateStage tmpwait = new StateStage(data);
@@ -203,10 +205,10 @@ namespace SubProblemDP
 
         public void setFutureState(ArrayList AllBranches)
         {
-            //Console.WriteLine("====== Stage " + stageTime + " ======");
+            Console.WriteLine("====== Stage " + stageTime + " ======");
             for (int c = 0; c < ActiveStatesCount; c++)
             {
-                //Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+                Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
                 // 0 is the current state
                 for (int i = 1; i < activeStatesValue[c].Count; i++)
                 {
@@ -215,7 +217,7 @@ namespace SubProblemDP
                     {
                         item.Fx += returnDemandCost(item.x_Disc, item.x_Hosp, stageTime, item.x_wait);
 
-                         //Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+                        Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
                         FutureActiveState.Add(item);
                         //int index = 0;
                         //foreach (StateStage futur in FutureActiveState)
@@ -266,7 +268,8 @@ namespace SubProblemDP
             Console.WriteLine("After cleaning redundant node: " + FutureActiveState.Count);
             removeInfeasibleNode(allBranches);
             Console.WriteLine("After cutting infeasible branches: " + FutureActiveState.Count);
-
+            removeNotPromissingNodes();
+            Console.WriteLine("After cutting not promissing nodes: " + FutureActiveState.Count);
             Console.WriteLine();
             Console.WriteLine();
 
@@ -279,6 +282,7 @@ namespace SubProblemDP
         // redundant schedule d1h1 - d2h2 - d3h3 === d2h2 - d1h1 -d3h3 (last one is fixed)
         public void cleanRedundantSequence()
         {
+            
             int counter = -1;
             while (counter < FutureActiveState.Count - 1 && counter >= -1)
             {
@@ -729,7 +733,7 @@ namespace SubProblemDP
                 for (int t = 0; t < data.General.TimePriods; t++)
                 {
                     timeStatus[t] = false;
-                    if (t < timeLine)
+                    if (t < timeLine || !data.Intern[theIntern].Ave_t[t])
                     {
                         timeStatus[t] = true;
                     }
@@ -751,6 +755,7 @@ namespace SubProblemDP
                     }
                     
                 }
+
                 while (remaindDisc > 0)
                 {
                     BestPosition tmp = findTheBestPosition(discStatus,timeStatus);
@@ -759,11 +764,13 @@ namespace SubProblemDP
                         fxTmp += tmp.desire;
                         timeStatus[tmp.timeIndex] = true;
                         discStatus[tmp.discIndex] = true;
-                        remaindDisc++;
+                        
                     }
+                    remaindDisc--;
+                   
                 }
-                int requiredTime = data.Intern[theIntern].requiredTime(state.activeDisc, state.x_K_g, state.x_K, data);
-                if (requiredTime + timeLine > data.General.TimePriods)
+                fxTmp += RCPi2;
+                if (fxTmp < data.AlgSettings.RCepsi)
                 {
                     FutureActiveState.RemoveAt(counterr);
                     counterr--;
@@ -851,7 +858,7 @@ namespace SubProblemDP
 
             // already assigned or the time is filled
             if (theState.activeDisc[theDisc] || theState.theSchedule_t[stageTime].theDiscipline != -1
-                || stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] >= data.General.TimePriods)
+                || stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] > data.General.TimePriods)
             {
                 result = false;
             }
@@ -976,7 +983,7 @@ namespace SubProblemDP
             // check availability
             if (result)
             {
-                if (stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] >= data.General.TimePriods)
+                if (stageTime + data.Discipline[theDisc].Duration_p[data.Intern[theIntern].ProgramID] > data.General.TimePriods)
                 {
                     result = false;
                 }
@@ -1002,14 +1009,6 @@ namespace SubProblemDP
                 }
             }
 
-            // if there is no time to compelete the 
-            if (result)
-            {
-                if (theState.x_K > data.General.TimePriods - theState.tStage)
-                {
-                    result = false;
-                }
-            }
 
             // cut ruls
             // 1- total number of discipline in one hospital

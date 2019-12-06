@@ -112,7 +112,7 @@ namespace BranchAndPriceAlgorithm
             isMIP = RMP.is_mip;
 
             display_time(insName);
-
+            findAndAddColumn(AllBranches, dual, insName, 2);
             RMP.RMP.End();
            
         }
@@ -270,6 +270,10 @@ namespace BranchAndPriceAlgorithm
             bool firstCol = false;
             for (int i = 0; i < Interns; i++)
             {
+                if (i == 10)
+                {
+                    Console.WriteLine();
+                }
                 GC.Collect();
                 preStopProcedure(dual, i);
                 SubProblemDP.DP sp = new SubProblemDP.DP(dual, AllBranches, data, i);

@@ -67,6 +67,7 @@ namespace SubProblemDP
 		}
 		public StateStage(StateStage stateInput, StateStage xInput, double desireCoeff, int theI, AllData alldata, int theStageTime, bool isRoot)
 		{
+            
 			data = alldata;
 			tStage = theStageTime;
 			Initial(data);
@@ -79,26 +80,14 @@ namespace SubProblemDP
 			if (xInput.x_wait)
 			{
 				x_wait = true;
-				if (stateInput.x_K > 0)
-				{
-					Fx = desireCoeff * data.Intern[theI].wieght_w;
-					// otherwise the solution is complete
-				}
-
+				
 				if (!isRoot)
 				{
-					// if it haven't had discipline yet
-					// its status and its father's status are same
-					// it only matters if its father is root and waited there
-					if (stateInput.x_Disc < 0)
-					{
-						isRoot = stateInput.isRoot;
-					}
-
 					x_Disc = stateInput.x_Disc;
 					x_Hosp = stateInput.x_Hosp;
 					x_group = stateInput.x_group;
-				}
+                    Fx = desireCoeff * data.Intern[theI].wieght_w; // if it is root the x_k == 0 so it was not calculated above 
+                }
 				else
 				{
 					x_Disc = -1;

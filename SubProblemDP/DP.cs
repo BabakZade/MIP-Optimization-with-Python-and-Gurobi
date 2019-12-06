@@ -64,7 +64,7 @@ namespace SubProblemDP
             {
                 if (!rootIsSet && data.Intern[theIntern].Ave_t[t])
                 {
-                    dPStages[t] = new DPStage(ref allFinalStages, allBranches, RCStart_tdh, RCPi2, RCDes, data, new DPStage(), theIntern, t, true, isHeuristic);
+                    dPStages[t] = new DPStage(ref allFinalStages, allBranches, bestPositions, RCStart_tdh, RCPi2, RCDes, data, new DPStage(), theIntern, t, true, isHeuristic);
                     rootIsSet = true;
                 }
                 else if (rootIsSet && dPStages[t - 1].FutureActiveState.Count == 0)
@@ -73,7 +73,7 @@ namespace SubProblemDP
                 }
                 else if (rootIsSet)
                 {
-                    dPStages[t] = new DPStage(ref allFinalStages, allBranches, RCStart_tdh, RCPi2, RCDes, data, dPStages[t - 1], theIntern, t, false, isHeuristic);
+                    dPStages[t] = new DPStage(ref allFinalStages, allBranches, bestPositions, RCStart_tdh, RCPi2, RCDes, data, dPStages[t - 1], theIntern, t, false, isHeuristic);
                 }
                 MaxProcessedNode += dPStages[t].MaxProcessedNode;
                 RealProcessedNode += dPStages[t].RealProcessedNode;
@@ -105,6 +105,7 @@ namespace SubProblemDP
                 column.setRosterFromStartTime(data);
                 double rc = column.setReducedCost(dual, data);
                 column.RCCalculated = rc;
+                
                 if (!column.isColumnFeasible(data))
                 {
                     Console.WriteLine();
@@ -138,7 +139,7 @@ namespace SubProblemDP
         {
             new ArrayInitializer().CreateArray(ref RCDual_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
             new ArrayInitializer().CreateArray(ref RCStart_tdh, data.General.TimePriods, data.General.Disciplines, data.General.Hospitals, 0);
-
+            bestPositions = new ArrayList();
             RCPi2 = 0;
             RCDes = 0;
 

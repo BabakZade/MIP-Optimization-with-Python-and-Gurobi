@@ -63,6 +63,7 @@ namespace DataLayer
 		public double MaxPrfDiscipline;
 		public double AveDur;
         public bool[] twinIntern;
+        public double[] ratioAttendList_g;
 
         public int[] sortedTimeOrder;
 
@@ -86,6 +87,7 @@ namespace DataLayer
 			new ArrayInitializer().CreateArray(ref AllDes_dh,Disciplines, Hospitals, -1);
 			new ArrayInitializer().CreateArray(ref takingDiscPercentage, Disciplines, 0);
             new ArrayInitializer().CreateArray(ref sortedTimeOrder, Disciplines, -1);
+            new ArrayInitializer().CreateArray(ref ratioAttendList_g, DisciplineGr, 0);
             wieght_d = 0;
 			wieght_h = 0;
 			wieght_w = 0;
@@ -573,6 +575,25 @@ namespace DataLayer
                 }
             }
 
+            // set ratio
+            
+            for (int g = 0; g < allData.General.DisciplineGr; g++)
+            {
+                int total = 0;
+                for (int d = 0; d < allData.General.Disciplines; d++)
+                {
+                    if (DisciplineList_dg[d][g])
+                    {
+                        total++;
+                    }
+                }
+                if (ShouldattendInGr_g[g] > 0)
+                {
+                    ratioAttendList_g[g] = total / ShouldattendInGr_g[g];
+                }
+                
+            }
+
         }
 
         public int requiredTime(bool[] involvedDisc, int[] remainedK_g,int remaindedKall, AllData allData) 
@@ -600,7 +621,7 @@ namespace DataLayer
                 int gInd = -1;
                 for (int g = 0; g < allData.General.DisciplineGr; g++)
                 {
-                    if (DisciplineList_dg[dIndex][g] && K_g[g] > 0)
+                    if (DisciplineList_dg[dIndex][g] && K_g[g] > 0 && (gInd < 0 || ratioAttendList_g[g] > ratioAttendList_g[gInd]))
                     {
                         flg = true;
                         gInd = g;
@@ -613,6 +634,7 @@ namespace DataLayer
                     disStatus[dIndex] = true;
                     remaindedKall--;
                 }
+                
             }
 
 
