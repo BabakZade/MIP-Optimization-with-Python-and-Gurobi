@@ -52,6 +52,18 @@ namespace SubProblemDP
                 parentNode = parent;
             }
             DPStageProcedure(ref finalSchedules, AllBranches);
+            // seve the final schedules 
+            int counter = -1;
+            while (counter < FutureActiveState.Count - 1)
+            {
+                counter++;
+                if (((StateStage)FutureActiveState[counter]).x_K == 0)
+                {
+                    finalSchedules.Add((StateStage)FutureActiveState[counter]);
+                    FutureActiveState.RemoveAt(counter);
+                    counter--;
+                }
+            }
 
         }
 
@@ -83,7 +95,8 @@ namespace SubProblemDP
                             if (h < data.General.Hospitals && data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
                                 && checkDiscipline(d, h, AllBranches, new StateStage(data) { }))
                             {
-                                
+
+
                                 StateStage tmp = new StateStage(data);
                                 tmp.isRoot = true;
                                 tmp.x_Hosp = h;
@@ -105,13 +118,13 @@ namespace SubProblemDP
                     }
                 }
 
-               
-                    // wait 
-                    StateStage tmpwait = new StateStage(data);
-                    tmpwait.isRoot = true;
-                    tmpwait.x_wait = true;
-                    activeStatesValue[0].Add(tmpwait);
-                
+
+                // wait 
+                StateStage tmpwait = new StateStage(data);
+                tmpwait.isRoot = true;
+                tmpwait.x_wait = true;
+                activeStatesValue[0].Add(tmpwait);
+
             }
             else
             {
@@ -154,9 +167,11 @@ namespace SubProblemDP
                                 {
                                     for (int w = 0; w < data.General.HospitalWard; w++)
                                     {
+
                                         if (h < data.General.Hospitals && data.Hospital[h].Hospital_dw[d][w] && data.Hospital[h].HospitalMaxDem_tw[stageTime][w] > 0
                                             && checkDiscipline(d, h, AllBranches, (StateStage)parentNode.FutureActiveState[c]))
                                         {
+
                                             StateStage tmp = new StateStage(data);
                                             tmp.isRoot = false;
                                             tmp.x_Hosp = h;
@@ -179,15 +194,15 @@ namespace SubProblemDP
                             }
                         }
                         // the wait, it happens if there is no oversea request otherwise it is infeasible 
-                        if (noOversea && ((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline<0)
+                        if (noOversea && ((StateStage)parentNode.FutureActiveState[c]).x_K > 0 && ((StateStage)parentNode.FutureActiveState[c]).theSchedule_t[stageTime].theDiscipline < 0)
                         {
-                            
+
                             StateStage tmpwait = new StateStage(data);
                             tmpwait.x_wait = true;
                             activeStatesValue[counter].Add(tmpwait);
                         }
-                            
-                        
+
+
                     }
                     else
                     {
@@ -205,35 +220,22 @@ namespace SubProblemDP
 
         public void setFutureState(ArrayList AllBranches)
         {
-            Console.WriteLine("====== Stage " + stageTime + " ======");
+            //Console.WriteLine("====== Stage " + stageTime + " ======");
             for (int c = 0; c < ActiveStatesCount; c++)
             {
-                Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
+
+                //Console.WriteLine("*** " + ((StateStage)activeStatesValue[c][0]).x_Hosp + " " + ((StateStage)activeStatesValue[c][0]).x_Disc + " " + ((StateStage)activeStatesValue[c][0]).x_K + " " + ((StateStage)activeStatesValue[c][0]).x_wait + " " + ((StateStage)activeStatesValue[c][0]).Fx);
                 // 0 is the current state
                 for (int i = 1; i < activeStatesValue[c].Count; i++)
                 {
                     StateStage tmp = new StateStage((StateStage)activeStatesValue[c][0], (StateStage)activeStatesValue[c][i], RCDes, theIntern, data, stageTime, rootStage);
                     foreach (StateStage item in tmp.possibleStates)
                     {
+                        
                         item.Fx += returnDemandCost(item.x_Disc, item.x_Hosp, stageTime, item.x_wait);
 
-                        Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
+                        //Console.WriteLine(item.x_Hosp + " " + item.x_Disc + " " + item.x_K + " " + item.x_wait + " " + item.Fx);
                         FutureActiveState.Add(item);
-                        //int index = 0;
-                        //foreach (StateStage futur in FutureActiveState)
-                        //{
-
-                        //	if (futur.Fx / (data.Intern[theIntern].K_AllDiscipline - futur.x_K)  > item.Fx / (data.Intern[theIntern].K_AllDiscipline - item.x_K))
-                        //	{
-                        //		index++;
-                        //	}
-                        //	else
-                        //	{
-                        //		break;
-                        //	}
-                        //} 
-                        //FutureActiveState.Insert(index, item);
-
                     }
                 }
             }
@@ -282,7 +284,6 @@ namespace SubProblemDP
         // redundant schedule d1h1 - d2h2 - d3h3 === d2h2 - d1h1 -d3h3 (last one is fixed)
         public void cleanRedundantSequence()
         {
-            
             int counter = -1;
             while (counter < FutureActiveState.Count - 1 && counter >= -1)
             {
@@ -392,7 +393,13 @@ namespace SubProblemDP
                         while (removeCounter < FutureActiveState.Count - 1 && removeCounter >= -1)
                         {
                             removeCounter++;
+
                             StateStage state = (StateStage)FutureActiveState[removeCounter];
+                            int remainK = data.Intern[theIntern].K_AllDiscipline - state.x_K;
+                            if (remainK != length)
+                            {
+                                continue;
+                            }
                             bool notSimmilar = false;
                             for (int g = 0; g < data.General.DisciplineGr; g++)
                             {
@@ -486,6 +493,7 @@ namespace SubProblemDP
                                 }
                                 else
                                 {
+                                    
                                     FutureActiveState.RemoveAt(removeCounter);
                                     removeCounter--;
                                 }
@@ -635,12 +643,13 @@ namespace SubProblemDP
 
         public void removeInfeasibleNode(ArrayList AllBranches)
         {
+            
             int counterr = -1;
             while (counterr < FutureActiveState.Count - 1)
             {
                 counterr++;
                 StateStage state = (StateStage)FutureActiveState[counterr];
-                int timeLine = stageTime;
+                int timeLine = ((StateStage)FutureActiveState[counterr]).tStage;
                 for (int t = stageTime + 1; t < data.General.TimePriods; t++)
                 {
                     if (state.theSchedule_t[t].theDiscipline == -1)
@@ -653,6 +662,21 @@ namespace SubProblemDP
                 int requiredTime = data.Intern[theIntern].requiredTime(state.activeDisc, state.x_K_g, state.x_K,data);
                 if (requiredTime + timeLine > data.General.TimePriods)
                 {
+                    StateStage xxxxx = (StateStage)FutureActiveState[counterr];
+                    if (xxxxx.theSchedule_t[0].theDiscipline == 5 && xxxxx.theSchedule_t[0].theHospital == 2 && theIntern == 10)
+                    {
+
+                        Console.WriteLine(xxxxx.description);
+                        if (xxxxx.theSchedule_t[5].theDiscipline == 4 && xxxxx.theSchedule_t[5].theHospital == 2)
+                        {
+                            Console.WriteLine();
+                            if (xxxxx.theSchedule_t[12].theDiscipline == 3 && xxxxx.theSchedule_t[12].theHospital == 2)
+                            {
+                                Console.WriteLine();
+                                continue;
+                            }
+                        }
+                    }
                     FutureActiveState.RemoveAt(counterr);
                     counterr--;
                 }
@@ -712,6 +736,7 @@ namespace SubProblemDP
 
         public void removeNotPromissingNodes()
         {
+            
             int counterr = -1;
             while (counterr < FutureActiveState.Count - 1)
             {

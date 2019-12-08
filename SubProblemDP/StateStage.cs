@@ -47,6 +47,7 @@ namespace SubProblemDP
 		public StateSchedule[] theSchedule_t;
 		public int tStage;
 		public int totalChange;
+        public string description;
 		public StateStage(AllData alldata)
 		{
 			data = alldata;
@@ -64,6 +65,7 @@ namespace SubProblemDP
 			}
 			activeDisc = new bool[alldata.General.Disciplines];
 			totalChange = 0;
+            description = "";
 		}
 		public StateStage(StateStage stateInput, StateStage xInput, double desireCoeff, int theI, AllData alldata, int theStageTime, bool isRoot)
 		{
@@ -75,18 +77,24 @@ namespace SubProblemDP
             if (isRoot)
 			{
 				this.isRoot = true;
-			}
+
+            }
+            else
+            {
+                description = stateInput.description;
+            }
 
 			if (xInput.x_wait)
 			{
 				x_wait = true;
-				
-				if (!isRoot)
+                description += " W ";
+                if (!isRoot)
 				{
 					x_Disc = stateInput.x_Disc;
 					x_Hosp = stateInput.x_Hosp;
 					x_group = stateInput.x_group;
                     Fx = desireCoeff * data.Intern[theI].wieght_w; // if it is root the x_k == 0 so it was not calculated above 
+                    
                 }
 				else
 				{
@@ -101,7 +109,9 @@ namespace SubProblemDP
 				x_Disc = xInput.x_Disc;
 				x_Hosp = xInput.x_Hosp;
 				x_group = xInput.x_group;
-				x_wait = false;
+                description += " " + x_Disc + "-" + x_Hosp +" ";
+
+                x_wait = false;
 				activeDisc[x_Disc] = true;
 				if (x_Hosp < data.General.Hospitals)
 				{
@@ -119,6 +129,7 @@ namespace SubProblemDP
 			}
 			if (!isRoot)
 			{
+                
 				Fx += stateInput.Fx;
 				if (!xInput.x_wait)
 				{
@@ -216,7 +227,7 @@ namespace SubProblemDP
 			if (x_wait)
 			{
 				possibleStates.Add(this);
-			}
+            }
 			else if(x_Disc >= 0)
 			{
 				for (int g = 0; g < data.General.DisciplineGr; g++)
@@ -252,6 +263,7 @@ namespace SubProblemDP
 		StateStage copyState(StateStage copyable, int theG, int theI)
 		{
 			StateStage duplicated = new StateStage(data);
+            duplicated.description = copyable.description;
 			duplicated.Fx = copyable.Fx;
 			duplicated.xStar = copyable.xStar;
 			duplicated.x_wait = copyable.x_wait;

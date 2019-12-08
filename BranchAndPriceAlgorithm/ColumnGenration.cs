@@ -112,7 +112,6 @@ namespace BranchAndPriceAlgorithm
             isMIP = RMP.is_mip;
 
             display_time(insName);
-            findAndAddColumn(AllBranches, dual, insName, 2);
             RMP.RMP.End();
            
         }
