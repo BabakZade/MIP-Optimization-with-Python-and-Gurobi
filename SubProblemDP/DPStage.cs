@@ -59,7 +59,19 @@ namespace SubProblemDP
                 counter++;
                 if (((StateStage)FutureActiveState[counter]).x_K == 0)
                 {
-                    finalSchedules.Add((StateStage)FutureActiveState[counter]);
+                    int index = 0;
+                    foreach (StateStage item in finalSchedules)
+                    {
+                        if (item.Fx > ((StateStage)FutureActiveState[counter]).Fx)
+                        {
+                            index++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    finalSchedules.Insert(index, (StateStage)FutureActiveState[counter]);
                     FutureActiveState.RemoveAt(counter);
                     counter--;
                 }

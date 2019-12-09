@@ -266,13 +266,8 @@ namespace BranchAndPriceAlgorithm
             int totalColumn = 0;
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            bool firstCol = false;
             for (int i = 0; i < Interns; i++)
             {
-                if (i == 10)
-                {
-                    Console.WriteLine();
-                }
                 GC.Collect();
                 preStopProcedure(dual, i);
                 SubProblemDP.DP sp = new SubProblemDP.DP(dual, AllBranches, data, i);
@@ -285,7 +280,6 @@ namespace BranchAndPriceAlgorithm
                         {
                             maxDesire_i[i] = column.desire;
                         }
-                        addTheColumn(column);
                         RMP.addColumn(column);
                     }
 

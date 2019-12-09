@@ -77,7 +77,10 @@ namespace SubProblemDP
                 }
                 MaxProcessedNode += dPStages[t].MaxProcessedNode;
                 RealProcessedNode += dPStages[t].RealProcessedNode;
-                
+                if (allFinalStages.Count > data.AlgSettings.solutionPoolLimit)
+                {
+                    break;
+                }
             }
         }
 

@@ -15,6 +15,7 @@ namespace DataLayer
 		public int BPTime;
 		public int BigM;
 		public int MotivationBM;
+        public int solutionPoolLimit;
 
         // evolutionary algorithm for addapted weight setting
         public int sizeOfArchivedSet;
@@ -25,6 +26,7 @@ namespace DataLayer
             sizeOfArchivedSet = 100;
             sizeOfEvolutionaySet = 100;
             totalIteration = 20;
+            solutionPoolLimit = 20;
         }
 
 		// Epsilon
