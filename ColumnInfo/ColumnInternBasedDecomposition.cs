@@ -9,6 +9,13 @@ namespace ColumnAndBranchInfo
         public int theTime;
         public int theHospital;
         public int theDiscipline;
+
+        public RosterPosition(int initializer) 
+        {
+            theTime = initializer;
+            theHospital = initializer;
+            theDiscipline = initializer;
+        }
         public RosterPosition(RosterPosition copyable) 
         {
             theTime = copyable.theTime;

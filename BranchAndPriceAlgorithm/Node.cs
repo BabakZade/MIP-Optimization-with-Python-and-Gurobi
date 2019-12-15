@@ -119,11 +119,12 @@ namespace BranchAndPriceAlgorithm
             {
                 is_mip = true;
             }
-            setBounds();
+            setBounds(insName);
         }
-        public void setBounds()
+        public void setBounds(string insName)
         {
             Upperbound = NodeCG.BestSolution;
+            
             if (is_mip)
             {
                 optimalsolution = new OptimalSolution(data);
@@ -147,7 +148,10 @@ namespace BranchAndPriceAlgorithm
                 }
 
             }
-
+            else
+            {
+                LowerBound.HungrianBasedLowerbound hLB = new LowerBound.HungrianBasedLowerbound(data, NodeCG.RMP.DataColumn, "HungLB" + insName);
+            }
             saveInfo();
             
         }

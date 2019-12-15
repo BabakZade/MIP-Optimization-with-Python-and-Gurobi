@@ -13,7 +13,7 @@ namespace MedicalTraineeScheduling
 		static void Main(string[] args)
 		{
             //new SolveMe().createInstanceObjCoeff(5);
-            new SolveMe().solveThisDataSetBP(1, 1, "Test", "BPDP",2);
+            new SolveMe().solveThisDataSetBP(1, 5, "Test", "BPDP",2);
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             //new SolveMe().solveAddaptiveWeight();

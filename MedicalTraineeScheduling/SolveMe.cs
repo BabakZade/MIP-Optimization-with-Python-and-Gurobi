@@ -1143,6 +1143,10 @@ namespace MedicalTraineeScheduling
             {
                 for (int i = 0; i < totalInstance; i++)
                 {
+                    if (i < 3)
+                    {
+                        continue;
+                    }
                     groupCounter++;
                     if (groupCounter < 31)
                     {

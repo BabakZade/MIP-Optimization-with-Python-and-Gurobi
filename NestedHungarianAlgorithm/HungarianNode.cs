@@ -15,11 +15,13 @@ namespace NestedHungarianAlgorithm
 		public bool ResDem;
 		public bool Mindemand;
 		public double positionDesire;
+        public int tIndex;
 		public PositionMap(int x)
 		{
 			HIndex = x;
 			WIndex = x;
 			dIndex = x;
+            tIndex = x;
 			DemandIndex = x;
 			EmrDem = false;
 			ResDem = false;
@@ -31,6 +33,7 @@ namespace NestedHungarianAlgorithm
 			HIndex = copyable.HIndex;
 			WIndex = copyable.WIndex;
 			dIndex = copyable.dIndex;
+            tIndex = copyable.tIndex;
 			DemandIndex = copyable.DemandIndex;
 			EmrDem = copyable.EmrDem;
 			ResDem = copyable.ResDem;
@@ -1172,6 +1175,7 @@ namespace NestedHungarianAlgorithm
                     // Hospital changed
                     LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
                     LastPosition_i[i].dIndex = discIn;
+                    LastPosition_i[i].tIndex = TimeID;
                     Change_ih[i][((PositionMap)MappingTable[Index]).HIndex]--;
                     // we need to assign intern to the discipline not to ward
                     Schedule_idh[i][discIn][((PositionMap)MappingTable[Index]).HIndex] = true;
@@ -1225,6 +1229,7 @@ namespace NestedHungarianAlgorithm
                             // Hospital changed
                             LastPosition_i[i].CopyPosition((PositionMap)MappingTable[Index]);
                             LastPosition_i[i].dIndex = discIn;
+                            LastPosition_i[i].tIndex = TimeID;
                             // we need to assign intern to the discipline not to ward
                             Schedule_idh[i][discIn][Hospitals] = true; // oversea hospital
                             for (int t = TimeID; t < TimeID + data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID]; t++)

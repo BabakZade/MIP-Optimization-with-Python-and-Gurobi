@@ -23,9 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubProblemCP", "SubProblemC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubProblemDP", "SubProblemDP\SubProblemDP.csproj", "{2A2E31BE-56B9-4EB4-8593-9BAA6B3E7083}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubProblemMIP", "SubProblemMIP\SubProblemMIP.csproj", "{370F8344-0471-48A7-97AB-A0DD48DCCBF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubProblemMIP", "SubProblemMIP\SubProblemMIP.csproj", "{370F8344-0471-48A7-97AB-A0DD48DCCBF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColumnAndBranchInfo", "ColumnInfo\ColumnAndBranchInfo.csproj", "{3156BF38-541E-4FA0-A51D-FA3B5FF0B65A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ColumnAndBranchInfo", "ColumnInfo\ColumnAndBranchInfo.csproj", "{3156BF38-541E-4FA0-A51D-FA3B5FF0B65A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LowerBound", "LowerBound\LowerBound.csproj", "{E25FB32B-7E0E-44B8-8111-06D0BE113A5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{3156BF38-541E-4FA0-A51D-FA3B5FF0B65A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3156BF38-541E-4FA0-A51D-FA3B5FF0B65A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3156BF38-541E-4FA0-A51D-FA3B5FF0B65A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E25FB32B-7E0E-44B8-8111-06D0BE113A5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E25FB32B-7E0E-44B8-8111-06D0BE113A5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E25FB32B-7E0E-44B8-8111-06D0BE113A5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E25FB32B-7E0E-44B8-8111-06D0BE113A5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
