@@ -76,6 +76,7 @@ namespace NestedHungarianAlgorithm
         public int[] K_totalDiscipline;
         public int[][] discGrCounter_ig;
         public int[][] TotalDiscInGr_ig;
+        public bool ifLowerBound;
 
         public int Interns;
         public int Disciplins;
@@ -574,22 +575,27 @@ namespace NestedHungarianAlgorithm
 
                             //if she will take this discipline 
                             bool willTakeIt = false;
-                            for (int t = 0; t < Timepriods && !willTakeIt; t++)
+                            if (MotivationList_itdh[i][TimeID][discIn][((PositionMap)MappingTable[j]).HIndex])
                             {
-                                for (int h = 0; h < Hospitals && !willTakeIt; h++)
-                                {
-                                    if (MotivationList_itdh[i][t][discIn][h])
-                                    {
-                                        willTakeIt = true;
-                                    }
-                                }
+                                willTakeIt = true;
                             }
-
                             // discipline prf and Training Program prf
-                            if (true && (data.Intern[i].takingDiscPercentage[discIn] > 0.95 || willTakeIt)) // for the discipline which will be added anyway I will not add preferences 
+                            if (willTakeIt) // lowerbound
+                            {
+                                CostMatrix_i_whDem[i][j] -= 100 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
+                            }
+                            else if(ifLowerBound)
+                            {
+                               
+                                //CostMatrix_i_whDem[i][j] += 4 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
+
+                            }
+                            // if it is not lowerbound but it is promissing discipline
+                            if (data.Intern[i].takingDiscPercentage[discIn] > 0.95 && !ifLowerBound) // for the discipline which will be added anyway I will not add preferences 
                             {
                                 CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }
+                            
                             else
                             {
                                 CostMatrix_i_whDem[i][j] -= coeff * data.Intern[i].wieght_d * data.Intern[i].Prf_d[discIn];
@@ -639,7 +645,10 @@ namespace NestedHungarianAlgorithm
                             {
                                // CostMatrix_i_whDem[i][j] /= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
                             }
-
+                            //if (willTakeIt)
+                            //{
+                            //    Console.WriteLine("Motintern "+ i +" discipline "+ discIn +" hospital "+ ((PositionMap)MappingTable[j]).HIndex + " time + "+ TimeID +" cost: "+ CostMatrix_i_whDem[i][j]);
+                            //}
                         }
                     }
                     else if (j < TotalAvailablePosition + Interns) // oversea intern
@@ -868,7 +877,7 @@ namespace NestedHungarianAlgorithm
                     // like MIP
                     for (int p = 0; p < data.General.TrainingPr; p++)
                     {
-                        if (((PositionMap)MappingTable[j]).Mindemand && data.Intern[i].isProspective)
+                        if (((PositionMap)MappingTable[j]).Mindemand && data.Intern[i].isProspective && !ifLowerBound)
                         {
                            
                             CostMatrix_i_whDem[i][j] -= data.TrainingPr[p].CoeffObj_MINDem ;
@@ -954,7 +963,7 @@ namespace NestedHungarianAlgorithm
                 {
                     for (int r = 0; r < Region; r++)
                     {
-                        if (sHeOccupies_ir[i][r] && data.Intern[i].TransferredTo_r[r] && data.Hospital[((PositionMap)MappingTable[j]).HIndex].InToRegion_r[r] && AvAcc_rt[r][TimeID] > 0)
+                        if (sHeOccupies_ir[i][r] && data.Intern[i].TransferredTo_r[r] && data.Hospital[((PositionMap)MappingTable[j]).HIndex].InToRegion_r[r] && AvAcc_rt[r][TimeID] > 0 && !ifLowerBound)
                         {
                             int discIn = Disc_iwh[i][((PositionMap)MappingTable[j]).WIndex][((PositionMap)MappingTable[j]).HIndex];
                             if (discIn == -1)
@@ -1005,7 +1014,7 @@ namespace NestedHungarianAlgorithm
                         // if the intern is already assigned to this discipline
                         if (discIn >= 0)
                         {
-                            if (data.Discipline[discIn].requiredLater_p[data.Intern[i].ProgramID] && !NotRequiredSkill_id[i][discIn])
+                            if (data.Discipline[discIn].requiredLater_p[data.Intern[i].ProgramID] && !NotRequiredSkill_id[i][discIn] && !ifLowerBound)
                             {
                                 if (TimeID < data.General.TimePriods / 2 && data.Intern[i].takingDiscPercentage[discIn] >= 0.95)
                                 {
@@ -1024,9 +1033,10 @@ namespace NestedHungarianAlgorithm
 
         public HungarianNode() { }
 
-        public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id)
+        public HungarianNode(int startTime, AllData allData, HungarianNode parent, bool[][][][] MotivationList_itdh, bool[][] NotRequiredSkill_id, bool ifLowerBound)
         {
             TimeID = startTime;
+            this.ifLowerBound = ifLowerBound;
             Console.WriteLine("Time " + TimeID.ToString("00") + " Statuse processing");
 
             parentNode = parent;
@@ -1278,6 +1288,7 @@ namespace NestedHungarianAlgorithm
                     desireNow = data.Intern[i].wieght_w;               
                 }
                 minDesire_i[i] += desireNow;
+                
             }
         }
 

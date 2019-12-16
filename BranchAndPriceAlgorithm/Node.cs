@@ -35,6 +35,7 @@ namespace BranchAndPriceAlgorithm
         public double[][][] minDem_twh;
         public double[][][] resDem_twh;
         public double[][][] emrDem_twh;
+        public double lowerBound;
 
 
         public Node(DataLayer.AllData allData, string insName, int procedureType)
@@ -53,10 +54,11 @@ namespace BranchAndPriceAlgorithm
 
         }
 
-        public Node(AllData allData, Node FatherNode, ArrayList allColumn, Branch new_branch, string insName, int procedureType)
+        public Node(AllData allData, Node FatherNode, ArrayList allColumn, Branch new_branch, string insName, int procedureType, double lowerBound)
         {
             data = allData;
             intial();
+            this.lowerBound = lowerBound;
             BranchCounter_i = new int[allData.General.Interns];
             for (int i = 0; i < allData.General.Interns; i++)
             {
@@ -73,6 +75,7 @@ namespace BranchAndPriceAlgorithm
         public void intial() 
         {
             // initialize
+            lowerBound = -data.AlgSettings.BigM;
             branch_trace = new ArrayList();
             new ArrayInitializer().CreateArray(ref BrnchHistory_yidDh, data.General.Interns, data.General.Disciplines + 1, data.General.Disciplines + 1, data.General.Hospitals, false);
             new ArrayInitializer().CreateArray(ref BrnchHistory_Sidth, data.General.Interns, data.General.Disciplines, data.General.TimePriods, data.General.Hospitals, false);
@@ -127,6 +130,11 @@ namespace BranchAndPriceAlgorithm
             
             if (is_mip)
             {
+                if (lowerBound < NodeCG.BestSolution)
+                {
+                    lowerBound = NodeCG.BestSolution;
+                }
+                
                 optimalsolution = new OptimalSolution(data);
                 foreach (ColumnInternBasedDecomposition item in NodeCG.RMP.DataColumn)
                 {
@@ -151,6 +159,17 @@ namespace BranchAndPriceAlgorithm
             else
             {
                 LowerBound.HungrianBasedLowerbound hLB = new LowerBound.HungrianBasedLowerbound(data, NodeCG.RMP.DataColumn, "HungLB" + insName);
+                if (hLB.LBResult.Obj > lowerBound)
+                {
+                    lowerBound = hLB.LBResult.Obj;
+                    hLB.LBResult.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
+                }
+                LowerBound.GreedyLowerBound gLB = new LowerBound.GreedyLowerBound(data, NodeCG.RMP.DataColumn, "GreedyLB" + insName);
+                if (gLB.LBResult.Obj > lowerBound)
+                {
+                    lowerBound = gLB.LBResult.Obj;
+                    gLB.LBResult.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
+                }
             }
             saveInfo();
             

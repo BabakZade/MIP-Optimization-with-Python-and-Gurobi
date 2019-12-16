@@ -17,17 +17,18 @@ namespace LowerBound
         public double [][][][] columnInfo_itdh;
         public bool[][] NotRequiredSkill_id;
         
+        
 
         HungarianNode Root;
         public OptimalSolution LBResult;
 
         public HungrianBasedLowerbound(AllData allData, ArrayList columns, string Name) {
-            initial(allData, columns);
+            initial(allData);
             procedure(columns,Name);
 
         }
 
-        public void initial(AllData allData, ArrayList columns) 
+        public void initial(AllData allData) 
         {
             data = allData;
             ActiveList = new ArrayList();
@@ -48,13 +49,13 @@ namespace LowerBound
         public void TimelineBasedHungarianAlgorithm(ArrayList columns)
         {
             setMotivationfForTime(0, new PositionMap[data.General.Interns], true, columns);
-            Root = new HungarianNode(0, data, new HungarianNode(), motivationList_itdh, NotRequiredSkill_id);
+            Root = new HungarianNode(0, data, new HungarianNode(), motivationList_itdh, NotRequiredSkill_id, true);
             
             ActiveList.Add(Root);
             for (int t = 1; t < data.General.TimePriods; t++)
             {
                 setMotivationfForTime(t, ((HungarianNode)ActiveList[ActiveList.Count - 1]).LastPosition_i, false, columns);
-                HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)ActiveList[t - 1], motivationList_itdh, NotRequiredSkill_id);
+                HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)ActiveList[t - 1], motivationList_itdh, NotRequiredSkill_id, true);
                 ActiveList.Add(nestedHungrian);
             }
         }
@@ -108,6 +109,7 @@ namespace LowerBound
                     if (indexH >= 0)
                     {
                         motivationList_itdh[i][timeIndex][indexD][indexH] = true;
+                        //Console.WriteLine("Expected itdh: " + i + " " + timeIndex + " " + indexD + " " + indexH);
                     }
                 }
             }
@@ -118,6 +120,7 @@ namespace LowerBound
                     int dInd = lastPos[i].dIndex;
                     int hInd = lastPos[i].HIndex;
                     int tInd = lastPos[i].tIndex;
+                    //Console.WriteLine("Happend itdh: " + i + " " + lastPos[i].tIndex + " " + lastPos[i].dIndex + " " + lastPos[i].HIndex);
                     double maxVal = 0 + data.AlgSettings.RCepsi;
                     int colIndex = -1;
                     int counter = -1;
@@ -130,6 +133,20 @@ namespace LowerBound
                             colIndex = counter;
                         }
                     }
+
+                    if (colIndex == -1 )
+                    {
+                        counter = -1;
+                        foreach (ColumnInternBasedDecomposition column in columns)
+                        {
+                            counter++;
+                            if (column.xVal > maxVal && column.theIntern == i)
+                            {
+                                maxVal = column.xVal;
+                                colIndex = counter;
+                            }
+                        }
+                    }
                     for (int d = 0; d < data.General.Disciplines && colIndex >= 0; d++)
                     {
                         for (int h = 0; h < data.General.Hospitals; h++)
@@ -137,9 +154,11 @@ namespace LowerBound
                             if (((ColumnInternBasedDecomposition)columns[colIndex]).S_tdh[timeIndex][d][h])
                             {
                                 motivationList_itdh[i][timeIndex][d][h] = true;
+                                //Console.WriteLine("Expected itdh: " + i + " " + timeIndex + " " + d + " " + h);
                             }
                         }
                     }
+                   
                     
                 }
             }

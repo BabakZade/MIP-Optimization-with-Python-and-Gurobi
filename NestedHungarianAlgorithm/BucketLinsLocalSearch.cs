@@ -582,13 +582,13 @@ namespace NestedHungarianAlgorithm
 			if (theTimeOfImprove == 0)
 			{
 				theTimeOfImprove = 1;
-				HungarianNode Root = new HungarianNode(0, data, new HungarianNode(), bucketArray_itdh, NotRequiredSkill_id);
+				HungarianNode Root = new HungarianNode(0, data, new HungarianNode(), bucketArray_itdh, NotRequiredSkill_id, false);
 				HungarianActiveList.Add(Root);
 			}
 			
 			for (int t = theTimeOfImprove; t < Timepriods; t++)
 			{
-				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1],bucketArray_itdh, NotRequiredSkill_id);
+				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1],bucketArray_itdh, NotRequiredSkill_id,false);
 				HungarianActiveList.Add(nestedHungrian);
 			}
 		}

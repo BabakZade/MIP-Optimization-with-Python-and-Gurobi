@@ -91,6 +91,7 @@ namespace BranchAndPriceAlgorithm
             {
                 root.Node_id = 1;
                 root.level = 1;
+                best_sol = root.lowerBound;
                 addColumns(root);
                 active_list.Add(root);
                 upper_bound = root.Upperbound;
@@ -123,8 +124,8 @@ namespace BranchAndPriceAlgorithm
             // if all variables are integer the objective will be integer 
             if (Math.Floor(((Node)active_list[0]).Upperbound) - best_sol < data.AlgSettings.RCepsi)
             {
-                active_list.RemoveAt(0);
-                return;
+                //active_list.RemoveAt(0);
+                //return;
             }
 
 
@@ -152,8 +153,11 @@ namespace BranchAndPriceAlgorithm
             left_node.BrID = lastBr.BrID * 2 + 1;
             right_node.BrID = left_node.BrID + 1;
 
-            Node tmp_left = new Node(data, (Node)active_list[0], allColumns, left_node, insName, procedureType);
-
+            Node tmp_left = new Node(data, (Node)active_list[0], allColumns, left_node, insName, procedureType, best_sol);
+            if (best_sol < tmp_left.lowerBound)
+            {
+                best_sol = tmp_left.lowerBound;
+            }
             
             ElappsedTime += tmp_left.ElappsedTime;
             
@@ -166,8 +170,11 @@ namespace BranchAndPriceAlgorithm
             tmp_left.Node_id = 2 * tmp_left.fatherNodeId + 1;
             tmp_left.level = ((Node)active_list[0]).level + 1;
 
-            Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName, procedureType);
-
+            Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName, procedureType, best_sol);
+            if (best_sol < tmp_left.lowerBound)
+            {
+                best_sol = tmp_left.lowerBound;
+            }
             left_node.BrObj = Math.Round( tmp_left.Upperbound, 2);
             right_node.BrObj = Math.Round(tmp_right.Upperbound,2);
             left_node.BrMIP = tmp_left.is_mip;
@@ -202,7 +209,10 @@ namespace BranchAndPriceAlgorithm
 
         public void putInActiveListInOrder(Node theNode, string insName)
         {
-           
+            if (theNode.lowerBound > best_sol)
+            {
+                best_sol = theNode.lowerBound;
+            }
             // update upperbound
             if (theNode.is_mip)
             {

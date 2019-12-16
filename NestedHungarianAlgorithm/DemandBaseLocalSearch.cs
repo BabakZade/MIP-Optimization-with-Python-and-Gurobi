@@ -1164,13 +1164,13 @@ namespace NestedHungarianAlgorithm
 					NotRequiredSkill_id[i][d] = false;
 				}
 			}
-			HungarianNode Root = new HungarianNode(0, data, new HungarianNode(), Global.Intern_itdh, NotRequiredSkill_id);
+			HungarianNode Root = new HungarianNode(0, data, new HungarianNode(), Global.Intern_itdh, NotRequiredSkill_id,false);
 			HungarianActiveList.Add(Root);
 
 
 			for (int t = 1; t < Timepriods; t++)
 			{
-				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1], Global.Intern_itdh, NotRequiredSkill_id);
+				HungarianNode nestedHungrian = new HungarianNode(t, data, (HungarianNode)HungarianActiveList[t - 1], Global.Intern_itdh, NotRequiredSkill_id,false);
 				HungarianActiveList.Add(nestedHungrian);
 			}
 		}
