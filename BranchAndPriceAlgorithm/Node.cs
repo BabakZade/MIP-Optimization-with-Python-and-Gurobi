@@ -133,28 +133,28 @@ namespace BranchAndPriceAlgorithm
                 if (lowerBound < NodeCG.BestSolution)
                 {
                     lowerBound = NodeCG.BestSolution;
-                }
-                
-                optimalsolution = new OptimalSolution(data);
-                foreach (ColumnInternBasedDecomposition item in NodeCG.RMP.DataColumn)
-                {
-                    if (item.xVal > 1 - data.AlgSettings.RCepsi)
+                    optimalsolution = new OptimalSolution(data);
+                    foreach (ColumnInternBasedDecomposition item in NodeCG.RMP.DataColumn)
                     {
-                        for (int t = 0; t < data.General.TimePriods; t++)
+                        if (item.xVal > 1 - data.AlgSettings.RCepsi)
                         {
-                            for (int d = 0; d < data.General.Disciplines; d++)
+                            for (int t = 0; t < data.General.TimePriods; t++)
                             {
-                                for (int h = 0; h < data.General.Hospitals + 1; h++)
+                                for (int d = 0; d < data.General.Disciplines; d++)
                                 {
-                                    optimalsolution.Intern_itdh[item.theIntern][t][d][h] = item.S_tdh[t][d][h];
+                                    for (int h = 0; h < data.General.Hospitals + 1; h++)
+                                    {
+                                        optimalsolution.Intern_itdh[item.theIntern][t][d][h] = item.S_tdh[t][d][h];
+                                    }
                                 }
                             }
                         }
+
+
                     }
-
-
-                }
-
+                    optimalsolution.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
+                }               
+                
             }
             else
             {
@@ -162,13 +162,19 @@ namespace BranchAndPriceAlgorithm
                 if (hLB.LBResult.Obj > lowerBound)
                 {
                     lowerBound = hLB.LBResult.Obj;
-                    hLB.LBResult.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
+                    optimalsolution = new OptimalSolution(data);
+                    optimalsolution.copyRosters(hLB.LBResult.Intern_itdh);
+
+                    optimalsolution.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
                 }
                 LowerBound.GreedyLowerBound gLB = new LowerBound.GreedyLowerBound(data, NodeCG.RMP.DataColumn, "GreedyLB" + insName);
                 if (gLB.LBResult.Obj > lowerBound)
                 {
                     lowerBound = gLB.LBResult.Obj;
-                    gLB.LBResult.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
+                    optimalsolution = new OptimalSolution(data);
+                    optimalsolution.copyRosters(gLB.LBResult.Intern_itdh);
+
+                    optimalsolution.WriteSolution(data.allPath.OutPutGr, "LowerBound" + insName);
                 }
             }
             saveInfo();

@@ -7,6 +7,7 @@ using ColumnAndBranchInfo;
 
 namespace LowerBound
 {
+
     public class HungrianBasedLowerbound
     {
 
@@ -85,6 +86,23 @@ namespace LowerBound
 
         public void setMotivationfForTime(int timeIndex, PositionMap[] lastPos, bool ifroot, ArrayList columns) 
         {
+
+            for (int i = 0; i < data.General.Interns; i++)
+            {
+
+                for (int h = 0; h < data.General.Hospitals; h++)
+                {
+                    for (int d = 0; d < data.General.Disciplines; d++)
+                    {
+                        if (columnInfo_itdh[i][timeIndex][d][h] > 0.4)
+                        {
+                            motivationList_itdh[i][timeIndex][d][h] = true;
+                            
+                        }
+                    }
+                }
+            }
+            return;
             if (ifroot)
             {
                 for (int i = 0; i < data.General.Interns; i++)
@@ -133,7 +151,6 @@ namespace LowerBound
                             colIndex = counter;
                         }
                     }
-
                     if (colIndex == -1 )
                     {
                         counter = -1;

@@ -71,7 +71,7 @@ namespace BranchAndPriceAlgorithm
             active_list_count = 0;
 
             Node root = new Node(data, insName, procedureType);
-            
+            setOptimalSol(root, insName);
             ElappsedTime = root.ElappsedTime;
             
             totalNumberOfColumn = root.NodeCG.RMP.DataColumn.Count;
@@ -154,11 +154,8 @@ namespace BranchAndPriceAlgorithm
             right_node.BrID = left_node.BrID + 1;
 
             Node tmp_left = new Node(data, (Node)active_list[0], allColumns, left_node, insName, procedureType, best_sol);
-            if (best_sol < tmp_left.lowerBound)
-            {
-                best_sol = tmp_left.lowerBound;
-            }
-            
+            setOptimalSol(tmp_left, insName);
+
             ElappsedTime += tmp_left.ElappsedTime;
             
             totalNumberOfColumn += tmp_left.NodeCG.RMP.DataColumn.Count;
@@ -171,10 +168,8 @@ namespace BranchAndPriceAlgorithm
             tmp_left.level = ((Node)active_list[0]).level + 1;
 
             Node tmp_right = new Node(data, (Node)active_list[0], allColumns, right_node, insName, procedureType, best_sol);
-            if (best_sol < tmp_left.lowerBound)
-            {
-                best_sol = tmp_left.lowerBound;
-            }
+            setOptimalSol(tmp_right, insName);
+
             left_node.BrObj = Math.Round( tmp_left.Upperbound, 2);
             right_node.BrObj = Math.Round(tmp_right.Upperbound,2);
             left_node.BrMIP = tmp_left.is_mip;
@@ -209,19 +204,10 @@ namespace BranchAndPriceAlgorithm
 
         public void putInActiveListInOrder(Node theNode, string insName)
         {
-            if (theNode.lowerBound > best_sol)
-            {
-                best_sol = theNode.lowerBound;
-            }
             // update upperbound
-            if (theNode.is_mip)
-            {
-                setOptimalSol(theNode, insName);
-            }
-            else
-            {
-                addColumns(theNode);
-            }
+            setOptimalSol(theNode, insName);
+            addColumns(theNode);
+            
             if (theNode.Upperbound >= upper_bound)
             {
                 upper_bound = theNode.Upperbound;
@@ -732,8 +718,9 @@ namespace BranchAndPriceAlgorithm
 
         public void setOptimalSol(Node theNode, string insName)
         {
-            if (theNode.Upperbound > best_sol)
-            {                
+            if (theNode.lowerBound > best_sol)
+            {
+                best_sol = theNode.lowerBound;
                 optimalSol = new OptimalSolution(data);
                 optimalSol.copyRosters(theNode.optimalsolution.Intern_itdh);
                 

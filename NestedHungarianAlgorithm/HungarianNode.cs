@@ -582,16 +582,16 @@ namespace NestedHungarianAlgorithm
                             // discipline prf and Training Program prf
                             if (willTakeIt) // lowerbound
                             {
-                                CostMatrix_i_whDem[i][j] -= 100 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
+                                CostMatrix_i_whDem[i][j] -= 10 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }
-                            else if(ifLowerBound)
+                            else if(false && ifLowerBound)
                             {
                                
-                                //CostMatrix_i_whDem[i][j] += 4 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
+                                CostMatrix_i_whDem[i][j] += 10 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
 
                             }
                             // if it is not lowerbound but it is promissing discipline
-                            if (data.Intern[i].takingDiscPercentage[discIn] > 0.95 && !ifLowerBound) // for the discipline which will be added anyway I will not add preferences 
+                            else if (data.Intern[i].takingDiscPercentage[discIn] > 0.95 && !ifLowerBound) // for the discipline which will be added anyway I will not add preferences 
                             {
                                 CostMatrix_i_whDem[i][j] -= 2 * coeff * data.Intern[i].wieght_d * data.Intern[i].MaxPrfDiscipline; // (2 for traiining program and discipline )
                             }
@@ -645,10 +645,10 @@ namespace NestedHungarianAlgorithm
                             {
                                // CostMatrix_i_whDem[i][j] /= data.Discipline[discIn].Duration_p[data.Intern[i].ProgramID];
                             }
-                            //if (willTakeIt)
-                            //{
-                            //    Console.WriteLine("Motintern "+ i +" discipline "+ discIn +" hospital "+ ((PositionMap)MappingTable[j]).HIndex + " time + "+ TimeID +" cost: "+ CostMatrix_i_whDem[i][j]);
-                            //}
+                            if (willTakeIt && MotivationList_itdh[i][TimeID][discIn][((PositionMap)MappingTable[j]).HIndex])
+                            {
+                                Console.WriteLine("Motintern " + i + " discipline " + discIn + " hospital " + ((PositionMap)MappingTable[j]).HIndex + " time + " + TimeID + " cost: " + CostMatrix_i_whDem[i][j]);
+                            }
                         }
                     }
                     else if (j < TotalAvailablePosition + Interns) // oversea intern
@@ -1227,9 +1227,16 @@ namespace NestedHungarianAlgorithm
                             desireNow +=  data.Intern[i].wieght_cns * data.TrainingPr[data.Intern[i].ProgramID].cns_dD[prDisc][discIn];
                         }
                     }
+
+                    
+                        Console.WriteLine("Happendintern " + i + " discipline " + discIn + " hospital " + ((PositionMap)MappingTable[Index]).HIndex + " time + " + TimeID + " cost: " + CostMatrix_i_whDem[i][Index]);
+                    
                 }
                 else if (BestSchedule[i] < TotalAvailablePosition + Interns) // oversea
                 {
+
+                    Console.WriteLine("Happendintern " + i + " discipline " + discIn + " hospital " + ((PositionMap)MappingTable[Index]).HIndex + " time + " + TimeID + " cost: " + CostMatrix_i_whDem[i][Index]);
+
                     for (int d = 0; d < Disciplins; d++)
                     {
                         if (data.Intern[i].OverSea_dt[d][TimeID])
