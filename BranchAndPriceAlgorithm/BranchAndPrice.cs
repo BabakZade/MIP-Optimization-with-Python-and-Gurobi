@@ -205,7 +205,7 @@ namespace BranchAndPriceAlgorithm
         public void putInActiveListInOrder(Node theNode, string insName)
         {
             // update upperbound
-            setOptimalSol(theNode, insName);
+            //setOptimalSol(theNode, insName);
             addColumns(theNode);
             
             if (theNode.Upperbound >= upper_bound)
@@ -725,7 +725,7 @@ namespace BranchAndPriceAlgorithm
                 optimalSol.copyRosters(theNode.optimalsolution.Intern_itdh);
                 
                 optimalSol.WriteSolution(data.allPath.OutPutGr, "BPOpt"+ insName);
-                best_sol = theNode.Upperbound;
+                
             }
         }
 
