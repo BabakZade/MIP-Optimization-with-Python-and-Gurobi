@@ -1,3 +1,4 @@
+
 import os
 import statistics as st
 import pandas as pd
@@ -44,10 +45,13 @@ for i in range(np.shape(alldata)[0]):
                             -alldata['OTimeOut'][i],
                             alldata['OREff'][i],
                             alldata['WLEff'][i]])
-        partialSolSet.append([alldata['HospEff'][i],
-                            alldata['MSSEff'][i],
-                            alldata['OREff'][i],
-                            alldata['WLEff'][i]])
+        partialSolSet.append([alldata['MSSEff'][i],
+                            -alldata['SurWait'][i],
+                            -alldata['AssOpBl'][i],
+                            -alldata['RLInGr'][i],
+                            -alldata['RLOutGr'][i],
+                            -alldata['OTimeIn'][i],
+                            -alldata['OTimeOut'][i]])
 
 print(np.shape(IdSet))
 
@@ -73,17 +77,18 @@ for j1 in range(np.shape(partialSolSet)[0]): # total row
 
 # create radar chart for the 6 indicators
 ## Efficiency
-effNonDomSet = []
+nonDomSet = []
 HLLevelSettings = []
 ZelenyPointHL = np.zeros(np.shape(partialSolSet)[1])
+first = True
 for i in range(np.shape(domCount)[0]):
     #id in the data starts from 1 => use -1 in indexing
     if domCount[i] == 0:
         print(alldata['id'][IdSet[i]])
         # print([alldata['id'][IdSet[i]], alldata['HospEff'][IdSet[i]],
-        #                     alldata['MSSEff'][IdSet[i]],
-        #                     alldata['OREff'][IdSet[i]],
-        #                     alldata['WLEff'][IdSet[i]]])
+        #                      alldata['MSSEff'][IdSet[i]],
+        #                      alldata['OREff'][IdSet[i]],
+        #                      alldata['WLEff'][IdSet[i]]])
         HLLevelSettings.append([alldata['OpPr'][IdSet[i]],
                                alldata['Gsize'][IdSet[i]],
                                alldata['TcBl'][IdSet[i]],
@@ -93,61 +98,44 @@ for i in range(np.shape(domCount)[0]):
                                alldata['SurPrf'][IdSet[i]],
                                alldata['DPD'][IdSet[i]],
                                alldata['BPD'][IdSet[i]]])
-        effNonDomSet.append([alldata['HospEff'][IdSet[i]],
-                            alldata['MSSEff'][IdSet[i]],
-                            alldata['OREff'][IdSet[i]],
-                            alldata['WLEff'][IdSet[i]]])
+        nonDomSet.append([alldata['MSSEff'][IdSet[i]],
+                            -alldata['SurWait'][IdSet[i]],
+                            -alldata['AssOpBl'][IdSet[i]],
+                            -alldata['RLInGr'][IdSet[i]],
+                            -alldata['RLOutGr'][IdSet[i]],
+                            -alldata['OTimeIn'][IdSet[i]],
+                            -alldata['OTimeOut'][IdSet[i]]])
+        if first:
+            first = False
+            for i in range(np.shape(nonDomSet)[1]):
+                ZelenyPointHL[i] = nonDomSet[np.shape(nonDomSet)[0] - 1][i]
         for i in range(np.shape(partialSolSet)[1]):
-            if ZelenyPointHL[i] < effNonDomSet[np.shape(effNonDomSet)[0] - 1][i]:
-                ZelenyPointHL[i] = effNonDomSet[np.shape(effNonDomSet)[0] - 1][i]
+            if ZelenyPointHL[i] < nonDomSet[np.shape(nonDomSet)[0] - 1][i]:
+                ZelenyPointHL[i] = nonDomSet[np.shape(nonDomSet)[0] - 1][i]
 
 
+#normalize dataset
+nonDomSet = MOO.normalizeDataset(nonDomSet)
 
-np.shape(effNonDomSet)
+np.shape(nonDomSet)
 
 
-labels=[r'$\qquad\qquad Eff^{Hosp}$',
-        r'$Eff^{MS}$',
-        r'$Eff^{OR}\qquad$',
-        r'$Eff^{WL}$']
+labels=[r'$\qquad\qquad Eff^{MS}$',
+        r'$W^{S}$',
+        r'$Bl^{OB}\qquad$',
+        r'$Bl^{Rl}_{In}\qquad$',
+        r'$Bl^{Rl}_{Out}\qquad$',
+        r'$Bl^{OT}_{In}\qquad$',
+        r'$Bl^{OT}_{Out}\qquad$']
 
-lineStyles = ['^',':','--','-','-.', '+','^',':','--','-','-.', '+']
-markers = [0, 0.02, 0.04, 0.06, 0.08, 0.1]
 
-exLegend = ['1','2','3','4','5','6', '7', '8','9','10','11','12']
+markers = [0, 0.05, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
+
+exLegend = []
+for i in range(np.shape(nonDomSet)[0]):
+    exLegend.append(str(i))
 
 
 # Create the zeleny Distance
-import MultiObjective as MOO
-MOO.make_radar_chart("Efficiency", effNonDomSet ,exLegend ,labels, markers, ZelenyPointHL)
-##
-
-## create radar chart for the surgeons criteria
-effNonDomSet = []
-HLLevelSettings = []
-ZelenyPointHL = np.zeros(np.shape(partialSolSet)[1])
-for i in range(np.shape(domCount)[0]):
-    #id in the data starts from 1 => use -1 in indexing
-    if domCount[i] == 0:
-        print(alldata['id'][IdSet[i]])
-        # print([alldata['id'][IdSet[i]], alldata['HospEff'][IdSet[i]],
-        #                     alldata['MSSEff'][IdSet[i]],
-        #                     alldata['OREff'][IdSet[i]],
-        #                     alldata['WLEff'][IdSet[i]]])
-        HLLevelSettings.append([alldata['OpPr'][IdSet[i]],
-                               alldata['Gsize'][IdSet[i]],
-                               alldata['TcBl'][IdSet[i]],
-                               alldata['OpORTime'][IdSet[i]],
-                               alldata['OprBl'][IdSet[i]],
-                               alldata['PatArr'][IdSet[i]],
-                               alldata['SurPrf'][IdSet[i]],
-                               alldata['DPD'][IdSet[i]],
-                               alldata['BPD'][IdSet[i]]])
-        effNonDomSet.append([alldata['HospEff'][IdSet[i]],
-                            alldata['MSSEff'][IdSet[i]],
-                            alldata['OREff'][IdSet[i]],
-                            alldata['WLEff'][IdSet[i]]])
-        for i in range(np.shape(partialSolSet)[1]):
-            if ZelenyPointHL[i] < effNonDomSet[np.shape(effNonDomSet)[0] - 1][i]:
-                ZelenyPointHL[i] = effNonDomSet[np.shape(effNonDomSet)[0] - 1][i]
+MOO.make_radar_chart("SurPrtHL", nonDomSet ,exLegend ,labels, markers, ZelenyPointHL)
 
