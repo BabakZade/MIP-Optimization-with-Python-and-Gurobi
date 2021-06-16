@@ -5,11 +5,12 @@ class InputData:
 
     def __init__(self):
         # I use fixed random data
-        self.generateData(0)
+        self.randomSeed = 0
+        self.generateData()
 
 
-    def generateData(self, randomSeed):
-        random.seed(randomSeed)
+    def generateData(self):
+        random.seed(self.randomSeed)
         self.min = 5
         self.max = 10
         self.dimension = random.random_integers(self.min, self.max,1)[0]
