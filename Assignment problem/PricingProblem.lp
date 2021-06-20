@@ -1,4 +1,4 @@
-\ Model AssignmentModel
+\ Model PricingModel
 \ LP format - for model browsing. Use MPS format to capture full model detail.
 Minimize
   13 X_wt[0,0] + 13 X_wt[0,1] + 14 X_wt[0,2] + 14 X_wt[0,3] + 12 X_wt[0,4]
@@ -190,6 +190,96 @@ Subject To
    + X_wt[19,9] + X_wt[19,10] + X_wt[19,11] + X_wt[19,12] + X_wt[19,13]
    + X_wt[19,14] + X_wt[19,15] + X_wt[19,16] + X_wt[19,17] + X_wt[19,18]
    + X_wt[19,19] <= 1
+ Assignment_t(0): X_wt[0,0] + X_wt[1,0] + X_wt[2,0] + X_wt[3,0] + X_wt[4,0]
+   + X_wt[5,0] + X_wt[6,0] + X_wt[7,0] + X_wt[8,0] + X_wt[9,0] + X_wt[10,0]
+   + X_wt[11,0] + X_wt[12,0] + X_wt[13,0] + X_wt[14,0] + X_wt[15,0]
+   + X_wt[16,0] + X_wt[17,0] + X_wt[18,0] + X_wt[19,0] >= 1
+ Assignment_t(1): X_wt[0,1] + X_wt[1,1] + X_wt[2,1] + X_wt[3,1] + X_wt[4,1]
+   + X_wt[5,1] + X_wt[6,1] + X_wt[7,1] + X_wt[8,1] + X_wt[9,1] + X_wt[10,1]
+   + X_wt[11,1] + X_wt[12,1] + X_wt[13,1] + X_wt[14,1] + X_wt[15,1]
+   + X_wt[16,1] + X_wt[17,1] + X_wt[18,1] + X_wt[19,1] >= 1
+ Assignment_t(2): X_wt[0,2] + X_wt[1,2] + X_wt[2,2] + X_wt[3,2] + X_wt[4,2]
+   + X_wt[5,2] + X_wt[6,2] + X_wt[7,2] + X_wt[8,2] + X_wt[9,2] + X_wt[10,2]
+   + X_wt[11,2] + X_wt[12,2] + X_wt[13,2] + X_wt[14,2] + X_wt[15,2]
+   + X_wt[16,2] + X_wt[17,2] + X_wt[18,2] + X_wt[19,2] >= 1
+ Assignment_t(3): X_wt[0,3] + X_wt[1,3] + X_wt[2,3] + X_wt[3,3] + X_wt[4,3]
+   + X_wt[5,3] + X_wt[6,3] + X_wt[7,3] + X_wt[8,3] + X_wt[9,3] + X_wt[10,3]
+   + X_wt[11,3] + X_wt[12,3] + X_wt[13,3] + X_wt[14,3] + X_wt[15,3]
+   + X_wt[16,3] + X_wt[17,3] + X_wt[18,3] + X_wt[19,3] >= 1
+ Assignment_t(4): X_wt[0,4] + X_wt[1,4] + X_wt[2,4] + X_wt[3,4] + X_wt[4,4]
+   + X_wt[5,4] + X_wt[6,4] + X_wt[7,4] + X_wt[8,4] + X_wt[9,4] + X_wt[10,4]
+   + X_wt[11,4] + X_wt[12,4] + X_wt[13,4] + X_wt[14,4] + X_wt[15,4]
+   + X_wt[16,4] + X_wt[17,4] + X_wt[18,4] + X_wt[19,4] >= 1
+ Assignment_t(5): X_wt[0,5] + X_wt[1,5] + X_wt[2,5] + X_wt[3,5] + X_wt[4,5]
+   + X_wt[5,5] + X_wt[6,5] + X_wt[7,5] + X_wt[8,5] + X_wt[9,5] + X_wt[10,5]
+   + X_wt[11,5] + X_wt[12,5] + X_wt[13,5] + X_wt[14,5] + X_wt[15,5]
+   + X_wt[16,5] + X_wt[17,5] + X_wt[18,5] + X_wt[19,5] >= 1
+ Assignment_t(6): X_wt[0,6] + X_wt[1,6] + X_wt[2,6] + X_wt[3,6] + X_wt[4,6]
+   + X_wt[5,6] + X_wt[6,6] + X_wt[7,6] + X_wt[8,6] + X_wt[9,6] + X_wt[10,6]
+   + X_wt[11,6] + X_wt[12,6] + X_wt[13,6] + X_wt[14,6] + X_wt[15,6]
+   + X_wt[16,6] + X_wt[17,6] + X_wt[18,6] + X_wt[19,6] >= 1
+ Assignment_t(7): X_wt[0,7] + X_wt[1,7] + X_wt[2,7] + X_wt[3,7] + X_wt[4,7]
+   + X_wt[5,7] + X_wt[6,7] + X_wt[7,7] + X_wt[8,7] + X_wt[9,7] + X_wt[10,7]
+   + X_wt[11,7] + X_wt[12,7] + X_wt[13,7] + X_wt[14,7] + X_wt[15,7]
+   + X_wt[16,7] + X_wt[17,7] + X_wt[18,7] + X_wt[19,7] >= 1
+ Assignment_t(8): X_wt[0,8] + X_wt[1,8] + X_wt[2,8] + X_wt[3,8] + X_wt[4,8]
+   + X_wt[5,8] + X_wt[6,8] + X_wt[7,8] + X_wt[8,8] + X_wt[9,8] + X_wt[10,8]
+   + X_wt[11,8] + X_wt[12,8] + X_wt[13,8] + X_wt[14,8] + X_wt[15,8]
+   + X_wt[16,8] + X_wt[17,8] + X_wt[18,8] + X_wt[19,8] >= 1
+ Assignment_t(9): X_wt[0,9] + X_wt[1,9] + X_wt[2,9] + X_wt[3,9] + X_wt[4,9]
+   + X_wt[5,9] + X_wt[6,9] + X_wt[7,9] + X_wt[8,9] + X_wt[9,9] + X_wt[10,9]
+   + X_wt[11,9] + X_wt[12,9] + X_wt[13,9] + X_wt[14,9] + X_wt[15,9]
+   + X_wt[16,9] + X_wt[17,9] + X_wt[18,9] + X_wt[19,9] >= 1
+ Assignment_t(10): X_wt[0,10] + X_wt[1,10] + X_wt[2,10] + X_wt[3,10]
+   + X_wt[4,10] + X_wt[5,10] + X_wt[6,10] + X_wt[7,10] + X_wt[8,10]
+   + X_wt[9,10] + X_wt[10,10] + X_wt[11,10] + X_wt[12,10] + X_wt[13,10]
+   + X_wt[14,10] + X_wt[15,10] + X_wt[16,10] + X_wt[17,10] + X_wt[18,10]
+   + X_wt[19,10] >= 1
+ Assignment_t(11): X_wt[0,11] + X_wt[1,11] + X_wt[2,11] + X_wt[3,11]
+   + X_wt[4,11] + X_wt[5,11] + X_wt[6,11] + X_wt[7,11] + X_wt[8,11]
+   + X_wt[9,11] + X_wt[10,11] + X_wt[11,11] + X_wt[12,11] + X_wt[13,11]
+   + X_wt[14,11] + X_wt[15,11] + X_wt[16,11] + X_wt[17,11] + X_wt[18,11]
+   + X_wt[19,11] >= 1
+ Assignment_t(12): X_wt[0,12] + X_wt[1,12] + X_wt[2,12] + X_wt[3,12]
+   + X_wt[4,12] + X_wt[5,12] + X_wt[6,12] + X_wt[7,12] + X_wt[8,12]
+   + X_wt[9,12] + X_wt[10,12] + X_wt[11,12] + X_wt[12,12] + X_wt[13,12]
+   + X_wt[14,12] + X_wt[15,12] + X_wt[16,12] + X_wt[17,12] + X_wt[18,12]
+   + X_wt[19,12] >= 1
+ Assignment_t(13): X_wt[0,13] + X_wt[1,13] + X_wt[2,13] + X_wt[3,13]
+   + X_wt[4,13] + X_wt[5,13] + X_wt[6,13] + X_wt[7,13] + X_wt[8,13]
+   + X_wt[9,13] + X_wt[10,13] + X_wt[11,13] + X_wt[12,13] + X_wt[13,13]
+   + X_wt[14,13] + X_wt[15,13] + X_wt[16,13] + X_wt[17,13] + X_wt[18,13]
+   + X_wt[19,13] >= 1
+ Assignment_t(14): X_wt[0,14] + X_wt[1,14] + X_wt[2,14] + X_wt[3,14]
+   + X_wt[4,14] + X_wt[5,14] + X_wt[6,14] + X_wt[7,14] + X_wt[8,14]
+   + X_wt[9,14] + X_wt[10,14] + X_wt[11,14] + X_wt[12,14] + X_wt[13,14]
+   + X_wt[14,14] + X_wt[15,14] + X_wt[16,14] + X_wt[17,14] + X_wt[18,14]
+   + X_wt[19,14] >= 1
+ Assignment_t(15): X_wt[0,15] + X_wt[1,15] + X_wt[2,15] + X_wt[3,15]
+   + X_wt[4,15] + X_wt[5,15] + X_wt[6,15] + X_wt[7,15] + X_wt[8,15]
+   + X_wt[9,15] + X_wt[10,15] + X_wt[11,15] + X_wt[12,15] + X_wt[13,15]
+   + X_wt[14,15] + X_wt[15,15] + X_wt[16,15] + X_wt[17,15] + X_wt[18,15]
+   + X_wt[19,15] >= 1
+ Assignment_t(16): X_wt[0,16] + X_wt[1,16] + X_wt[2,16] + X_wt[3,16]
+   + X_wt[4,16] + X_wt[5,16] + X_wt[6,16] + X_wt[7,16] + X_wt[8,16]
+   + X_wt[9,16] + X_wt[10,16] + X_wt[11,16] + X_wt[12,16] + X_wt[13,16]
+   + X_wt[14,16] + X_wt[15,16] + X_wt[16,16] + X_wt[17,16] + X_wt[18,16]
+   + X_wt[19,16] >= 1
+ Assignment_t(17): X_wt[0,17] + X_wt[1,17] + X_wt[2,17] + X_wt[3,17]
+   + X_wt[4,17] + X_wt[5,17] + X_wt[6,17] + X_wt[7,17] + X_wt[8,17]
+   + X_wt[9,17] + X_wt[10,17] + X_wt[11,17] + X_wt[12,17] + X_wt[13,17]
+   + X_wt[14,17] + X_wt[15,17] + X_wt[16,17] + X_wt[17,17] + X_wt[18,17]
+   + X_wt[19,17] >= 1
+ Assignment_t(18): X_wt[0,18] + X_wt[1,18] + X_wt[2,18] + X_wt[3,18]
+   + X_wt[4,18] + X_wt[5,18] + X_wt[6,18] + X_wt[7,18] + X_wt[8,18]
+   + X_wt[9,18] + X_wt[10,18] + X_wt[11,18] + X_wt[12,18] + X_wt[13,18]
+   + X_wt[14,18] + X_wt[15,18] + X_wt[16,18] + X_wt[17,18] + X_wt[18,18]
+   + X_wt[19,18] >= 1
+ Assignment_t(19): X_wt[0,19] + X_wt[1,19] + X_wt[2,19] + X_wt[3,19]
+   + X_wt[4,19] + X_wt[5,19] + X_wt[6,19] + X_wt[7,19] + X_wt[8,19]
+   + X_wt[9,19] + X_wt[10,19] + X_wt[11,19] + X_wt[12,19] + X_wt[13,19]
+   + X_wt[14,19] + X_wt[15,19] + X_wt[16,19] + X_wt[17,19] + X_wt[18,19]
+   + X_wt[19,19] >= 1
  Assignment_t(0): X_wt[0,0] + X_wt[1,0] + X_wt[2,0] + X_wt[3,0] + X_wt[4,0]
    + X_wt[5,0] + X_wt[6,0] + X_wt[7,0] + X_wt[8,0] + X_wt[9,0] + X_wt[10,0]
    + X_wt[11,0] + X_wt[12,0] + X_wt[13,0] + X_wt[14,0] + X_wt[15,0]

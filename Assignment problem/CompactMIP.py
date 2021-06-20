@@ -1,4 +1,4 @@
-from InputData import InputData
+
 from gurobipy import *
 
 class CompactMIP():
@@ -40,6 +40,7 @@ class CompactMIP():
 
     def printOutPut(self, inputdata):
         print(self.gorubiModel.objVal)
+        self.objectiveValue = self.gorubiModel.objVal
         for t in inputdata.T:
             for w in inputdata.W:
                 if self.X_wt[w,t].x > 0:

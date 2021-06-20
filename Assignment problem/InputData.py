@@ -10,10 +10,11 @@ class InputData:
 
 
     def generateData(self):
-        random.seed(self.randomSeed)
+        #random.seed(self.randomSeed)
         self.min = 5
-        self.max = 10
+        self.max = 20
         self.dimension = random.random_integers(self.min, self.max,1)[0]
+        #self.dimension = 6
         self.workers = []
         self.tasks = []
         for d in range(self.dimension):
