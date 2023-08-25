@@ -27,9 +27,6 @@ class PricingProblem:
         for t in inputdata.T:
             self.pricingModel.addConstr(quicksum(self.X_wt[w, t] for w in inputdata.W) >= 1, name = "Assignment_t(" + str(t) + ")")
 
-        # SUM(X_wt, w) >= 1  \forall t
-        for t in inputdata.T:
-            self.pricingModel.addConstr(quicksum(self.X_wt[w, t] for w in inputdata.W) >= 1, name="Assignment_t(" + str(t) + ")")
 
 
     def initiateMIPVar(self, inputdata):
